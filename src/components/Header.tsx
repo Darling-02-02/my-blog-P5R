@@ -1,11 +1,15 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { heroSlideshowImages } from './imageConfig';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
   const [isInHeroSection, setIsInHeroSection] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isArticlePage = location.pathname.startsWith('/article');
 
   // Hero图片切换
   useEffect(() => {
@@ -34,11 +38,22 @@ const Header = () => {
   }, []);
 
   const navItems = [
-    { name: '首页', href: '#home' },
-    { name: '学习路线', href: '#blog' },
-    { name: '关于', href: '#about' },
-    { name: '代码仓库', href: '#contact' },
+    { name: '首页', href: '/', isPage: true },
+    { name: '学习路线', href: '/#blog', isPage: false },
+    { name: '关于', href: '/#about', isPage: false },
+    { name: '代码仓库', href: 'https://github.com', isPage: true, external: true },
   ];
+
+  const handleNavClick = (item: typeof navItems[0]) => {
+    if (item.external) {
+      window.open(item.href, '_blank');
+    } else if (item.isPage) {
+      navigate(item.href);
+    } else {
+      navigate(item.href);
+    }
+    setIsMenuOpen(false);
+  };
 
   return (
     <motion.header
@@ -56,9 +71,26 @@ const Header = () => {
         overflow: 'hidden',
       }}
     >
-      {/* 背景层 - 根据滚动位置切换 */}
+      {/* 背景层 - 根据页面和滚动位置切换 */}
       <AnimatePresence mode="sync">
-        {isInHeroSection ? (
+        {isArticlePage ? (
+          // 文章页面背景 - 纯色+渐变
+          <motion.div
+            key="article-bg"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
+            }}
+          />
+        ) : isInHeroSection ? (
           // Hero区域背景 - 图片切换
           <motion.div
             key={`hero-${currentHeroIndex}`}
@@ -162,9 +194,9 @@ const Header = () => {
           alignItems: 'center',
         }}>
           {navItems.map((item, index) => (
-            <motion.a
+            <motion.button
               key={item.name}
-              href={item.href}
+              onClick={() => handleNavClick(item)}
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 + 0.3 }}
@@ -174,7 +206,10 @@ const Header = () => {
               }}
               style={{
                 color: '#ffffff',
-                textDecoration: 'none',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1rem',
                 fontWeight: '500',
                 position: 'relative',
                 padding: '0.5rem 0',
@@ -195,7 +230,7 @@ const Header = () => {
                 whileHover={{ transform: 'scaleX(1)', transformOrigin: 'left' }}
                 transition={{ duration: 0.3 }}
               />
-            </motion.a>
+            </motion.button>
           ))}
           
           {/* 搜索栏 */}
@@ -267,20 +302,24 @@ const Header = () => {
           }}
         >
           {navItems.map((item) => (
-            <a
+            <button
               key={item.name}
-              href={item.href}
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => handleNavClick(item)}
               style={{
                 display: 'block',
                 color: '#ffffff',
-                textDecoration: 'none',
-                padding: '0.5rem 0',
+                background: 'transparent',
+                border: 'none',
                 borderBottom: '1px solid #2d2d2d',
+                width: '100%',
+                textAlign: 'left',
+                cursor: 'pointer',
+                padding: '0.5rem 0',
+                fontSize: '1rem',
               }}
             >
               {item.name}
-            </a>
+            </button>
           ))}
         </motion.div>
       )}

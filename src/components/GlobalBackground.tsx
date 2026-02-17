@@ -1,4 +1,3 @@
-import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { heroSlideshowImages } from './imageConfig';
 
@@ -64,20 +63,11 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
 // Hero区域背景 - 图片渐变切换
 export const HeroSlideshowBackground = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loadedImages, setLoadedImages] = useState<boolean[]>(new Array(heroSlideshowImages.length).fill(false));
-
   useEffect(() => {
     // 预加载所有图片
-    heroSlideshowImages.forEach((src, index) => {
+    heroSlideshowImages.forEach((src) => {
       const img = new Image();
       img.src = src;
-      img.onload = () => {
-        setLoadedImages(prev => {
-          const newLoaded = [...prev];
-          newLoaded[index] = true;
-          return newLoaded;
-        });
-      };
     });
   }, []);
 
