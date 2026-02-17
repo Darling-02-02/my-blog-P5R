@@ -1,0 +1,43 @@
+/* App specific styles */
+#root {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Scanline overlay for anime effect */
+.scanlines {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(255, 0, 64, 0.3);
+  color: #fff;
+}
+
+/* Responsive typography */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* Focus styles for accessibility */
+a:focus,
+button:focus {
+  outline: 2px solid var(--p5-red);
+  outline-offset: 2px;
+}
+
+/* Prevent horizontal overflow */
+body {
+  overflow-x: hidden;
+}
