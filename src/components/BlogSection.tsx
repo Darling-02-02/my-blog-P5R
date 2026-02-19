@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { articles } from '../data/articles';
 
-const coverImage = '/cover.png';
+const base = import.meta.env.BASE_URL;
+const coverImage = `${base}cover.png`;
 
 // 主页面显示的5个栏目
 const mainPosts = articles.slice(0, 5).map(article => ({
@@ -158,7 +159,7 @@ const BlogSection = () => {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundImage: 'url(/图片_1.jpg)',
+        backgroundImage: `url(${base}图片_1.jpg)`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         opacity: 0.6,

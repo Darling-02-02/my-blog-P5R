@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { heroSlideshowImages } from './imageConfig';
 
+const base = import.meta.env.BASE_URL;
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
@@ -124,7 +126,7 @@ const Header = () => {
               left: 0,
               width: '100%',
               height: '100%',
-              backgroundImage: 'url(/主题背景.jpg)',
+              backgroundImage: `url(${base}主题背景.jpg)`,
               backgroundSize: 'cover',
               backgroundPosition: 'center top',
               backgroundRepeat: 'no-repeat',

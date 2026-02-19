@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { heroSlideshowImages } from './imageConfig';
 
+const base = import.meta.env.BASE_URL;
+
 interface BackgroundProps {
   children: React.ReactNode;
 }
@@ -31,7 +33,7 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
             left: 0,
             width: '100%',
             height: '100%',
-            backgroundImage: 'url(/图片_1.jpg)',
+            backgroundImage: `url(${base}图片_1.jpg)`,
             backgroundSize: '80%',
             backgroundPosition: 'center',
             backgroundRepeat: 'repeat',

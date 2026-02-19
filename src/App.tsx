@@ -19,7 +19,7 @@ function Home() {
 
 function App() {
   return (
-    <Router>
+    <Router basename="/my-blog-P5R">
       <GlobalBackground>
         <div className="scanlines">
           <Header />

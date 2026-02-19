@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
 
+const base = import.meta.env.BASE_URL;
 const images = [
-  '/slideshow/slideshow-0.png',
-  '/slideshow/slideshow-1.png',
-  '/slideshow/slideshow-2.png',
-  '/slideshow/slideshow-3.png',
-  '/slideshow/slideshow-4.png',
-  '/slideshow/slideshow-5.png',
-  '/slideshow/slideshow-6.png',
-  '/slideshow/slideshow-7.png',
-  '/slideshow/slideshow-8.png',
-  '/slideshow/slideshow-9.png',
-  '/slideshow/slideshow-10.png',
-  '/slideshow/slideshow-11.png',
-  '/slideshow/slideshow-12.png',
+  `${base}slideshow/slideshow-0.png`,
+  `${base}slideshow/slideshow-1.png`,
+  `${base}slideshow/slideshow-2.png`,
+  `${base}slideshow/slideshow-3.png`,
+  `${base}slideshow/slideshow-4.png`,
+  `${base}slideshow/slideshow-5.png`,
+  `${base}slideshow/slideshow-6.png`,
+  `${base}slideshow/slideshow-7.png`,
+  `${base}slideshow/slideshow-8.png`,
+  `${base}slideshow/slideshow-9.png`,
+  `${base}slideshow/slideshow-10.png`,
+  `${base}slideshow/slideshow-11.png`,
+  `${base}slideshow/slideshow-12.png`,
 ];
 
 const quotes = [
