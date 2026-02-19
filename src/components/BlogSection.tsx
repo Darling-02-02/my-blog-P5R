@@ -146,7 +146,7 @@ const BlogSection = () => {
     <section
       id="blog"
       style={{
-        padding: '6rem 2rem',
+        padding: 'clamp(3rem, 10vw, 6rem) clamp(1rem, 5vw, 2rem)',
         background: 'transparent',
         position: 'relative',
         overflow: 'hidden',
@@ -203,8 +203,8 @@ const BlogSection = () => {
         {/* Blog Grid */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-          gap: '2rem',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 350px), 1fr))',
+          gap: '1.5rem',
         }}>
           {mainPosts.map((post, index) => (
             <BlogCard key={post.id} post={post} index={index} />
@@ -259,9 +259,11 @@ const BlogSection = () => {
                 backdropFilter: 'blur(10px)',
                 zIndex: 1000,
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 justifyContent: 'center',
-                padding: '2rem',
+                padding: '1rem',
+                paddingTop: '4rem',
+                overflowY: 'auto',
               }}
               onClick={() => setShowAll(false)}
             >
@@ -272,9 +274,10 @@ const BlogSection = () => {
                 style={{
                   background: 'rgba(26, 26, 26, 0.95)',
                   borderRadius: '20px',
-                  padding: '3rem',
+                  padding: '2rem 1rem',
+                  width: '100%',
                   maxWidth: '1200px',
-                  maxHeight: '80vh',
+                  maxHeight: '90vh',
                   overflow: 'auto',
                   border: '2px solid var(--p5-red)',
                   position: 'relative',
@@ -286,16 +289,16 @@ const BlogSection = () => {
                   onClick={() => setShowAll(false)}
                   style={{
                     position: 'absolute',
-                    top: '1rem',
-                    right: '1rem',
+                    top: '0.5rem',
+                    right: '0.5rem',
                     background: 'transparent',
                     border: '2px solid var(--p5-red)',
                     color: 'var(--p5-red)',
-                    width: '40px',
-                    height: '40px',
+                    width: '36px',
+                    height: '36px',
                     borderRadius: '50%',
                     cursor: 'pointer',
-                    fontSize: '1.5rem',
+                    fontSize: '1.25rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -305,19 +308,20 @@ const BlogSection = () => {
                 </button>
 
                 <h2 style={{
-                  fontSize: '2rem',
+                  fontSize: 'clamp(1.25rem, 4vw, 2rem)',
                   fontWeight: '900',
-                  marginBottom: '2rem',
+                  marginBottom: '1.5rem',
                   textAlign: 'center',
                   color: 'var(--p5-red)',
+                  paddingRight: '2rem',
                 }}>
                   全部教程
                 </h2>
 
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                  gap: '2rem',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
+                  gap: '1.5rem',
                 }}>
                   {[...mainPosts, ...morePosts].map((post, index) => (
                     <BlogCard key={post.id} post={post} index={index} />

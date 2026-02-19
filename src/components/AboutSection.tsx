@@ -14,7 +14,7 @@ const AboutSection = () => {
     <section
       id="about"
       style={{
-        padding: '6rem 2rem',
+        padding: 'clamp(3rem, 10vw, 6rem) clamp(1rem, 5vw, 2rem)',
         background: 'transparent',
         position: 'relative',
         overflow: 'hidden',
@@ -40,8 +40,8 @@ const AboutSection = () => {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: '600px',
-        height: '600px',
+        width: 'min(600px, 100%)',
+        height: 'min(600px, 100%)',
         border: '1px solid rgba(255, 0, 64, 0.1)',
         borderRadius: '50%',
         zIndex: 0,
@@ -55,8 +55,8 @@ const AboutSection = () => {
       }}>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '4rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
+          gap: 'clamp(2rem, 5vw, 4rem)',
           alignItems: 'center',
         }}>
           {/* Left content */}
@@ -132,13 +132,13 @@ const AboutSection = () => {
                   background: 'rgba(255, 0, 64, 0.15)',
                   border: '1px solid rgba(255, 0, 64, 0.4)',
                   borderRadius: '10px',
-                  padding: '2rem',
+                  padding: 'clamp(1rem, 4vw, 2rem)',
                   textAlign: 'center',
                   backdropFilter: 'blur(10px)',
                 }}
               >
                 <div style={{
-                  fontSize: '2.5rem',
+                  fontSize: 'clamp(1.5rem, 5vw, 2.5rem)',
                   fontWeight: '900',
                   color: 'var(--p5-red)',
                   marginBottom: '0.5rem',
@@ -146,7 +146,7 @@ const AboutSection = () => {
                   {stat.number}
                 </div>
                 <div style={{
-                  fontSize: '1rem',
+                  fontSize: 'clamp(0.875rem, 3vw, 1rem)',
                   color: 'var(--p5-light-gray)',
                 }}>
                   {stat.label}

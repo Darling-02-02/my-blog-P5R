@@ -190,11 +190,13 @@ const Header = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <div style={{
-          display: 'flex',
-          gap: '2rem',
-          alignItems: 'center',
-        }}>
+        <div className="desktop-nav"
+          style={{
+            display: 'flex',
+            gap: '2rem',
+            alignItems: 'center',
+          }}
+        >
           {navItems.map((item, index) => (
             <motion.button
               key={item.name}
@@ -277,6 +279,7 @@ const Header = () => {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="mobile-menu-btn"
           style={{
             display: 'none',
             background: 'none',
@@ -284,47 +287,86 @@ const Header = () => {
             color: '#ffffff',
             fontSize: '1.5rem',
             cursor: 'pointer',
+            padding: '0.5rem',
           }}
         >
-          ☰
+          {isMenuOpen ? '✕' : '☰'}
         </button>
       </nav>
 
       {/* Mobile Menu */}
-      {isMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          style={{
-            background: 'rgba(10, 10, 10, 0.95)',
-            padding: '1rem',
-            position: 'relative',
-            zIndex: 2,
-          }}
-        >
-          {navItems.map((item) => (
-            <button
-              key={item.name}
-              onClick={() => handleNavClick(item)}
-              style={{
-                display: 'block',
-                color: '#ffffff',
-                background: 'transparent',
-                border: 'none',
-                borderBottom: '1px solid #2d2d2d',
-                width: '100%',
-                textAlign: 'left',
-                cursor: 'pointer',
-                padding: '0.5rem 0',
-                fontSize: '1rem',
-              }}
-            >
-              {item.name}
-            </button>
-          ))}
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            style={{
+              background: 'rgba(10, 10, 10, 0.98)',
+              padding: '1rem',
+              position: 'relative',
+              zIndex: 2,
+            }}
+          >
+            {navItems.map((item) => (
+              <button
+                key={item.name}
+                onClick={() => handleNavClick(item)}
+                style={{
+                  display: 'block',
+                  color: '#ffffff',
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: '1px solid #2d2d2d',
+                  width: '100%',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  padding: '1rem 0.5rem',
+                  fontSize: '1rem',
+                }}
+              >
+                {item.name}
+              </button>
+            ))}
+            {/* 移动端搜索 */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '20px',
+              padding: '0.75rem 1rem',
+              border: '1px solid rgba(255, 0, 64, 0.5)',
+              marginTop: '1rem',
+            }}>
+              <input
+                type="text"
+                placeholder="搜索..."
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#ffffff',
+                  outline: 'none',
+                  fontSize: '1rem',
+                  flex: 1,
+                }}
+              />
+              <span style={{ color: '#ff0040', fontSize: '1rem' }}>🔍</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 响应式样式 */}
+      <style>{`
+        @media (max-width: 768px) {
+          .desktop-nav {
+            display: none !important;
+          }
+          .mobile-menu-btn {
+            display: block !important;
+          }
+        }
+      `}</style>
     </motion.header>
   );
 };

@@ -77,6 +77,7 @@ export default function Hero() {
         .hero-section {
           position: relative;
           min-height: 100vh;
+          min-height: 100dvh;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -120,11 +121,13 @@ export default function Hero() {
           position: relative;
           text-align: center;
           z-index: 1;
-          padding: 2rem;
+          padding: 1rem;
+          width: 100%;
+          max-width: 100%;
         }
 
         .hero-title {
-          font-size: clamp(2rem, 6vw, 4rem);
+          font-size: clamp(1.5rem, 8vw, 4rem);
           font-weight: bold;
           margin-bottom: 1rem;
           background: linear-gradient(45deg, #ff6b9d, #c44569, #ff9ff3, #feca57, #ff9ff3, #c44569, #ff6b9d);
@@ -133,8 +136,7 @@ export default function Hero() {
           -webkit-text-fill-color: transparent;
           background-clip: text;
           animation: gradientShift 4s ease infinite, bounce 2s ease-in-out infinite;
-          text-shadow: 0 0 30px rgba(255, 107, 157, 0.5);
-          filter: drop-shadow(0 0 10px rgba(255, 159, 243, 0.3));
+          word-break: break-word;
         }
 
         @keyframes gradientShift {
@@ -149,15 +151,17 @@ export default function Hero() {
         }
 
         .hero-quote {
-          font-size: clamp(1rem, 2vw, 1.5rem);
+          font-size: clamp(0.875rem, 4vw, 1.5rem);
           color: #fff;
-          max-width: 800px;
+          max-width: 90%;
           margin: 0 auto;
-          min-height: 3rem;
+          min-height: 2rem;
           animation: quoteFloat 3s ease-in-out infinite, quoteGlow 2s ease-in-out infinite alternate;
           text-shadow: 0 0 20px rgba(255, 182, 193, 0.8), 0 0 40px rgba(255, 105, 180, 0.4);
           font-weight: 500;
-          letter-spacing: 1px;
+          letter-spacing: 0.5px;
+          line-height: 1.6;
+          padding: 0 0.5rem;
         }
 
         @keyframes quoteFloat {
@@ -180,6 +184,15 @@ export default function Hero() {
           opacity: 0;
           transform: scale(0.8) translateY(20px);
           transition: all 0.5s ease-in;
+        }
+
+        @media (max-width: 768px) {
+          .hero-content {
+            padding: 4rem 1rem 2rem;
+          }
+          .hero-quote {
+            max-width: 95%;
+          }
         }
       `}</style>
     </section>
