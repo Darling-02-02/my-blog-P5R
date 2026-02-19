@@ -5,6 +5,21 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>灵敏度加满的blog</title>
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages
+      // https://github.com/rafgraph/spa-github-pages
+      var pathPrefix = '/my-blog-P5R';
+      var l = window.location;
+      if (l.search && l.search.indexOf('?/') === 0) {
+        // 从查询字符串中恢复路径
+        var restoredPath = l.search.slice(1);
+        l.replace(
+          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+          pathPrefix + restoredPath +
+          l.hash
+        );
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
