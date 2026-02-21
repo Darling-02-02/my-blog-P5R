@@ -335,7 +335,8 @@ const MainContent = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginBottom: '3rem' }}>
           <div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#333', marginBottom: '1.5rem' }}>🎓 教育背景</h3>
-            <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.2 }}>河南农业大学本科茶学到福建农林大学硕士智慧园艺</p>
+            <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.2, marginBottom: '0.5rem' }}>河南农业大学 · 本科 · 茶学</p>
+            <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.2 }}>福建农林大学 · 硕士 · 智慧园艺</p>
           </div>
           <div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#333', marginBottom: '1.5rem' }}>💡 兴趣爱好</h3>
