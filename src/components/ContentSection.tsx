@@ -6,13 +6,6 @@ import { articles } from '../data/articles';
 const base = import.meta.env.BASE_URL;
 const coverImage = `${base}cover.png`;
 
-const categoryColors: Record<string, string> = {
-  '生物信息': '#ff6b6b',
-  '三维重建': '#4ecdc4',
-  '机器学习': '#45b7d1',
-  '随笔': '#96ceb4',
-};
-
 const tagData = [
   { name: '生物信息', count: 1 },
   { name: 'RNA-seq', count: 1 },
@@ -375,7 +368,7 @@ const Sidebar = () => (
 // 文章卡片
 const BlogCard = ({ post, index }: { post: typeof articles[0] & { image: string }; index: number }) => {
   const navigate = useNavigate();
-  const categoryColor = categoryColors[post.category] || '#ff6b9d';
+  const today = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
   return (
     <motion.article
       initial={{ opacity: 0, y: 20 }}
@@ -395,11 +388,11 @@ const BlogCard = ({ post, index }: { post: typeof articles[0] & { image: string 
     >
       <div style={{ height: '160px', overflow: 'hidden', position: 'relative' }}>
         <img src={post.image} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: categoryColor, color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '15px', fontSize: '0.85rem', fontWeight: '600' }}>{post.category}</span>
+        <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: '#ff0040', color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '15px', fontSize: '0.85rem', fontWeight: '600' }}>暗影大人</span>
       </div>
       <div style={{ padding: '1.5rem' }}>
         <h4 style={{ fontSize: '1.15rem', fontWeight: '600', color: '#1a1a1a', marginBottom: '0.75rem', lineHeight: 1.5 }}>{post.title}</h4>
-        <p style={{ fontSize: '0.95rem', color: '#888', marginBottom: '0.8rem' }}>{post.date} · {post.readTime}</p>
+        <p style={{ fontSize: '0.95rem', color: '#888', marginBottom: '0.8rem' }}>{today} · {post.readTime}</p>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {post.tags.slice(0, 2).map(tag => (
             <span key={tag} style={{ color: '#ff0040', fontSize: '0.85rem', background: 'rgba(255,0,64,0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>#{tag}</span>

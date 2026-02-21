@@ -12,7 +12,7 @@ export interface Article {
 export const articles: Article[] = [
   {
     id: 1,
-    title: '生物信息分析基础入门',
+    title: '生物信息',
     excerpt: '生物信息学相关知识与技术分析，涵盖RNA-seq、单细胞测序、SNP calling等核心流程',
     category: '生物信息',
     date: '2026-02-15',
@@ -22,7 +22,7 @@ export const articles: Article[] = [
   },
   {
     id: 2,
-    title: '三维重建技术探索',
+    title: '三维重建',
     excerpt: '3D重建技术与计算机视觉相关内容，包括NeRF、点云处理、摄影测量等技术',
     category: '三维重建',
     date: '2026-02-10',
@@ -32,7 +32,7 @@ export const articles: Article[] = [
   },
   {
     id: 3,
-    title: '机器学习Pipeline构建',
+    title: '机器学习',
     excerpt: '完整的ML工程实践，包括数据预处理、特征工程、模型训练、评估和部署的全流程',
     category: '机器学习',
     date: '2026-02-05',
@@ -41,8 +41,8 @@ export const articles: Article[] = [
     content: '# 机器学习Pipeline构建：从数据到模型部署\n\n## 1. 机器学习项目生命周期\n\n1. **问题定义**：明确业务目标和评估指标\n2. **数据收集**：获取和整合训练数据\n3. **数据预处理**：清洗、转换和特征工程\n4. **模型训练**：选择算法并训练模型\n5. **模型评估**：验证模型性能\n6. **模型部署**：将模型投入生产环境\n7. **监控维护**：持续监控模型表现\n\n## 2. 数据预处理\n\n### 2.1 数据清洗\n\n处理缺失值、异常值，确保数据质量。\n\n### 2.2 特征工程\n\n- 特征缩放（StandardScaler）\n- 标签编码（LabelEncoder）\n- 特征选择\n\n## 3. 模型训练\n\n使用scikit-learn进行模型训练：\n\n1. 划分数据集（train_test_split）\n2. 选择算法（RandomForest, XGBoost等）\n3. 训练模型\n4. 评估性能\n5. 超参数调优（GridSearchCV）\n\n## 4. 模型部署\n\n### 4.1 使用FastAPI部署\n\nFastAPI是一个高性能的Python Web框架，适合部署机器学习模型。\n\n### 4.2 Docker容器化\n\n使用Docker将应用打包成容器，实现一次构建到处运行。\n\n## 5. MLOps最佳实践\n\n- **版本控制**：Git管理代码，DVC管理数据\n- **自动化流程**：GitHub Actions自动化CI/CD\n- **模型追踪**：使用MLflow记录实验\n\n---\n\n*机器学习是一个需要不断学习和实践的领域！*',
   },
   {
-    id: 5,
-    title: '日常思考与技术随笔',
+    id: 4,
+    title: '随笔',
     excerpt: '日常思考、技术随笔、生活感悟',
     category: '随笔',
     date: '2026-01-10',
