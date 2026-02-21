@@ -329,7 +329,7 @@ const MainContent = () => {
           <span style={{ color: '#ff0040' }}>个人</span>简介
         </h1>
         <p style={{ color: '#888', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid rgba(0,0,0,0.06)' }}>
-          了解关于我的一切
+          一个臭看番的——离离神很近，也就是离人很远。
         </p>
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginBottom: '3rem' }}>
@@ -341,15 +341,6 @@ const MainContent = () => {
           <div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#333', marginBottom: '1.5rem' }}>💡 兴趣爱好</h3>
             <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.4 }}>有待开发</p>
-          </div>
-        </div>
-
-        <div style={{ marginTop: '3.5rem' }}>
-          <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#333', marginBottom: '1.5rem' }}>🎯 人生清单</h3>
-          <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-            {['健身', '徒步', '中长跑'].map(item => (
-              <span key={item} style={{ padding: '0.8rem 2rem', background: 'rgba(255,0,64,0.05)', border: '2px solid rgba(255,0,64,0.15)', borderRadius: '30px', fontSize: '1.1rem', color: '#333' }}>⬜ {item}</span>
-            ))}
           </div>
         </div>
       </section>
