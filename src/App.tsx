@@ -1,8 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Hero from './components/Hero'
-import BentoSection from './components/BentoSection'
-import BlogSection from './components/BlogSection'
-import AboutSection from './components/AboutSection'
+import ContentSection from './components/ContentSection'
 import Footer from './components/Footer'
 import Article from './components/Article'
 import AboutMe from './components/AboutMe'
@@ -12,9 +10,8 @@ function Home() {
   return (
     <>
       <Hero />
-      <BentoSection />
-      <BlogSection />
-      <AboutSection />
+      <ContentSection />
+      <Footer />
     </>
   );
 }
@@ -31,7 +28,6 @@ function App() {
               <Route path="/about" element={<AboutMe />} />
             </Routes>
           </main>
-          <Footer />
         </div>
       </GlobalBackground>
     </Router>
