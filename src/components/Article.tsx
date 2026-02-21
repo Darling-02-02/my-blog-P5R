@@ -137,7 +137,7 @@ const Article = () => {
       transition={{ duration: 0.5 }}
       style={{
         minHeight: '100vh',
-        padding: '6rem 2rem 4rem',
+        padding: '5rem 2rem 4rem',
       }}
     >
       <div style={{
