@@ -30,9 +30,9 @@ const GiscusComments = () => {
     const script = document.createElement('script');
     script.src = 'https://giscus.app/client.js';
     script.setAttribute('data-repo', 'Darling-02-02/my-blog-P5R');
-    script.setAttribute('data-repo-id', '');
+    script.setAttribute('data-repo-id', 'R_kgDORSAoMw');
     script.setAttribute('data-category', 'General');
-    script.setAttribute('data-category-id', '');
+    script.setAttribute('data-category-id', 'DIC_kwDORSAoM84C25Zv');
     script.setAttribute('data-mapping', 'pathname');
     script.setAttribute('data-strict', '0');
     script.setAttribute('data-reactions-enabled', '1');
