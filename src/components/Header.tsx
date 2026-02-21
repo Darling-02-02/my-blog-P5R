@@ -42,14 +42,35 @@ const Header = () => {
   const navItems = [
     { name: '首页', href: '/', isPage: true },
     { name: '个人简介', href: '/#profile', isPage: false },
+    { name: '幕后', href: '/#blog', isPage: false },
     { name: 'GitHub', href: 'https://github.com/Darling-02-02', isPage: true, external: true },
   ];
 
   const handleNavClick = (item: typeof navItems[0]) => {
     if (item.external) {
       window.open(item.href, '_blank');
-    } else if (item.isPage) {
-      navigate(item.href);
+    } else if (item.href === '/') {
+      if (location.pathname === '/') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        navigate('/');
+      }
+    } else if (item.href.includes('#')) {
+      const hash = item.href.split('#')[1];
+      if (location.pathname === '/') {
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        navigate(item.href);
+        setTimeout(() => {
+          const element = document.getElementById(hash);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      }
     } else {
       navigate(item.href);
     }
