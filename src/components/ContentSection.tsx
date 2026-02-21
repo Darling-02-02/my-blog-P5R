@@ -25,6 +25,38 @@ const tagData = [
   { name: '学习路线', count: 1 },
 ];
 
+const GiscusComments = () => {
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://giscus.app/client.js';
+    script.setAttribute('data-repo', 'Darling-02-02/my-blog-P5R');
+    script.setAttribute('data-repo-id', '');
+    script.setAttribute('data-category', 'General');
+    script.setAttribute('data-category-id', '');
+    script.setAttribute('data-mapping', 'pathname');
+    script.setAttribute('data-strict', '0');
+    script.setAttribute('data-reactions-enabled', '1');
+    script.setAttribute('data-emit-metadata', '0');
+    script.setAttribute('data-input-position', 'top');
+    script.setAttribute('data-theme', 'light');
+    script.setAttribute('data-lang', 'zh-CN');
+    script.setAttribute('crossorigin', 'anonymous');
+    script.async = true;
+    
+    const container = document.getElementById('giscus-container');
+    if (container) {
+      container.innerHTML = '';
+      container.appendChild(script);
+    }
+    
+    return () => {
+      if (container) container.innerHTML = '';
+    };
+  }, []);
+
+  return <div id="giscus-container" style={{ minHeight: '200px' }} />;
+};
+
 // 侧边栏卡片
 const SidebarCard = ({ 
   children, 
@@ -439,7 +471,7 @@ const MainContent = () => {
       </section>
 
       {/* 关于 */}
-      <section id="about">
+      <section id="about" style={{ marginBottom: '6rem' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#1a1a1a', marginBottom: '1rem' }}>
           <span style={{ color: '#ff0040' }}>关于</span>本站
         </h1>
@@ -450,6 +482,31 @@ const MainContent = () => {
         <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.4 }}>
           垂死挣扎的双非硕，一切以实际为准。欢迎交流学习。
         </p>
+        
+        <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(255,0,64,0.05)', borderRadius: '12px', border: '1px solid rgba(255,0,64,0.1)' }}>
+          <p style={{ color: '#555', fontSize: '1rem', lineHeight: 1.8, margin: 0 }}>
+            📧 联系邮箱：<a href="mailto:19503862693@163.com" style={{ color: '#ff0040', textDecoration: 'none', fontWeight: '600' }}>19503862693@163.com</a>
+          </p>
+        </div>
+      </section>
+
+      {/* 评论区 */}
+      <section id="comments">
+        <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#1a1a1a', marginBottom: '1rem' }}>
+          <span style={{ color: '#ff0040' }}>留言</span>板
+        </h1>
+        <p style={{ color: '#888', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid rgba(0,0,0,0.06)' }}>
+          欢迎留下你的足迹
+        </p>
+        
+        <div style={{ 
+          background: 'rgba(255, 255, 255, 0.9)', 
+          borderRadius: '12px', 
+          padding: '1.5rem',
+          border: '1px solid rgba(200, 200, 200, 0.3)',
+        }}>
+          <GiscusComments />
+        </div>
       </section>
     </div>
   );
