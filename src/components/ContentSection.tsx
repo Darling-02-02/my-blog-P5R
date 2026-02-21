@@ -418,7 +418,7 @@ const MainContent = () => {
           <span style={{ color: '#ff0040' }}>个人</span>简介
         </h1>
         <p style={{ color: '#888', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid rgba(0,0,0,0.06)' }}>
-          一个臭看番的——离离神很近，也就是离人很远。
+          离神很近，也就是离人很远。——一个臭看番的。
         </p>
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginBottom: '3rem' }}>
