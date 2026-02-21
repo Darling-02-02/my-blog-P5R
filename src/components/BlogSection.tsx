@@ -2,17 +2,16 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { articles } from '../data/articles';
+import { PageLayout, MainContentCard } from './SidebarLayout';
 
 const base = import.meta.env.BASE_URL;
 const coverImage = `${base}cover.png`;
 
-// 主页面显示的5个栏目
 const mainPosts = articles.slice(0, 5).map(article => ({
   ...article,
   image: coverImage,
 }));
 
-// 弹窗中显示的额外栏目
 const morePosts = articles.slice(5).map(article => ({
   ...article,
   image: coverImage,
@@ -32,104 +31,59 @@ const BlogCard = ({ post, index }: BlogCardProps) => {
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 50 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      whileHover={{ y: -10 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, delay: index * 0.1 }}
+      whileHover={{ y: -5 }}
       onClick={handleClick}
       style={{
-        background: 'rgba(26, 26, 26, 0.7)',
+        background: 'rgba(255, 255, 255, 0.8)',
         borderRadius: '10px',
         overflow: 'hidden',
-        border: '1px solid rgba(255, 0, 64, 0.3)',
+        border: '1px solid rgba(200, 200, 200, 0.3)',
         cursor: 'pointer',
         backdropFilter: 'blur(10px)',
       }}
     >
-      {/* Image */}
-      <div style={{
-        position: 'relative',
-        height: '200px',
-        overflow: 'hidden',
-      }}>
+      <div style={{ position: 'relative', height: '160px', overflow: 'hidden' }}>
         <motion.img
           src={post.image}
           alt={post.title}
-          whileHover={{ scale: 1.1 }}
+          whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.3 }}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
         <div style={{
           position: 'absolute',
-          top: '1rem',
-          left: '1rem',
-          background: 'var(--p5-red)',
-          padding: '0.25rem 0.75rem',
-          borderRadius: '20px',
-          fontSize: '0.75rem',
-          fontWeight: '700',
-          textTransform: 'uppercase',
+          top: '0.75rem',
+          left: '0.75rem',
+          background: '#ff0040',
+          color: '#fff',
+          padding: '0.2rem 0.6rem',
+          borderRadius: '15px',
+          fontSize: '0.7rem',
+          fontWeight: '600',
         }}>
           {post.category}
         </div>
       </div>
 
-      {/* Content */}
-      <div style={{ padding: '1.5rem' }}>
-        <div style={{
-          display: 'flex',
-          gap: '1rem',
-          marginBottom: '0.75rem',
-          fontSize: '0.875rem',
-          color: 'var(--p5-light-gray)',
-        }}>
+      <div style={{ padding: '1rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.75rem', color: '#888' }}>
           <span>{post.date}</span>
           <span>•</span>
           <span>{post.readTime}</span>
         </div>
-
-        <h3 style={{
-          fontSize: '1.25rem',
-          fontWeight: '700',
-          marginBottom: '0.75rem',
-          lineHeight: 1.4,
-          color: 'var(--p5-white)',
-        }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', lineHeight: 1.4, color: '#1a1a1a' }}>
           {post.title}
         </h3>
-
-        <p style={{
-          fontSize: '0.9rem',
-          color: 'var(--p5-light-gray)',
-          lineHeight: 1.6,
-          marginBottom: '1rem',
-        }}>
+        <p style={{ fontSize: '0.8rem', color: '#666', lineHeight: 1.5, marginBottom: '0.75rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {post.excerpt}
         </p>
-
-        {/* Tags */}
-        <div style={{
-          display: 'flex',
-          gap: '0.5rem',
-          flexWrap: 'wrap',
-        }}>
-          {post.tags.map((tag) => (
-            <span
-              key={tag}
-              style={{
-                padding: '0.25rem 0.5rem',
-                background: 'rgba(255, 0, 64, 0.2)',
-                border: '1px solid var(--p5-red)',
-                borderRadius: '4px',
-                fontSize: '0.75rem',
-                color: 'var(--p5-red)',
-              }}
-            >
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          {post.tags.slice(0, 3).map((tag) => (
+            <span key={tag} style={{ padding: '0.15rem 0.4rem', background: 'rgba(255, 0, 64, 0.1)', borderRadius: '3px', fontSize: '0.65rem', color: '#ff0040' }}>
               #{tag}
             </span>
           ))}
@@ -143,183 +97,120 @@ const BlogSection = () => {
   const [showAll, setShowAll] = useState(false);
 
   return (
-    <section
-      id="blog"
-      style={{
-        padding: 'clamp(3rem, 10vw, 6rem) clamp(1rem, 5vw, 2rem)',
-        background: 'transparent',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      
-
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={{
-            textAlign: 'center',
-            marginBottom: '4rem',
-          }}
-        >
-          <h2 style={{
-            fontSize: 'clamp(2rem, 5vw, 3rem)',
-            fontWeight: '900',
-            marginBottom: '1rem',
-            color: 'var(--p5-white)',
-          }}>
-            <span style={{ color: 'var(--p5-red)' }}>幕后</span>
-          </h2>
-          <p style={{
-            fontSize: '1.1rem',
-            color: 'var(--p5-light-gray)',
-            maxWidth: '600px',
-            margin: '0 auto',
-          }}>
+    <section id="blog" style={{ padding: 'clamp(2rem, 5vw, 4rem) 0', position: 'relative', zIndex: 1 }}>
+      <PageLayout>
+        <MainContentCard>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1a1a1a', marginBottom: '0.5rem' }}>
+            <span style={{ color: '#ff0040' }}>幕后</span>
+          </h1>
+          <p style={{ color: '#666', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '2px solid rgba(255, 0, 64, 0.2)' }}>
             一切都是为了正义
           </p>
-        </motion.div>
 
-        {/* Blog Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 350px), 1fr))',
-          gap: '1.5rem',
-        }}>
-          {mainPosts.map((post, index) => (
-            <BlogCard key={post.id} post={post} index={index} />
-          ))}
-        </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+            {mainPosts.map((post, index) => (
+              <BlogCard key={post.id} post={post} index={index} />
+            ))}
+          </div>
 
-        {/* View All Button */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          style={{
-            textAlign: 'center',
-            marginTop: '4rem',
-          }}
-        >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowAll(true)}
-            style={{
-              padding: '1rem 3rem',
-              background: 'transparent',
-              border: '2px solid var(--p5-red)',
-              color: 'var(--p5-red)',
-              fontSize: '1rem',
-              fontWeight: '700',
-              textTransform: 'uppercase',
-              letterSpacing: '2px',
-              cursor: 'pointer',
-              borderRadius: '5px',
-            }}
-          >
-            查看全部教程
-          </motion.button>
-        </motion.div>
-
-        {/* View All Modal */}
-        <AnimatePresence>
-          {showAll && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'rgba(0, 0, 0, 0.85)',
-                backdropFilter: 'blur(10px)',
-                zIndex: 1000,
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'center',
-                padding: '1rem',
-                paddingTop: '4rem',
-                overflowY: 'auto',
-              }}
-              onClick={() => setShowAll(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
+          {morePosts.length > 0 && (
+            <div style={{ textAlign: 'center' }}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowAll(true)}
                 style={{
-                  background: 'rgba(26, 26, 26, 0.95)',
-                  borderRadius: '20px',
-                  padding: '2rem 1rem',
-                  width: '100%',
-                  maxWidth: '1200px',
-                  maxHeight: '90vh',
-                  overflow: 'auto',
-                  border: '2px solid var(--p5-red)',
-                  position: 'relative',
+                  padding: '0.75rem 2rem',
+                  background: 'transparent',
+                  border: '2px solid #ff0040',
+                  color: '#ff0040',
+                  fontSize: '0.9rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  borderRadius: '25px',
                 }}
-                onClick={(e) => e.stopPropagation()}
               >
-                {/* Close Button */}
-                <button
-                  onClick={() => setShowAll(false)}
-                  style={{
-                    position: 'absolute',
-                    top: '0.5rem',
-                    right: '0.5rem',
-                    background: 'transparent',
-                    border: '2px solid var(--p5-red)',
-                    color: 'var(--p5-red)',
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    cursor: 'pointer',
-                    fontSize: '1.25rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  ×
-                </button>
-
-                <h2 style={{
-                  fontSize: 'clamp(1.25rem, 4vw, 2rem)',
-                  fontWeight: '900',
-                  marginBottom: '1.5rem',
-                  textAlign: 'center',
-                  color: 'var(--p5-red)',
-                  paddingRight: '2rem',
-                }}>
-                  全部教程
-                </h2>
-
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
-                  gap: '1.5rem',
-                }}>
-                  {[...mainPosts, ...morePosts].map((post, index) => (
-                    <BlogCard key={post.id} post={post} index={index} />
-                  ))}
-                </div>
-              </motion.div>
-            </motion.div>
+                查看全部
+              </motion.button>
+            </div>
           )}
-        </AnimatePresence>
-      </div>
+        </MainContentCard>
+      </PageLayout>
+
+      <AnimatePresence>
+        {showAll && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.8)',
+              backdropFilter: 'blur(10px)',
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              padding: '2rem 1rem',
+              overflowY: 'auto',
+            }}
+            onClick={() => setShowAll(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '15px',
+                padding: '1.5rem',
+                width: '100%',
+                maxWidth: '900px',
+                maxHeight: '85vh',
+                overflow: 'auto',
+                position: 'relative',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setShowAll(false)}
+                style={{
+                  position: 'absolute',
+                  top: '0.75rem',
+                  right: '0.75rem',
+                  background: 'transparent',
+                  border: '2px solid #ff0040',
+                  color: '#ff0040',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  fontSize: '1.1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                ×
+              </button>
+
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem', color: '#1a1a1a', paddingRight: '2rem' }}>
+                全部文章
+              </h2>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: '1rem' }}>
+                {[...mainPosts, ...morePosts].map((post, index) => (
+                  <BlogCard key={post.id} post={post} index={index} />
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
