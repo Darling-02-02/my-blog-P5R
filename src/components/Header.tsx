@@ -181,14 +181,12 @@ const Header = () => {
           <motion.div
             whileHover={{ scale: 1.05 }}
             style={{
-              fontSize: '1.5rem',
-              fontWeight: '900',
+              fontSize: '1.8rem',
+              fontWeight: '400',
               color: '#ff0040',
-              textTransform: 'uppercase',
-              letterSpacing: '2px',
+              fontFamily: '"Ma Shan Zheng", "ZCOOL KuaiLe", cursive',
+              letterSpacing: '4px',
             }}
-            className="glitch"
-            data-text="偏铝酸钠"
           >
             偏铝酸钠
           </motion.div>

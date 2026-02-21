@@ -412,8 +412,9 @@ const BlogCard = ({ post, index }: { post: typeof articles[0] & { image: string 
 
 // 主内容
 const MainContent = () => {
-  const mainPosts = articles.slice(0, 5).map(a => ({ ...a, image: coverImage }));
-  const morePosts = articles.slice(5).map(a => ({ ...a, image: coverImage }));
+  const allowedCategories = ['生物信息', '三维重建', '机器学习', '随笔'];
+  const filteredArticles = articles.filter(a => allowedCategories.includes(a.category));
+  const mainPosts = filteredArticles.map(a => ({ ...a, image: coverImage }));
 
   return (
     <div style={{
@@ -460,14 +461,6 @@ const MainContent = () => {
             <BlogCard key={post.id} post={post} index={i} />
           ))}
         </div>
-
-        {morePosts.length > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: '2.5rem', marginTop: '2.5rem' }}>
-            {morePosts.map((post, i) => (
-              <BlogCard key={post.id} post={post} index={i + mainPosts.length} />
-            ))}
-          </div>
-        )}
       </section>
 
       {/* 关于 */}
