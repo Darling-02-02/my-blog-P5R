@@ -431,12 +431,16 @@ const MainContent = () => {
           <div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#333', marginBottom: '1.5rem' }}>🎓 教育背景</h3>
             <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.2, marginBottom: '0.5rem' }}>河南农业大学 · 本科 · 茶学</p>
-            <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.2 }}>福建农林大学 · 硕士 · 智慧园艺</p>
+            <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.2, marginBottom: '1rem' }}>福建农林大学 · 硕士 · 智慧园艺</p>
+            <p style={{ color: '#ff0040', fontSize: '1.1rem', lineHeight: 2, fontWeight: '500' }}>选择大于努力</p>
           </div>
           <div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#333', marginBottom: '1.5rem' }}>💡 兴趣爱好</h3>
             <ul style={{ color: '#555', fontSize: '1.1rem', lineHeight: 2.2, paddingLeft: '1.2rem', listStyle: 'none' }}>
-              <li>📸 摄影：偶尔拍拍，设备索尼zve10，镜头55mm</li>
+              <li style={{ color: '#ff0040', fontWeight: '500' }}>👤 CN：灵敏度加满，欢迎扩列</li>
+              <li>QQ：1651816574</li>
+              <li>VX：Darling13356424916</li>
+              <li style={{ marginTop: '0.5rem' }}>📸 摄影：偶尔拍拍，设备索尼zve10，镜头55mm</li>
               <li>🏃 中长跑：纵有疾风起！！</li>
               <li>💪 健身：卧推25kg，不中嘞</li>
               <li>🎨 画画：反正没在签绘墙上画过</li>

@@ -12,13 +12,26 @@ export interface Article {
 export const articles: Article[] = [
   {
     id: 1,
-    title: 'SNP Calling 流程',
+    title: '生物信息',
     excerpt: 'SNP突变分析完整流程，从数据处理到变异检测',
     category: '生物信息',
     date: '2026-02-22',
     readTime: '15 分钟',
     tags: ['生物信息', 'SNP', 'GATK'],
-    content: `# SNP Calling 流程
+    content: `# 生物信息
+
+## 目录
+
+- [材料准备](#材料准备)
+- [环境要求](#环境要求)
+- [主要步骤](#主要步骤)
+- [GVCF转VCF](#gvcf转vcf)
+- [拆分SNP/InDel](#拆分snpindel)
+- [过滤SNP](#过滤snp)
+- [SNP建树](#snp建树)
+- [IGV可视化](#igv可视化)
+
+---
 
 ## 材料准备
 
@@ -135,6 +148,8 @@ iqtree -s final.min4.phy -m MFP -T 16 -B 1000
 - **灰色**：纯合未突变
 
 ---
+
+> **转载请注明来源**：灵敏度加满の博客 - https://darling-02-02.github.io/my-blog-P5R/
 
 *持续更新中...*`,
   },

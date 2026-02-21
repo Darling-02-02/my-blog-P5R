@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { articles } from '../data/articles';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const CodeBlock = ({ language, code }: { language: string; code: string }) => {
   const [copied, setCopied] = useState(false);
@@ -80,6 +80,32 @@ const Article = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const article = articles.find(a => a.id === Number(id));
+
+  useEffect(() => {
+    const handleCopy = (e: ClipboardEvent) => {
+      const selection = window.getSelection();
+      if (selection && selection.toString().length > 50) {
+        const pageUrl = window.location.href;
+        const source = `\n\n---\n转载请注明来源：灵敏度加满の博客\n原文链接：${pageUrl}`;
+        e.clipboardData?.setData('text/plain', selection.toString() + source);
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('copy', handleCopy);
+    return () => document.removeEventListener('copy', handleCopy);
+  }, []);
+
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      setTimeout(() => {
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  }, []);
 
   if (!article) {
     return (
@@ -241,8 +267,9 @@ const Article = () => {
                 );
               },
               h2({ children }) {
+                const text = String(children).toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '');
                 return (
-                  <h2 style={{
+                  <h2 id={text} style={{
                     fontSize: '1.8rem',
                     fontWeight: '700',
                     marginTop: '2.5rem',
