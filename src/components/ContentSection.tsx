@@ -109,14 +109,103 @@ const ProfileCard = () => {
 };
 
 // 公告
-const AnnouncementCard = () => (
-  <SidebarCard title="公告" icon="📢">
-    <div style={{ background: 'rgba(255,0,64,0.05)', borderRadius: '8px', padding: '0.8rem', border: '1px solid rgba(255,0,64,0.1)' }}>
-      <p style={{ color: '#333', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}><strong>低头赶路，还要抬头看天</strong></p>
-    </div>
-    <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6, margin: '0.6rem 0 0 0' }}>仅用于交流学习，为爱发电。</p>
-  </SidebarCard>
-);
+const AnnouncementCard = () => {
+  const [location, setLocation] = useState('地球');
+  const [weather, setWeather] = useState('获取中...');
+  const [time, setTime] = useState('');
+  const [slogan, setSlogan] = useState('');
+
+  const slogans: Record<string, string> = {
+    '北京': '不到长城非好汉',
+    '上海': '海纳百川，追求卓越',
+    '广东': '食在广州，味在潮汕',
+    '四川': '天府之国，麻辣鲜香',
+    '浙江': '上有天堂，下有苏杭',
+    '江苏': '江南水乡，人文荟萃',
+    '山东': '好客山东，孔孟之乡',
+    '河南': '中原大地，华夏之源',
+    '湖北': '九省通衢，楚天极目',
+    '湖南': '惟楚有材，于斯为盛',
+    '福建': '八闽大地，山海相依',
+    '陕西': '秦风唐韵，古都长安',
+    '云南': '七彩云南，旅游天堂',
+    '海南': '天涯海角，椰风海韵',
+    '辽宁': '白山黑水，关东风情',
+    '吉林': '北国风光，雾凇美景',
+    '黑龙江': '冰雪世界，北国明珠',
+    '安徽': '徽风皖韵，黄山奇松',
+    '江西': '红色摇篮，绿色家园',
+    '山西': '晋善晋美，古建王国',
+    '河北': '燕赵大地，慷慨悲歌',
+    '内蒙古': '天苍苍野茫茫，风吹草低见牛羊',
+    '广西': '桂林山水甲天下',
+    '贵州': '多彩贵州，爽爽贵阳',
+    '重庆': '山城雾都，火锅飘香',
+    '西藏': '世界屋脊，雪域高原',
+    '甘肃': '丝绸之路，敦煌飞天',
+    '青海': '大美青海，高原明珠',
+    '宁夏': '塞上江南，神奇宁夏',
+    '新疆': '大美新疆，瓜果飘香',
+    '天津': '津门故里，曲艺之乡',
+    '香港': '东方之珠，购物天堂',
+    '澳门': '中西合璧，小城大爱',
+    '台湾': '宝岛台湾，风光旖旎',
+  };
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      setTime(`${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`);
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        if (data.region) {
+          setLocation(data.region);
+          setSlogan(slogans[data.region] || '有朋自远方来，不亦乐乎');
+        }
+        if (data.city) {
+          fetch(`https://wttr.in/${encodeURIComponent(data.city)}?format=%25c+%25t&lang=zh`)
+            .then(res => res.text())
+            .then(text => setWeather(text.trim() || '晴'))
+            .catch(() => setWeather('晴'));
+        }
+      })
+      .catch(() => {
+        setLocation('地球');
+        setSlogan('有朋自远方来，不亦乐乎');
+        setWeather('晴');
+      });
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <SidebarCard title="公告" icon="📢">
+      <p style={{ color: '#333', fontSize: '0.9rem', lineHeight: 1.8, margin: 0 }}>
+        🌍 欢迎来自 <strong style={{ color: '#ff0040' }}>{location}</strong> 的小伙伴
+      </p>
+      <p style={{ color: '#333', fontSize: '0.9rem', lineHeight: 1.8, margin: '0.6rem 0' }}>
+        ⏰ 现在时间：<strong>{time}</strong>
+      </p>
+      <p style={{ color: '#333', fontSize: '0.9rem', lineHeight: 1.8, margin: '0.6rem 0' }}>
+        🌤️ 今天天气：<strong style={{ color: '#ff0040' }}>{weather}</strong>
+      </p>
+      <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6, margin: '0.6rem 0 0 0', fontStyle: 'italic' }}>
+        "{slogan}"
+      </p>
+    </SidebarCard>
+  );
+};
 
 // 分类
 const CategoriesCard = () => {
