@@ -435,7 +435,14 @@ const MainContent = () => {
           </div>
           <div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#333', marginBottom: '1.5rem' }}>💡 兴趣爱好</h3>
-            <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.4 }}>有待开发</p>
+            <ul style={{ color: '#555', fontSize: '1.1rem', lineHeight: 2.2, paddingLeft: '1.2rem', listStyle: 'none' }}>
+              <li>📸 摄影：偶尔拍拍，设备索尼zve10，镜头55mm</li>
+              <li>🏃 中长跑：纵有疾风起！！</li>
+              <li>💪 健身：卧推25kg，不中嘞</li>
+              <li>🎨 画画：反正没在签绘墙上画过</li>
+              <li>🎮 游戏：第九艺术！！3A永远滴神</li>
+              <li>✨ 梦想能手握switch2、5090和PS5</li>
+            </ul>
           </div>
         </div>
       </section>
