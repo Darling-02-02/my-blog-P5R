@@ -12,35 +12,127 @@ export interface Article {
 export const articles: Article[] = [
   {
     id: 1,
-    title: '生物信息',
-    excerpt: '生物信息学相关知识与技术分析',
+    title: 'SNP Calling 流程',
+    excerpt: 'SNP突变分析完整流程，从数据处理到变异检测',
     category: '生物信息',
-    date: '2026-02-15',
-    readTime: '10 分钟',
-    tags: ['生物信息', 'RNA-seq', '单细胞'],
-    content: `# 生物信息
+    date: '2026-02-22',
+    readTime: '15 分钟',
+    tags: ['生物信息', 'SNP', 'GATK'],
+    content: `# SNP Calling 流程
 
-## 研究方向
+## 材料准备
 
-- **转录组分析**：RNA-seq、差异表达分析
-- **基因组学**：SNP calling、变异检测
-- **单细胞测序**：scRNA-seq 数据分析
-- **系统发育**：进化树构建与分析
+- 对照基因组（已组装完毕的菌株，fasta）
+- 二代测序结果文件（fastq）
 
-## 常用工具
+## 环境要求
 
-| 工具 | 用途 |
-|------|------|
-| HISAT2 | 序列比对 |
-| featureCounts | 基因定量 |
-| Seurat | 单细胞分析 |
-| GATK | 变异检测 |
+- Linux系统
+- 软件：GATK、Trimmomatic、bwa、samtools
 
-## 学习资源
+## 主要步骤
 
-1. **生信技能树** - 优秀的中文教程
-2. **Biostars** - 生信问答社区
-3. **Nature Methods** - 前沿方法论文
+### 步骤1：准备文件
+
+在新建文件夹中放入：
+- 测序结果文件（fq/fastq.gz）
+- 对照基因组（fasta）
+- snp_calling.py 脚本
+
+### 步骤2：修改脚本
+
+打开 snp_calling.py，修改文件名：
+
+\`\`\`python
+file_list = [
+    {'input_file': ['./sample_1.fq.gz', './sample_2.fq.gz'],
+     'output_file': ['sample_1.fq.gz', 'sample_1.unpaired.fq', 'sample_2.fq.gz', 'sample_2.unpaired.fq'],
+     'reference': 'reference.fasta'},
+]
+\`\`\`
+
+### 步骤3：运行脚本
+
+\`\`\`bash
+python snp_calling.py
+\`\`\`
+
+### 步骤4：合并GVCF文件
+
+\`\`\`bash
+gatk CombineGVCFs -R reference.fasta -O merged.g.vcf \\
+  -V sample1.gvcf -V sample2.gvcf
+\`\`\`
+
+### 步骤5：变异过滤
+
+\`\`\`bash
+gatk VariantFiltration -R reference.fasta -O filtered.vcf \\
+  -V merged.vcf \\
+  --filter-expression "QD < 2.0" --filter-name lowQD \\
+  --filter-expression "MQ < 40.0" --filter-name lowMQ
+\`\`\`
+
+## GVCF转VCF
+
+\`\`\`bash
+gatk --java-options "-Xmx4g" GenotypeGVCFs \\
+  -R reference.fasta \\
+  -V merged.g.vcf \\
+  -O output.vcf
+\`\`\`
+
+## 拆分SNP/InDel
+
+\`\`\`bash
+# 得到SNP
+gatk SelectVariants -R reference.fasta -V output.vcf \\
+  -select-type SNP -O snps.vcf
+
+# 得到Indel
+gatk SelectVariants -R reference.fasta -V output.vcf \\
+  -select-type INDEL -O indels.vcf
+\`\`\`
+
+## 过滤SNP
+
+\`\`\`bash
+gatk VariantFiltration \\
+    -R reference.fasta \\
+    -V output.vcf \\
+    --cluster-size 4 \\
+    --cluster-window-size 10 \\
+    --filter-expression "MQRankSum < -12.5" --filter-name lowMQRankSum \\
+    --filter-expression "FS > 60.0" --filter-name highFS \\
+    --filter-expression "ReadPosRankSum < -8.0" --filter-name lowReadPosRankSum \\
+    --filter-expression "MQ < 40.0" --filter-name lowMQ \\
+    --filter-expression "QD < 2.0" --filter-name lowQD \\
+    -O final_filter.vcf
+\`\`\`
+
+## SNP建树
+
+\`\`\`bash
+# 将vcf转为phy格式
+python vcf2phylip.py -i final.vcf.gz
+
+# 运行IQtree构建进化树
+iqtree -s final.min4.phy -m MFP -T 16 -B 1000
+\`\`\`
+
+## IGV可视化
+
+1. 在IGV中打开对照基因组（Genomes → Load Genome from File）
+2. 加载VCF文件（File → Load from File）
+3. 选择染色体和区域查看SNP位点
+
+> **注意**：IGV中只有灰色条带是可信的
+
+### 颜色说明
+
+- **深蓝色**：杂合突变
+- **青绿色**：纯合突变
+- **灰色**：纯合未突变
 
 ---
 
