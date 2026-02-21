@@ -208,10 +208,32 @@ const TagsCard = () => {
 
 // 网站资讯
 const StatsCard = () => {
-  const [stats, setStats] = useState({ articles: articles.length, visitors: 520, views: 2340, lastUpdate: '' });
+  const [stats, setStats] = useState({ articles: articles.length, visitors: 0, views: 0, lastUpdate: '' });
+  
   useEffect(() => {
-    setStats(prev => ({ ...prev, lastUpdate: new Date().toLocaleString('zh-CN') }));
+    const storedVisitors = parseInt(localStorage.getItem('blog_visitors') || '0');
+    const storedViews = parseInt(localStorage.getItem('blog_views') || '0');
+    const hasVisited = localStorage.getItem('blog_has_visited');
+    
+    let newVisitors = storedVisitors;
+    let newViews = storedViews + 1;
+    
+    if (!hasVisited) {
+      newVisitors = storedVisitors + 1;
+      localStorage.setItem('blog_has_visited', 'true');
+    }
+    
+    localStorage.setItem('blog_visitors', String(newVisitors));
+    localStorage.setItem('blog_views', String(newViews));
+    
+    setStats({
+      articles: articles.length,
+      visitors: newVisitors,
+      views: newViews,
+      lastUpdate: new Date().toLocaleString('zh-CN'),
+    });
   }, []);
+  
   const items = [
     { label: '文章数目', value: stats.articles, icon: '📝' },
     { label: '访客数', value: stats.visitors, icon: '👥' },
