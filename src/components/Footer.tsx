@@ -4,7 +4,7 @@ const Footer = () => {
   const [runningTime, setRunningTime] = useState('');
 
   useEffect(() => {
-    const startDate = new Date('2026-01-01');
+    const startDate = new Date('2026-02-22');
     
     const updateTime = () => {
       const now = new Date();
