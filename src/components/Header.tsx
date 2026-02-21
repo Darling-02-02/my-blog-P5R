@@ -41,9 +41,8 @@ const Header = () => {
 
   const navItems = [
     { name: '首页', href: '/', isPage: true },
-    { name: '学习路线', href: '/#blog', isPage: false },
-    { name: '关于我', href: '/about', isPage: true },
-    { name: '代码仓库', href: 'https://github.com', isPage: true, external: true },
+    { name: '个人简介', href: '/#profile', isPage: false },
+    { name: 'GitHub', href: 'https://github.com/Darling-02-02', isPage: true, external: true },
   ];
 
   const handleNavClick = (item: typeof navItems[0]) => {

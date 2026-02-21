@@ -220,25 +220,25 @@ const MainContent = () => {
       border: '1px solid rgba(200, 200, 200, 0.3)',
       backdropFilter: 'blur(15px)',
       boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-      padding: '2rem',
+      padding: '2.5rem',
     }}>
       {/* 个人简介 */}
-      <section id="profile" style={{ marginBottom: '2.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1a1a1a', marginBottom: '0.25rem' }}>
+      <section id="profile" style={{ marginBottom: '3.5rem' }}>
+        <h1 style={{ fontSize: '1.6rem', fontWeight: '700', color: '#1a1a1a', marginBottom: '0.5rem' }}>
           <span style={{ color: '#ff0040' }}>个人</span>简介
         </h1>
-        <p style={{ color: '#999', fontSize: '0.85rem', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+        <p style={{ color: '#999', fontSize: '0.9rem', marginBottom: '2rem', paddingBottom: '1.25rem', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           了解关于我的一切
         </p>
         
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
           <div>
-            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#333', marginBottom: '0.75rem' }}>🎓 教育背景</h3>
-            <p style={{ color: '#666', fontSize: '0.9rem', lineHeight: 1.7 }}>大学生物信息学专业</p>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#333', marginBottom: '1rem' }}>🎓 教育背景</h3>
+            <p style={{ color: '#666', fontSize: '0.95rem', lineHeight: 1.8 }}>大学生物信息学专业</p>
           </div>
           <div>
-            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#333', marginBottom: '0.75rem' }}>💡 兴趣爱好</h3>
-            <ul style={{ color: '#666', fontSize: '0.9rem', lineHeight: 1.8, paddingLeft: '1.2rem' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#333', marginBottom: '1rem' }}>💡 兴趣爱好</h3>
+            <ul style={{ color: '#666', fontSize: '0.95rem', lineHeight: 1.9, paddingLeft: '1.2rem' }}>
               <li>写代码</li>
               <li>健身</li>
               <li>徒步</li>
@@ -246,33 +246,33 @@ const MainContent = () => {
           </div>
         </div>
 
-        <div style={{ marginTop: '1.5rem' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#333', marginBottom: '0.75rem' }}>🎯 人生清单</h3>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ marginTop: '2rem' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#333', marginBottom: '1rem' }}>🎯 人生清单</h3>
+          <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
             {['健身', '徒步', '中长跑'].map(item => (
-              <span key={item} style={{ padding: '0.4rem 1rem', background: 'rgba(255,0,64,0.08)', border: '1px solid rgba(255,0,64,0.2)', borderRadius: '20px', fontSize: '0.85rem', color: '#333' }}>⬜ {item}</span>
+              <span key={item} style={{ padding: '0.5rem 1.25rem', background: 'rgba(255,0,64,0.08)', border: '1px solid rgba(255,0,64,0.2)', borderRadius: '20px', fontSize: '0.9rem', color: '#333' }}>⬜ {item}</span>
             ))}
           </div>
         </div>
       </section>
 
       {/* 幕后 - 文章 */}
-      <section id="blog" style={{ marginBottom: '2.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1a1a1a', marginBottom: '0.25rem' }}>
+      <section id="blog" style={{ marginBottom: '3.5rem' }}>
+        <h1 style={{ fontSize: '1.6rem', fontWeight: '700', color: '#1a1a1a', marginBottom: '0.5rem' }}>
           <span style={{ color: '#ff0040' }}>幕后</span>
         </h1>
-        <p style={{ color: '#999', fontSize: '0.85rem', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+        <p style={{ color: '#999', fontSize: '0.9rem', marginBottom: '2rem', paddingBottom: '1.25rem', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           一切都是为了正义
         </p>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))', gap: '1.5rem' }}>
           {mainPosts.map((post, i) => (
             <BlogCard key={post.id} post={post} index={i} />
           ))}
         </div>
 
         {morePosts.length > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginTop: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
             {morePosts.map((post, i) => (
               <BlogCard key={post.id} post={post} index={i + mainPosts.length} />
             ))}
@@ -282,27 +282,27 @@ const MainContent = () => {
 
       {/* 关于 */}
       <section id="about">
-        <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1a1a1a', marginBottom: '0.25rem' }}>
+        <h1 style={{ fontSize: '1.6rem', fontWeight: '700', color: '#1a1a1a', marginBottom: '0.5rem' }}>
           <span style={{ color: '#ff0040' }}>关于</span>本站
         </h1>
-        <p style={{ color: '#999', fontSize: '0.85rem', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+        <p style={{ color: '#999', fontSize: '0.9rem', marginBottom: '2rem', paddingBottom: '1.25rem', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           博客介绍
         </p>
         
-        <p style={{ color: '#666', fontSize: '0.9rem', lineHeight: 1.8, marginBottom: '1rem' }}>
+        <p style={{ color: '#666', fontSize: '0.95rem', lineHeight: 1.9, marginBottom: '1.5rem' }}>
           这是一个专注于编程学习路线和Pipeline代码分享的技术博客。记录学习历程，分享实用代码片段和自动化工作流方案。
         </p>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
           {[
             { num: '50+', label: '篇教程' },
             { num: '20+', label: '项目' },
             { num: '6', label: '领域' },
             { num: '100%', label: '开源' },
           ].map(s => (
-            <div key={s.label} style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,0,64,0.05)', borderRadius: '8px' }}>
-              <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#ff0040' }}>{s.num}</div>
-              <div style={{ fontSize: '0.75rem', color: '#666' }}>{s.label}</div>
+            <div key={s.label} style={{ textAlign: 'center', padding: '1.25rem', background: 'rgba(255,0,64,0.05)', borderRadius: '10px' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: '700', color: '#ff0040' }}>{s.num}</div>
+              <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>{s.label}</div>
             </div>
           ))}
         </div>
