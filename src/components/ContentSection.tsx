@@ -335,15 +335,11 @@ const MainContent = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginBottom: '3rem' }}>
           <div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#333', marginBottom: '1.5rem' }}>🎓 教育背景</h3>
-            <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.2 }}>大学生物信息学专业</p>
+            <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.2 }}>河南农业大学本科茶学到福建农林大学硕士智慧园艺</p>
           </div>
           <div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#333', marginBottom: '1.5rem' }}>💡 兴趣爱好</h3>
-            <ul style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.4, paddingLeft: '1.5rem' }}>
-              <li style={{ marginBottom: '0.5rem' }}>写代码</li>
-              <li style={{ marginBottom: '0.5rem' }}>健身</li>
-              <li>徒步</li>
-            </ul>
+            <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.4 }}>有待开发</p>
           </div>
         </div>
 
