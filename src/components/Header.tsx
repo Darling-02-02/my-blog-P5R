@@ -167,9 +167,9 @@ const Header = () => {
               letterSpacing: '2px',
             }}
             className="glitch"
-            data-text="小窝"
+            data-text="偏铝酸钠"
           >
-            小窝
+            偏铝酸钠
           </motion.div>
           <motion.span
             initial={{ opacity: 0, x: -20 }}
