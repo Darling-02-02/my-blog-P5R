@@ -116,16 +116,16 @@ const AnnouncementCard = () => {
   const [slogan, setSlogan] = useState('');
 
   const slogans = [
-    '低头赶路，还要抬头看天',
-    '人生没有白走的路，每一步都算数',
-    '星光不问赶路人，时光不负有心人',
-    '山高路远，看世界，也找自己',
-    '生活不止眼前的苟且，还有诗和远方',
-    '愿你历尽千帆，归来仍是少年',
-    '世界上只有一种英雄主义，就是认清生活后依然热爱生活',
-    '将来的你，一定会感谢现在拼命的自己',
-    '不怕路长，只怕志短',
-    '越努力，越幸运',
+    '凡所有相，皆是虚妄',
+    '天地不仁，以万物为刍狗',
+    '人类的悲欢并不相通，我只觉得他们吵闹',
+    '他人即地狱',
+    '存在先于本质',
+    '人是一根会思考的芦苇',
+    '上帝死了，是我们杀了他',
+    '未经审视的人生不值得过',
+    '人是生而自由的，却无往不在枷锁之中',
+    '认识你自己',
   ];
 
   useEffect(() => {
@@ -167,18 +167,22 @@ const AnnouncementCard = () => {
 
   return (
     <SidebarCard title="公告" icon="📢">
-      <p style={{ color: '#333', fontSize: '0.9rem', lineHeight: 1.8, margin: 0 }}>
-        🌍 欢迎来自 <strong style={{ color: '#ff0040' }}>{location}</strong> 的小伙伴
-      </p>
-      <p style={{ color: '#333', fontSize: '0.9rem', lineHeight: 1.8, margin: '0.6rem 0' }}>
-        ⏰ 现在时间：<strong>{time}</strong>
-      </p>
-      <p style={{ color: '#333', fontSize: '0.9rem', lineHeight: 1.8, margin: '0.6rem 0' }}>
-        🌤️ 今天天气：<strong style={{ color: '#ff0040' }}>{weather}</strong>
-      </p>
-      <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6, margin: '0.6rem 0 0 0' }}>
-        {slogan}
-      </p>
+      <div style={{ minHeight: '140px' }}>
+        <p style={{ color: '#333', fontSize: '0.9rem', lineHeight: 1.8, margin: 0 }}>
+          🌍 欢迎来自 <strong style={{ color: '#ff0040' }}>{location}</strong> 的小伙伴
+        </p>
+        <p style={{ color: '#333', fontSize: '0.9rem', lineHeight: 1.8, margin: '0.6rem 0' }}>
+          ⏰ 现在时间：<strong>{time}</strong>
+        </p>
+        <p style={{ color: '#333', fontSize: '0.9rem', lineHeight: 1.8, margin: '0 0 0.8rem 0' }}>
+          🌤️ 今天天气：<strong style={{ color: '#ff0040' }}>{weather}</strong>
+        </p>
+        <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: '0.8rem', marginTop: '0.5rem' }}>
+          <p style={{ color: '#555', fontSize: '0.85rem', lineHeight: 1.7, margin: 0 }}>
+            💭 {slogan}
+          </p>
+        </div>
+      </div>
     </SidebarCard>
   );
 };
