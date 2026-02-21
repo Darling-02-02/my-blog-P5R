@@ -112,9 +112,9 @@ const ProfileCard = () => {
 const AnnouncementCard = () => (
   <SidebarCard title="公告" icon="📢">
     <div style={{ background: 'rgba(255,0,64,0.05)', borderRadius: '8px', padding: '0.8rem', border: '1px solid rgba(255,0,64,0.1)' }}>
-      <p style={{ color: '#333', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}><strong>人生是旷野，不是轨道</strong></p>
+      <p style={{ color: '#333', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}><strong>低头赶路，还要抬头看天</strong></p>
     </div>
-    <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6, margin: '0.6rem 0 0 0' }}>请保持批判思维</p>
+    <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6, margin: '0.6rem 0 0 0' }}>仅用于交流学习，为爱发电。</p>
   </SidebarCard>
 );
 
@@ -390,23 +390,9 @@ const MainContent = () => {
           博客介绍
         </p>
         
-        <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.4, marginBottom: '3rem' }}>
-          这是一个专注于编程学习路线和Pipeline代码分享的技术博客。记录学习历程，分享实用代码片段和自动化工作流方案。
+        <p style={{ color: '#555', fontSize: '1.15rem', lineHeight: 2.4 }}>
+          垂死挣扎的双非硕，一切以实际为准。欢迎交流学习。
         </p>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2.5rem' }}>
-          {[
-            { num: '50+', label: '篇教程' },
-            { num: '20+', label: '项目' },
-            { num: '6', label: '领域' },
-            { num: '100%', label: '开源' },
-          ].map(s => (
-            <div key={s.label} style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,0,64,0.05)', borderRadius: '16px', border: '2px solid rgba(255,0,64,0.1)' }}>
-              <div style={{ fontSize: '2.2rem', fontWeight: '700', color: '#ff0040' }}>{s.num}</div>
-              <div style={{ fontSize: '1rem', color: '#666', marginTop: '0.75rem' }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
       </section>
     </div>
   );
