@@ -6,34 +6,23 @@ import { articles } from '../data/articles';
 const base = import.meta.env.BASE_URL;
 const coverImage = `${base}cover.png`;
 
-const gradientStyle = {
-  background: 'linear-gradient(45deg, #ff6b9d, #c44569, #ff9ff3, #feca57, #ff9ff3, #c44569, #ff6b9d)',
-  backgroundSize: '300% 300%',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  backgroundClip: 'text',
-  animation: 'gradientShift 4s ease infinite',
-};
-
 const categoryColors: Record<string, string> = {
-  '生物信息': '#ff6b9d',
-  '三维重建': '#c44569',
-  '机器学习': '#feca57',
-  '随笔': '#ff9ff3',
+  '生物信息': '#ff6b6b',
+  '三维重建': '#4ecdc4',
+  '机器学习': '#45b7d1',
+  '随笔': '#96ceb4',
 };
 
 const tagData = [
-  { name: '生物信息', count: 3 },
-  { name: 'RNA-seq', count: 2 },
-  { name: '单细胞', count: 2 },
-  { name: 'Python', count: 3 },
+  { name: '生物信息', count: 1 },
+  { name: 'RNA-seq', count: 1 },
+  { name: '单细胞', count: 1 },
+  { name: 'Python', count: 1 },
   { name: '三维重建', count: 1 },
   { name: 'NeRF', count: 1 },
-  { name: '机器学习', count: 2 },
-  { name: 'Docker', count: 2 },
+  { name: '机器学习', count: 1 },
   { name: '随笔', count: 1 },
-  { name: '学习路线', count: 2 },
-  { name: 'CI/CD', count: 1 },
+  { name: '学习路线', count: 1 },
 ];
 
 // 侧边栏卡片
@@ -96,20 +85,20 @@ const ProfileCard = () => {
             height: '90px',
             borderRadius: '50%',
             background: `url(${base}头像.jpg) center/cover`,
-            border: '3px solid rgba(255, 107, 157, 0.6)',
+            border: '3px solid rgba(255, 0, 64, 0.5)',
             margin: '0 auto 1rem',
             cursor: 'pointer',
             animation: isSpinning ? 'avatarSpin 0.4s linear infinite' : 'none',
             transition: 'border-color 0.3s ease',
           }}
         />
-        <h2 style={{ ...gradientStyle, fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.3rem' }}>灵敏度加满</h2>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.3rem', color: '#ff0040' }}>灵敏度加满</h2>
         <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '1rem' }}>无限进步。</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
           {socials.map((s, i) => (
-            <a key={i} href={s.link} target="_blank" rel="noopener noreferrer" style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'rgba(255,107,157,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', fontSize: '1rem', transition: 'all 0.3s ease' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,107,157,0.25)'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,107,157,0.1)'; e.currentTarget.style.transform = 'scale(1)'; }}
+            <a key={i} href={s.link} target="_blank" rel="noopener noreferrer" style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', fontSize: '1rem', transition: 'all 0.3s ease' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,0,64,0.15)'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'scale(1)'; }}
             >{s.icon}</a>
           ))}
         </div>
@@ -122,7 +111,7 @@ const ProfileCard = () => {
 // 公告
 const AnnouncementCard = () => (
   <SidebarCard title="公告" icon="📢">
-    <div style={{ background: 'rgba(255,107,157,0.08)', borderRadius: '8px', padding: '0.8rem', border: '1px solid rgba(255,107,157,0.15)' }}>
+    <div style={{ background: 'rgba(255,0,64,0.05)', borderRadius: '8px', padding: '0.8rem', border: '1px solid rgba(255,0,64,0.1)' }}>
       <p style={{ color: '#333', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}><strong>人生是旷野，不是轨道</strong></p>
     </div>
     <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6, margin: '0.6rem 0 0 0' }}>请保持批判思维</p>
@@ -133,10 +122,10 @@ const AnnouncementCard = () => (
 const CategoriesCard = () => {
   const navigate = useNavigate();
   const categories = [
-    { name: '生物信息', count: 1, color: '#ff6b9d' },
-    { name: '三维重建', count: 1, color: '#c44569' },
-    { name: '机器学习', count: 1, color: '#feca57' },
-    { name: '随笔', count: 1, color: '#ff9ff3' },
+    { name: '生物信息', count: 1, color: '#ff6b6b' },
+    { name: '三维重建', count: 1, color: '#4ecdc4' },
+    { name: '机器学习', count: 1, color: '#45b7d1' },
+    { name: '随笔', count: 1, color: '#96ceb4' },
   ];
   return (
     <SidebarCard title="分类" icon="📁">
@@ -156,7 +145,7 @@ const CategoriesCard = () => {
             transition: 'all 0.3s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(255,107,157,0.1)';
+            e.currentTarget.style.background = 'rgba(255,0,64,0.08)';
             e.currentTarget.style.transform = 'translateX(4px)';
           }}
           onMouseLeave={(e) => {
@@ -164,7 +153,7 @@ const CategoriesCard = () => {
             e.currentTarget.style.transform = 'translateX(0)';
           }}
         >
-          <span style={{ ...gradientStyle, fontWeight: '600', fontSize: '0.9rem' }}>{cat.name}</span>
+          <span style={{ color: '#ff0040', fontWeight: '600', fontSize: '0.9rem' }}>{cat.name}</span>
           <span style={{ color: '#fff', fontSize: '0.75rem', background: cat.color, padding: '0.15rem 0.5rem', borderRadius: '10px', fontWeight: '600' }}>{cat.count}</span>
         </div>
       ))}
@@ -191,17 +180,17 @@ const TagsCard = () => {
               onClick={() => navigate(`/tag/${tag.name}`)}
               style={{ 
                 ...size,
-                ...gradientStyle,
+                color: '#ff0040',
                 fontWeight: tag.count >= 3 ? '700' : '500',
-                background: 'rgba(255,107,157,0.08)', 
-                border: '1px solid rgba(255,107,157,0.25)', 
+                background: 'rgba(255,0,64,0.08)', 
+                border: '1px solid rgba(255,0,64,0.2)', 
                 borderRadius: '15px',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'scale(1.1)';
-                e.currentTarget.style.boxShadow = '0 2px 10px rgba(255,107,157,0.3)';
+                e.currentTarget.style.boxShadow = '0 2px 10px rgba(255,0,64,0.3)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'scale(1)';
@@ -233,7 +222,7 @@ const StatsCard = () => {
       {items.map(item => (
         <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
           <span style={{ color: '#666', fontSize: '0.9rem' }}>{item.icon} {item.label}</span>
-          <span style={{ ...gradientStyle, fontWeight: '700', fontSize: '1rem' }}>{item.value}</span>
+          <span style={{ color: '#ff0040', fontWeight: '700', fontSize: '1rem' }}>{item.value}</span>
         </div>
       ))}
       <div style={{ borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '0.6rem', marginTop: '0.4rem' }}>
@@ -290,7 +279,7 @@ const BlogCard = ({ post, index }: { post: typeof articles[0] & { image: string 
         <p style={{ fontSize: '0.95rem', color: '#888', marginBottom: '0.8rem' }}>{post.date} · {post.readTime}</p>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {post.tags.slice(0, 2).map(tag => (
-            <span key={tag} style={{ ...gradientStyle, fontSize: '0.85rem', background: 'rgba(255,107,157,0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>#{tag}</span>
+            <span key={tag} style={{ color: '#ff0040', fontSize: '0.85rem', background: 'rgba(255,0,64,0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>#{tag}</span>
           ))}
         </div>
       </div>
@@ -315,7 +304,7 @@ const MainContent = () => {
       {/* 个人简介 */}
       <section id="profile" style={{ marginBottom: '6rem' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#1a1a1a', marginBottom: '1rem' }}>
-          <span style={gradientStyle}>个人</span>简介
+          <span style={{ color: '#ff0040' }}>个人</span>简介
         </h1>
         <p style={{ color: '#888', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid rgba(0,0,0,0.06)' }}>
           了解关于我的一切
@@ -340,7 +329,7 @@ const MainContent = () => {
           <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#333', marginBottom: '1.5rem' }}>🎯 人生清单</h3>
           <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
             {['健身', '徒步', '中长跑'].map(item => (
-              <span key={item} style={{ padding: '0.8rem 2rem', background: 'rgba(255,107,157,0.08)', border: '2px solid rgba(255,107,157,0.2)', borderRadius: '30px', fontSize: '1.1rem', color: '#333' }}>⬜ {item}</span>
+              <span key={item} style={{ padding: '0.8rem 2rem', background: 'rgba(255,0,64,0.05)', border: '2px solid rgba(255,0,64,0.15)', borderRadius: '30px', fontSize: '1.1rem', color: '#333' }}>⬜ {item}</span>
             ))}
           </div>
         </div>
@@ -349,7 +338,7 @@ const MainContent = () => {
       {/* 幕后 - 文章 */}
       <section id="blog" style={{ marginBottom: '6rem' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#1a1a1a', marginBottom: '1rem' }}>
-          <span style={gradientStyle}>幕后</span>
+          <span style={{ color: '#ff0040' }}>幕后</span>
         </h1>
         <p style={{ color: '#888', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid rgba(0,0,0,0.06)' }}>
           一切都是为了正义
@@ -373,7 +362,7 @@ const MainContent = () => {
       {/* 关于 */}
       <section id="about">
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#1a1a1a', marginBottom: '1rem' }}>
-          <span style={gradientStyle}>关于</span>本站
+          <span style={{ color: '#ff0040' }}>关于</span>本站
         </h1>
         <p style={{ color: '#888', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid rgba(0,0,0,0.06)' }}>
           博客介绍
@@ -390,8 +379,8 @@ const MainContent = () => {
             { num: '6', label: '领域' },
             { num: '100%', label: '开源' },
           ].map(s => (
-            <div key={s.label} style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,107,157,0.05)', borderRadius: '16px', border: '2px solid rgba(255,107,157,0.1)' }}>
-              <div style={{ ...gradientStyle, fontSize: '2.2rem', fontWeight: '700' }}>{s.num}</div>
+            <div key={s.label} style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,0,64,0.05)', borderRadius: '16px', border: '2px solid rgba(255,0,64,0.1)' }}>
+              <div style={{ fontSize: '2.2rem', fontWeight: '700', color: '#ff0040' }}>{s.num}</div>
               <div style={{ fontSize: '1rem', color: '#666', marginTop: '0.75rem' }}>{s.label}</div>
             </div>
           ))}
@@ -412,11 +401,6 @@ const ContentSection = () => {
         </div>
       </div>
       <style>{`
-        @keyframes gradientShift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
         @media (max-width: 900px) {
           section > div { flex-direction: column !important; }
           aside { position: static !important; width: 100% !important; }
