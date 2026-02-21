@@ -7,53 +7,39 @@ interface BackgroundProps {
   children: React.ReactNode;
 }
 
-// 全局主题背景 - 使用主题.png
+// 全局主题背景
 export const GlobalBackground = ({ children }: BackgroundProps) => {
   return (
     <>
-      {/* 全局主题背景层 - 直接使用内联样式 */}
+      {/* 全局固定背景图片 */}
       <div 
-        className="global-theme-bg"
         style={{
           position: 'fixed',
           top: 0,
           left: 0,
           width: '100%',
           height: '100%',
-          zIndex: -1,
-          overflow: 'hidden',
-          backgroundColor: '#0a0a0a',
+          backgroundImage: `url(${base}图片_1.jpg)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+          zIndex: -2,
         }}
-      >
-        {/* 其他页面背景 - 图片_1.jpg，缩小显示 */}
-        <div 
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundImage: `url(${base}图片_1.jpg)`,
-            backgroundSize: '80%',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'repeat',
-            opacity: 0.5,
-          }}
-        />
-
-        {/* 浅色遮罩层 */}
-        <div 
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'rgba(10, 10, 10, 0.4)',
-          }}
-        />
-      </div>
-
+      />
+      
+      {/* 全局深色遮罩 */}
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.45)',
+          zIndex: -1,
+        }}
+      />
+      
       {/* 内容层 */}
       <div style={{ position: 'relative', zIndex: 1 }}>
         {children}

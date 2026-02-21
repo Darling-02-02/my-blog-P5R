@@ -44,7 +44,10 @@ body {
   display: flex;
   min-width: 320px;
   min-height: 100vh;
-  background-color: var(--p5-black);
+  background-image: url('/my-blog-P5R/图片_1.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   overflow-x: hidden;
 }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Header from './Header';
 
 const base = import.meta.env.BASE_URL;
 const images = [
@@ -52,7 +53,7 @@ export default function Hero() {
 
   return (
     <section id="home" className="hero-section">
-      {/* 背景图片层 */}
+      <Header />
       <div className="background-container">
         {images.map((src, index) => (
           <img
@@ -65,7 +66,6 @@ export default function Hero() {
         <div className="background-overlay" />
       </div>
 
-      {/* 内容层 */}
       <div className="hero-content">
         <h1 className="hero-title">灵敏度加满的blog</h1>
         <p className={`hero-quote ${isQuoteVisible ? 'quote-visible' : 'quote-hidden'}`}>
@@ -90,7 +90,7 @@ export default function Hero() {
           left: 0;
           width: 100%;
           height: 100%;
-          background-color: #000;
+          background-color: transparent;
         }
 
         .background-image {

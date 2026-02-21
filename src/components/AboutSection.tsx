@@ -1,7 +1,5 @@
 import { motion } from 'framer-motion';
 
-const base = import.meta.env.BASE_URL;
-
 const AboutSection = () => {
   const stats = [
     { number: '50+', label: '篇教程' },
@@ -20,19 +18,7 @@ const AboutSection = () => {
         overflow: 'hidden',
       }}
     >
-      {/* 背景图片 */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundImage: `url(${base}图片_1.jpg)`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        opacity: 0.6,
-        zIndex: 0,
-      }} />
+      
 
       {/* 背景装饰 */}
       <div style={{

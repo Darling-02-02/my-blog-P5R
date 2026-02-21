@@ -11,7 +11,7 @@ const Header = () => {
   const [isInHeroSection, setIsInHeroSection] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
-  const isArticlePage = location.pathname.startsWith('/article');
+  const isArticlePage = location.pathname.startsWith('/article') || location.pathname === '/about';
 
   // Hero图片切换
   useEffect(() => {
@@ -42,7 +42,7 @@ const Header = () => {
   const navItems = [
     { name: '首页', href: '/', isPage: true },
     { name: '学习路线', href: '/#blog', isPage: false },
-    { name: '关于', href: '/#about', isPage: false },
+    { name: '关于我', href: '/about', isPage: true },
     { name: '代码仓库', href: 'https://github.com', isPage: true, external: true },
   ];
 
