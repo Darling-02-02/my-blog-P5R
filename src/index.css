@@ -1,7 +1,8 @@
 /* Persona 5 Style Anime Blog */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
 
-:root {
+:root,
+:root[data-theme="dark"] {
   /* Persona 5 Color Palette */
   --p5-red: #ff0040;
   --p5-dark-red: #cc0033;
@@ -14,19 +15,132 @@
   --p5-gold: #ffd700;
   --p5-purple: #9b59b6;
   --p5-cyan: #00d4ff;
-  
+
+  /* Theme-aware semantic tokens */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --bg-card: rgba(26, 26, 26, 0.9);
+  --bg-card-solid: #1a1a1a;
+  --bg-overlay: rgba(0, 0, 0, 0.45);
+  --bg-sidebar-card: rgba(30, 30, 30, 0.85);
+  --bg-main-card: rgba(20, 20, 20, 0.85);
+  --bg-input: rgba(255, 255, 255, 0.1);
+  --bg-code: #1e1e1e;
+  --bg-code-header: #2d2d2d;
+  --bg-tag: rgba(255, 0, 64, 0.15);
+  --bg-blockquote: rgba(255, 0, 64, 0.08);
+  --bg-hover: rgba(255, 0, 64, 0.12);
+  --bg-category-item: rgba(255, 255, 255, 0.04);
+  --bg-article-card: rgba(30, 30, 30, 0.95);
+  --bg-article-content: rgba(30, 30, 30, 0.92);
+  --bg-about-box: rgba(255, 0, 64, 0.08);
+  --bg-comment-box: rgba(30, 30, 30, 0.9);
+  --bg-social: rgba(255, 255, 255, 0.08);
+  --bg-social-hover: rgba(255, 0, 64, 0.2);
+  --bg-footer: rgba(26, 26, 26, 0.9);
+  --bg-mobile-menu: rgba(10, 10, 10, 0.98);
+  --bg-inline-code: rgba(255, 0, 64, 0.15);
+
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --text-muted: #888888;
+  --text-body: #d4d4d4;
+  --text-heading: #ffffff;
+  --text-card-title: #ffffff;
+  --text-card-body: #cccccc;
+  --text-strong: #ffffff;
+  --text-code: #d4d4d4;
+  --text-inline-code: #ff6b8a;
+  --text-link: #ff0040;
+
+  --border-card: rgba(255, 255, 255, 0.08);
+  --border-section: rgba(255, 255, 255, 0.08);
+  --border-tag: rgba(255, 0, 64, 0.3);
+  --border-input: rgba(255, 0, 64, 0.5);
+  --border-table: rgba(255, 255, 255, 0.1);
+  --border-mobile-menu: #2d2d2d;
+
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 8px 30px rgba(255, 0, 64, 0.2);
+
+  --scrollbar-track: #1a1a1a;
+  --scrollbar-thumb: #ff0040;
+  --scrollbar-thumb-hover: #ff2d55;
+
+  --table-header-bg: rgba(255, 0, 64, 0.15);
+  --table-border: rgba(255, 255, 255, 0.1);
+
   font-family: 'Noto Sans SC', Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  
+
   color-scheme: dark;
-  color: var(--p5-white);
-  background-color: var(--p5-black);
-  
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-theme="light"] {
+  --bg-primary: #f5f5f7;
+  --bg-secondary: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --bg-card-solid: #ffffff;
+  --bg-overlay: rgba(255, 255, 255, 0.25);
+  --bg-sidebar-card: rgba(255, 255, 255, 0.85);
+  --bg-main-card: rgba(255, 255, 255, 0.82);
+  --bg-input: rgba(0, 0, 0, 0.05);
+  --bg-code: #f6f8fa;
+  --bg-code-header: #e8eaed;
+  --bg-tag: rgba(255, 0, 64, 0.08);
+  --bg-blockquote: rgba(255, 0, 64, 0.05);
+  --bg-hover: rgba(255, 0, 64, 0.08);
+  --bg-category-item: rgba(0, 0, 0, 0.02);
+  --bg-article-card: rgba(255, 255, 255, 0.95);
+  --bg-article-content: rgba(255, 255, 255, 0.92);
+  --bg-about-box: rgba(255, 0, 64, 0.05);
+  --bg-comment-box: rgba(255, 255, 255, 0.9);
+  --bg-social: rgba(0, 0, 0, 0.05);
+  --bg-social-hover: rgba(255, 0, 64, 0.15);
+  --bg-footer: rgba(255, 255, 255, 0.9);
+  --bg-mobile-menu: rgba(255, 255, 255, 0.98);
+  --bg-inline-code: rgba(255, 0, 64, 0.1);
+
+  --text-primary: #1a1a1a;
+  --text-secondary: #444444;
+  --text-muted: #888888;
+  --text-body: #444444;
+  --text-heading: #1a1a1a;
+  --text-card-title: #1a1a1a;
+  --text-card-body: #555555;
+  --text-strong: #1a1a1a;
+  --text-code: #333333;
+  --text-inline-code: #ff0040;
+  --text-link: #ff0040;
+
+  --border-card: rgba(200, 200, 200, 0.3);
+  --border-section: rgba(0, 0, 0, 0.06);
+  --border-tag: rgba(255, 0, 64, 0.2);
+  --border-input: rgba(255, 0, 64, 0.4);
+  --border-table: #eee;
+  --border-mobile-menu: #e0e0e0;
+
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+
+  --scrollbar-track: #f0f0f0;
+  --scrollbar-thumb: #ff0040;
+  --scrollbar-thumb-hover: #ff2d55;
+
+  --table-header-bg: rgba(255, 0, 64, 0.1);
+  --table-border: #eee;
+
+  color-scheme: light;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
 }
 
 * {
@@ -61,22 +175,22 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--p5-dark-gray);
+  background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--p5-red);
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--p5-accent);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Selection */
 ::selection {
   background: var(--p5-red);
-  color: var(--p5-white);
+  color: #ffffff;
 }
 
 /* Glitch effect for text */
@@ -160,6 +274,13 @@ body {
 
 .pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Theme transition */
+*,
+*::before,
+*::after {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Responsive */

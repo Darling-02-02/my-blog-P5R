@@ -5,7 +5,10 @@ import ContentSection from './components/ContentSection'
 import Footer from './components/Footer'
 import Article from './components/Article'
 import AboutMe from './components/AboutMe'
+import ArchivePage from './components/ArchivePage'
 import { GlobalBackground } from './components/GlobalBackground'
+import { ThemeProvider } from './contexts/ThemeContext'
+import ThemeToggle from './components/ThemeToggle'
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -29,20 +32,25 @@ function Home() {
 
 function App() {
   return (
-    <Router basename="/my-blog-P5R">
-      <GlobalBackground>
-        <div className="scanlines">
-          <main>
-            <ScrollToTop />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/article/:id" element={<Article />} />
-              <Route path="/about" element={<AboutMe />} />
-            </Routes>
-          </main>
-        </div>
-      </GlobalBackground>
-    </Router>
+    <ThemeProvider>
+      <Router basename="/my-blog-P5R">
+        <GlobalBackground>
+          <div className="scanlines">
+            <main>
+              <ScrollToTop />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/article/:id" element={<Article />} />
+                <Route path="/about" element={<AboutMe />} />
+                <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />
+                <Route path="/category/:name" element={<ArchivePage mode="category" />} />
+              </Routes>
+            </main>
+          </div>
+        </GlobalBackground>
+        <ThemeToggle />
+      </Router>
+    </ThemeProvider>
   )
 }
 

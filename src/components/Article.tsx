@@ -20,15 +20,15 @@ const CodeBlock = ({ language, code }: { language: string; code: string }) => {
       margin: '1.5rem 0',
       borderRadius: '10px',
       overflow: 'hidden',
-      background: '#1e1e1e',
+      background: 'var(--bg-code)',
     }}>
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '0.5rem 1rem',
-        background: '#2d2d2d',
-        color: '#888',
+        background: 'var(--bg-code-header)',
+        color: 'var(--text-muted)',
         fontSize: '0.8rem',
       }}>
         <span>{language || 'code'}</span>
@@ -37,7 +37,7 @@ const CodeBlock = ({ language, code }: { language: string; code: string }) => {
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#888',
+            color: 'var(--text-muted)',
             cursor: 'pointer',
             fontSize: '0.75rem',
           }}
@@ -53,7 +53,7 @@ const CodeBlock = ({ language, code }: { language: string; code: string }) => {
         lineHeight: 1.6,
       }}>
         <code style={{
-          color: '#d4d4d4',
+          color: 'var(--text-code)',
           fontFamily: '"Fira Code", "Consolas", monospace',
         }}>
           {code}
@@ -65,12 +65,12 @@ const CodeBlock = ({ language, code }: { language: string; code: string }) => {
 
 const InlineCode = ({ children }: { children: React.ReactNode }) => (
   <code style={{
-    background: 'rgba(255, 0, 64, 0.1)',
+    background: 'var(--bg-inline-code)',
     padding: '0.2rem 0.5rem',
     borderRadius: '4px',
     fontSize: '0.9em',
     fontFamily: '"Fira Code", "Consolas", monospace',
-    color: '#ff0040',
+    color: 'var(--text-inline-code)',
   }}>
     {children}
   </code>
@@ -121,17 +121,17 @@ const Article = () => {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           style={{
-            background: 'rgba(26, 26, 26, 0.9)',
+            background: 'var(--bg-card)',
             padding: '3rem',
             borderRadius: '10px',
-            border: '2px solid var(--p5-red)',
+            border: '2px solid #ff0040',
             textAlign: 'center',
           }}
         >
-          <h1 style={{ color: 'var(--p5-red)', marginBottom: '1rem', fontSize: '2rem' }}>
+          <h1 style={{ color: '#ff0040', marginBottom: '1rem', fontSize: '2rem' }}>
             文章未找到
           </h1>
-          <p style={{ color: 'var(--p5-light-gray)', marginBottom: '2rem' }}>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
             你在寻找的文章可能已被删除或不存在
           </p>
           <motion.button
@@ -140,7 +140,7 @@ const Article = () => {
             whileTap={{ scale: 0.95 }}
             style={{
               padding: '1rem 2rem',
-              background: 'var(--p5-red)',
+              background: '#ff0040',
               color: 'white',
               border: 'none',
               borderRadius: '5px',
@@ -178,8 +178,8 @@ const Article = () => {
           style={{
             marginBottom: '2rem',
             padding: '0.6rem 1.2rem',
-            background: 'rgba(255, 255, 255, 0.9)',
-            border: 'none',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-card)',
             borderRadius: '20px',
             color: '#ff0040',
             cursor: 'pointer',
@@ -219,7 +219,7 @@ const Article = () => {
             fontWeight: '700',
             marginBottom: '1rem',
             lineHeight: 1.3,
-            color: '#fff',
+            color: 'var(--text-primary)',
           }}>
             {article.title}
           </h1>
@@ -227,7 +227,7 @@ const Article = () => {
           <div style={{
             display: 'flex',
             gap: '1.5rem',
-            color: '#888',
+            color: 'var(--text-muted)',
             fontSize: '0.9rem',
             flexWrap: 'wrap',
           }}>
@@ -241,10 +241,12 @@ const Article = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
           style={{
-            background: 'rgba(255, 255, 255, 0.9)',
+            background: 'var(--bg-article-content)',
             borderRadius: '16px',
             padding: '3rem',
-            color: '#333',
+            color: 'var(--text-body)',
+            border: '1px solid var(--border-card)',
+            backdropFilter: 'blur(10px)',
           }}
         >
           <ReactMarkdown
@@ -274,7 +276,7 @@ const Article = () => {
                     fontWeight: '700',
                     marginTop: '2.5rem',
                     marginBottom: '1.2rem',
-                    color: '#1a1a1a',
+                    color: 'var(--text-heading)',
                     paddingBottom: '0.5rem',
                     borderBottom: '2px solid #ff0040',
                   }}>
@@ -289,7 +291,7 @@ const Article = () => {
                     fontWeight: '600',
                     marginTop: '2rem',
                     marginBottom: '1rem',
-                    color: '#333',
+                    color: 'var(--text-secondary)',
                   }}>
                     {children}
                   </h3>
@@ -302,7 +304,7 @@ const Article = () => {
                     fontWeight: '600',
                     marginTop: '1.5rem',
                     marginBottom: '0.8rem',
-                    color: '#333',
+                    color: 'var(--text-secondary)',
                   }}>
                     {children}
                   </h4>
@@ -312,7 +314,7 @@ const Article = () => {
                 return (
                   <p style={{
                     marginBottom: '1.2rem',
-                    color: '#444',
+                    color: 'var(--text-body)',
                     lineHeight: 1.8,
                   }}>
                     {children}
@@ -343,7 +345,7 @@ const Article = () => {
                 return (
                   <li style={{
                     marginBottom: '0.5rem',
-                    color: '#444',
+                    color: 'var(--text-body)',
                     lineHeight: 1.7,
                   }}>
                     {children}
@@ -357,8 +359,8 @@ const Article = () => {
                     paddingLeft: '1.5rem',
                     margin: '1.5rem 0',
                     fontStyle: 'italic',
-                    color: '#666',
-                    background: 'rgba(255, 0, 64, 0.05)',
+                    color: 'var(--text-muted)',
+                    background: 'var(--bg-blockquote)',
                     padding: '1rem 1.5rem',
                     borderRadius: '0 8px 8px 0',
                   }}>
@@ -370,7 +372,7 @@ const Article = () => {
                 return (
                   <strong style={{
                     fontWeight: '600',
-                    color: '#1a1a1a',
+                    color: 'var(--text-strong)',
                   }}>
                     {children}
                   </strong>
@@ -379,7 +381,7 @@ const Article = () => {
               em({ children }) {
                 return (
                   <em style={{
-                    color: '#666',
+                    color: 'var(--text-muted)',
                   }}>
                     {children}
                   </em>
@@ -390,7 +392,7 @@ const Article = () => {
                   <hr style={{
                     border: 'none',
                     height: '1px',
-                    background: '#eee',
+                    background: 'var(--border-section)',
                     margin: '2rem 0',
                   }} />
                 );
@@ -424,7 +426,7 @@ const Article = () => {
                 );
               },
               thead({ children }) {
-                return <thead style={{ background: 'rgba(255,0,64,0.1)' }}>{children}</thead>;
+                return <thead style={{ background: 'var(--table-header-bg)' }}>{children}</thead>;
               },
               th({ children }) {
                 return (
@@ -433,7 +435,7 @@ const Article = () => {
                     textAlign: 'left',
                     borderBottom: '2px solid #ff0040',
                     fontWeight: '600',
-                    color: '#333',
+                    color: 'var(--text-secondary)',
                   }}>
                     {children}
                   </th>
@@ -443,8 +445,8 @@ const Article = () => {
                 return (
                   <td style={{
                     padding: '0.8rem 1rem',
-                    borderBottom: '1px solid #eee',
-                    color: '#444',
+                    borderBottom: '1px solid var(--table-border)',
+                    color: 'var(--text-body)',
                   }}>
                     {children}
                   </td>
@@ -472,8 +474,8 @@ const Article = () => {
               key={tag}
               style={{
                 padding: '0.4rem 0.8rem',
-                background: 'rgba(255, 0, 64, 0.1)',
-                border: '1px solid rgba(255, 0, 64, 0.2)',
+                background: 'var(--bg-tag)',
+                border: '1px solid var(--border-tag)',
                 borderRadius: '15px',
                 fontSize: '0.85rem',
                 color: '#ff0040',

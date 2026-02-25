@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { heroSlideshowImages } from './imageConfig';
+import { useTheme } from '../contexts/ThemeContext';
 
 const base = import.meta.env.BASE_URL;
 
@@ -9,6 +10,8 @@ interface BackgroundProps {
 
 // 全局主题背景
 export const GlobalBackground = ({ children }: BackgroundProps) => {
+  const { isDark } = useTheme();
+
   return (
     <>
       {/* 全局固定背景图片 */}
@@ -27,7 +30,7 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
         }}
       />
       
-      {/* 全局深色遮罩 */}
+      {/* 全局遮罩 - 根据主题调整透明度 */}
       <div 
         style={{
           position: 'fixed',
@@ -35,8 +38,9 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundColor: 'rgba(0, 0, 0, 0.45)',
+          backgroundColor: isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(255, 255, 255, 0.35)',
           zIndex: -1,
+          transition: 'background-color 0.4s ease',
         }}
       />
       

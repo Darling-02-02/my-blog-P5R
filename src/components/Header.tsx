@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { heroSlideshowImages } from './imageConfig';
+import { useTheme } from '../contexts/ThemeContext';
 
 const base = import.meta.env.BASE_URL;
 
@@ -11,7 +12,12 @@ const Header = () => {
   const [isInHeroSection, setIsInHeroSection] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
-  const isArticlePage = location.pathname.startsWith('/article') || location.pathname === '/about';
+  const { isDark } = useTheme();
+  const isArticlePage =
+    location.pathname.startsWith('/article') ||
+    location.pathname === '/about' ||
+    location.pathname.startsWith('/tag/') ||
+    location.pathname.startsWith('/category/');
 
   // Hero图片切换
   useEffect(() => {
@@ -28,13 +34,14 @@ const Header = () => {
       const heroSection = document.getElementById('home');
       if (heroSection) {
         const rect = heroSection.getBoundingClientRect();
-        // 如果Hero区域还在视口内（底部还没有滚出视口顶部）
         setIsInHeroSection(rect.bottom > 0);
+      } else {
+        setIsInHeroSection(false);
       }
     };
 
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); // 初始化
+    handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -77,6 +84,18 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
+  const headerOverlay = isDark
+    ? 'linear-gradient(to bottom, rgba(10, 10, 10, 0.4) 0%, rgba(10, 10, 10, 0.2) 100%)'
+    : 'linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.15) 100%)';
+
+  const articleBg = isDark
+    ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)'
+    : 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f1f3f5 100%)';
+
+  // Nav text is always white on hero/article pages (dark overlays), 
+  // but in light mode when scrolled past hero, use dark text
+  const navTextColor = isDark ? '#ffffff' : (isArticlePage || isInHeroSection ? '#ffffff' : '#ffffff');
+
   return (
     <motion.header
       initial={{ y: -100 }}
@@ -96,7 +115,6 @@ const Header = () => {
       {/* 背景层 - 根据页面和滚动位置切换 */}
       <AnimatePresence mode="sync">
         {isArticlePage ? (
-          // 文章页面背景 - 纯色+渐变
           <motion.div
             key="article-bg"
             initial={{ opacity: 0 }}
@@ -109,11 +127,10 @@ const Header = () => {
               left: 0,
               width: '100%',
               height: '100%',
-              background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
+              background: articleBg,
             }}
           />
         ) : isInHeroSection ? (
-          // Hero区域背景 - 图片切换
           <motion.div
             key={`hero-${currentHeroIndex}`}
             initial={{ opacity: 0 }}
@@ -133,7 +150,6 @@ const Header = () => {
             }}
           />
         ) : (
-          // 其他页面背景 - 主题背景
           <motion.div
             key="theme"
             initial={{ opacity: 0 }}
@@ -162,7 +178,7 @@ const Header = () => {
         left: 0,
         right: 0,
         bottom: 0,
-        background: 'linear-gradient(to bottom, rgba(10, 10, 10, 0.4) 0%, rgba(10, 10, 10, 0.2) 100%)',
+        background: headerOverlay,
         zIndex: 1,
       }} />
 
@@ -227,7 +243,7 @@ const Header = () => {
                 color: '#ff0040',
               }}
               style={{
-                color: '#ffffff',
+                color: navTextColor,
                 background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
@@ -235,6 +251,7 @@ const Header = () => {
                 fontWeight: '500',
                 position: 'relative',
                 padding: '0.5rem 0',
+                textShadow: '1px 1px 3px rgba(0,0,0,0.5)',
               }}
             >
               {item.name}
@@ -263,10 +280,10 @@ const Header = () => {
             style={{
               display: 'flex',
               alignItems: 'center',
-              background: 'rgba(255, 255, 255, 0.1)',
+              background: 'var(--bg-input)',
               borderRadius: '20px',
               padding: '0.5rem 1rem',
-              border: '1px solid rgba(255, 0, 64, 0.5)',
+              border: '1px solid var(--border-input)',
             }}
           >
             <input
@@ -279,6 +296,7 @@ const Header = () => {
                 outline: 'none',
                 fontSize: '0.875rem',
                 width: '150px',
+                textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
               }}
             />
             <motion.span
@@ -306,6 +324,7 @@ const Header = () => {
             fontSize: '1.5rem',
             cursor: 'pointer',
             padding: '0.5rem',
+            textShadow: '1px 1px 3px rgba(0,0,0,0.5)',
           }}
         >
           {isMenuOpen ? '✕' : '☰'}
@@ -320,7 +339,7 @@ const Header = () => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             style={{
-              background: 'rgba(10, 10, 10, 0.98)',
+              background: 'var(--bg-mobile-menu)',
               padding: '1rem',
               position: 'relative',
               zIndex: 2,
@@ -332,10 +351,10 @@ const Header = () => {
                 onClick={() => handleNavClick(item)}
                 style={{
                   display: 'block',
-                  color: '#ffffff',
+                  color: 'var(--text-primary)',
                   background: 'transparent',
                   border: 'none',
-                  borderBottom: '1px solid #2d2d2d',
+                  borderBottom: `1px solid var(--border-mobile-menu)`,
                   width: '100%',
                   textAlign: 'left',
                   cursor: 'pointer',
@@ -350,10 +369,10 @@ const Header = () => {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              background: 'rgba(255, 255, 255, 0.1)',
+              background: 'var(--bg-input)',
               borderRadius: '20px',
               padding: '0.75rem 1rem',
-              border: '1px solid rgba(255, 0, 64, 0.5)',
+              border: '1px solid var(--border-input)',
               marginTop: '1rem',
             }}>
               <input
@@ -362,7 +381,7 @@ const Header = () => {
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: '#ffffff',
+                  color: 'var(--text-primary)',
                   outline: 'none',
                   fontSize: '1rem',
                   flex: 1,
