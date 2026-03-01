@@ -10,6 +10,7 @@ import ThemeToggle from './components/ThemeToggle'
 const Article = lazy(() => import('./components/Article'));
 const AboutMe = lazy(() => import('./components/AboutMe'));
 const ArchivePage = lazy(() => import('./components/ArchivePage'));
+const StudyRoom = lazy(() => import('./components/StudyRoom'));
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -44,6 +45,7 @@ function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/article/:id" element={<Article />} />
                   <Route path="/about" element={<AboutMe />} />
+                  <Route path="/study-room" element={<StudyRoom />} />
                   <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />
                   <Route path="/category/:name" element={<ArchivePage mode="category" />} />
                 </Routes>
