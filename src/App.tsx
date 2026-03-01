@@ -1,14 +1,15 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import Hero from './components/Hero'
 import ContentSection from './components/ContentSection'
 import Footer from './components/Footer'
-import Article from './components/Article'
-import AboutMe from './components/AboutMe'
-import ArchivePage from './components/ArchivePage'
 import { GlobalBackground } from './components/GlobalBackground'
 import { ThemeProvider } from './contexts/ThemeContext'
 import ThemeToggle from './components/ThemeToggle'
+
+const Article = lazy(() => import('./components/Article'));
+const AboutMe = lazy(() => import('./components/AboutMe'));
+const ArchivePage = lazy(() => import('./components/ArchivePage'));
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -38,13 +39,15 @@ function App() {
           <div className="scanlines">
             <main>
               <ScrollToTop />
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/article/:id" element={<Article />} />
-                <Route path="/about" element={<AboutMe />} />
-                <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />
-                <Route path="/category/:name" element={<ArchivePage mode="category" />} />
-              </Routes>
+              <Suspense fallback={null}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/article/:id" element={<Article />} />
+                  <Route path="/about" element={<AboutMe />} />
+                  <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />
+                  <Route path="/category/:name" element={<ArchivePage mode="category" />} />
+                </Routes>
+              </Suspense>
             </main>
           </div>
         </GlobalBackground>
