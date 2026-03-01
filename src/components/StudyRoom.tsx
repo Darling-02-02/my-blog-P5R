@@ -1,8 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import { motion } from 'framer-motion';
 import Header from './Header';
 import Footer from './Footer';
+
+declare global {
+  interface Window {
+    L2Dwidget?: {
+      init: (options: Record<string, unknown>) => void;
+    };
+  }
+}
 
 interface StudyUser {
   name: string;
@@ -31,6 +38,81 @@ const toClock = (seconds: number) => {
   const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
   const s = Math.floor(seconds % 60).toString().padStart(2, '0');
   return `${h}:${m}:${s}`;
+};
+
+const Live2DCompanion = () => {
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+
+  useEffect(() => {
+    const widgetRoot = document.getElementById('live2d-widget');
+    if (widgetRoot) widgetRoot.innerHTML = '';
+
+    const existing = document.getElementById('l2dwidget-script');
+    if (existing) existing.remove();
+
+    const script = document.createElement('script');
+    script.id = 'l2dwidget-script';
+    script.src = 'https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js';
+    script.async = true;
+
+    script.onload = () => {
+      try {
+        window.L2Dwidget?.init({
+          model: { jsonPath: 'https://unpkg.com/live2d-widget-model-hijiki/assets/hijiki.model.json' },
+          display: { position: 'right', width: 180, height: 320, hOffset: 0, vOffset: -20 },
+          mobile: { show: true, scale: 0.85 },
+          react: { opacityDefault: 0.95, opacityOnHover: 1 },
+          name: { canvas: 'study-room-live2d' },
+        });
+        setStatus('ready');
+      } catch {
+        setStatus('error');
+      }
+    };
+
+    script.onerror = () => setStatus('error');
+    document.body.appendChild(script);
+
+    return () => {
+      script.remove();
+      const canvas = document.getElementById('study-room-live2d');
+      if (canvas?.parentElement) {
+        canvas.parentElement.remove();
+      }
+    };
+  }, []);
+
+  return (
+    <div
+      id="live2d-widget"
+      style={{
+        position: 'relative',
+        borderRadius: '14px',
+        minHeight: '260px',
+        background:
+          'radial-gradient(circle at 30% 20%, rgba(255,0,64,0.3) 0%, rgba(255,0,64,0.08) 40%, rgba(26,26,26,0.7) 100%)',
+        border: '1px solid rgba(255, 0, 64, 0.35)',
+        overflow: 'hidden',
+      }}
+    >
+      {status !== 'ready' && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            background: 'rgba(10,10,10,0.35)',
+            fontSize: '0.92rem',
+          }}
+        >
+          {status === 'loading' ? 'Loading Live2D...' : 'Live2D load failed, please refresh.'}
+        </div>
+      )}
+    </div>
+  );
 };
 
 const StudyRoom = () => {
@@ -386,58 +468,7 @@ const StudyRoom = () => {
                     }}
                   >
                     <h2 style={{ color: 'var(--text-heading)', fontSize: '1.1rem' }}>Companion</h2>
-                    <motion.div
-                      animate={{ y: [0, -8, 0], rotate: [0, -1, 1, 0] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                      style={{
-                        position: 'relative',
-                        borderRadius: '14px',
-                        minHeight: '240px',
-                        background:
-                          'radial-gradient(circle at 30% 20%, rgba(255,0,64,0.3) 0%, rgba(255,0,64,0.08) 40%, rgba(26,26,26,0.7) 100%)',
-                        border: '1px solid rgba(255, 0, 64, 0.35)',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <div
-                        style={{
-                          position: 'absolute',
-                          inset: 'auto 0 0 0',
-                          height: '65%',
-                          background:
-                            'linear-gradient(180deg, rgba(255,0,64,0.2) 0%, rgba(255,0,64,0.35) 30%, rgba(10,10,10,0.9) 100%)',
-                          clipPath: 'polygon(16% 15%, 50% 0%, 84% 15%, 100% 100%, 0% 100%)',
-                        }}
-                      />
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '16%',
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          width: '118px',
-                          height: '118px',
-                          borderRadius: '50%',
-                          background: 'linear-gradient(145deg, #ffd3de 0%, #ff9eb7 100%)',
-                          border: '3px solid rgba(255,255,255,0.75)',
-                          boxShadow: '0 10px 24px rgba(0,0,0,0.25)',
-                        }}
-                      />
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '37%',
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          color: '#fff',
-                          fontWeight: 700,
-                          letterSpacing: '1px',
-                          textShadow: '0 2px 10px rgba(0,0,0,0.6)',
-                        }}
-                      >
-                        AOI
-                      </div>
-                    </motion.div>
+                    <Live2DCompanion />
 
                     <div
                       style={{
@@ -452,7 +483,7 @@ const StudyRoom = () => {
                       {isStudying ? companionLines[lineIndex] : 'Press "Start Study" and I will guide your rhythm.'}
                     </div>
                     <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                      Live2D-ready slot: this panel can be replaced with a real Live2D model later.
+                      Live2D is enabled. If model loading fails due to network, refresh once.
                     </div>
                   </div>
                 </div>
