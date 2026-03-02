@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Header from './Header';
+import quotesRaw from '../../语录.txt?raw';
 
 const base = import.meta.env.BASE_URL;
 const images = [
@@ -18,17 +19,16 @@ const images = [
   `${base}slideshow/slideshow-12.png`,
 ];
 
-const quotes = [
-  '保持专注，慢一点也没关系。',
-  '今天学会一点点，明天就会强很多。',
-  '你现在的每一分钟，都会在未来回报你。',
-  '别和别人比，和昨天的自己比就够了。',
-  '再坚持一下，这轮结束就休息。',
-  '状态不好也没关系，先坐下开始。',
-  '专注不是不分心，而是分心后再回来。',
-];
-
 export default function Hero() {
+  const quotes = useMemo(
+    () =>
+      quotesRaw
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean),
+    [],
+  );
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [isQuoteVisible, setIsQuoteVisible] = useState(true);
@@ -41,6 +41,7 @@ export default function Hero() {
   }, []);
 
   useEffect(() => {
+    if (!quotes.length) return;
     const quoteInterval = setInterval(() => {
       setIsQuoteVisible(false);
       setTimeout(() => {
@@ -49,7 +50,7 @@ export default function Hero() {
       }, 450);
     }, 5000);
     return () => clearInterval(quoteInterval);
-  }, []);
+  }, [quotes]);
 
   return (
     <section id="home" className="hero-section">
@@ -63,7 +64,9 @@ export default function Hero() {
 
       <div className="hero-content">
         <h1 className="hero-title">灵敏度加满的 blog</h1>
-        <p className={`hero-quote ${isQuoteVisible ? 'quote-visible' : 'quote-hidden'}`}>{quotes[quoteIndex]}</p>
+        <p className={`hero-quote ${isQuoteVisible ? 'quote-visible' : 'quote-hidden'}`}>
+          {quotes[quoteIndex] ?? ''}
+        </p>
       </div>
 
       <style>{`
