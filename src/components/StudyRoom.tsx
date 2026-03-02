@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import Header from './Header';
 import Footer from './Footer';
+import AICompanionPanel from './AICompanionPanel';
 
 interface StudyUser {
   name: string;
@@ -39,7 +40,6 @@ const Live2DCompanion = memo(() => {
 
   return (
     <div
-      id="live2d-widget"
       style={{
         position: 'relative',
         borderRadius: '14px',
@@ -66,6 +66,7 @@ const Live2DCompanion = memo(() => {
           正在加载 Live2D...
         </div>
       )}
+
       <iframe
         title="Live2D 学习伙伴"
         src={frameSrc}
@@ -78,6 +79,7 @@ const Live2DCompanion = memo(() => {
           background: 'transparent',
         }}
       />
+
       <div
         style={{
           position: 'absolute',
@@ -107,6 +109,10 @@ const StudyRoom = () => {
 
   useEffect(() => {
     const savedUser = localStorage.getItem(USER_KEY);
+    const savedTodos = localStorage.getItem(TODO_KEY);
+    const savedTotalSeconds = Number(localStorage.getItem(TOTAL_SECONDS_KEY) ?? '0');
+    const savedLive2dEnabled = localStorage.getItem(LIVE2D_ENABLED_KEY);
+
     if (savedUser) {
       try {
         setUser(JSON.parse(savedUser) as StudyUser);
@@ -115,12 +121,10 @@ const StudyRoom = () => {
       }
     }
 
-    const savedTotalSeconds = Number(localStorage.getItem(TOTAL_SECONDS_KEY) ?? '0');
     if (!Number.isNaN(savedTotalSeconds) && savedTotalSeconds > 0) {
       setTotalSeconds(savedTotalSeconds);
     }
 
-    const savedTodos = localStorage.getItem(TODO_KEY);
     if (savedTodos) {
       try {
         setTodos(JSON.parse(savedTodos) as TodoItem[]);
@@ -129,7 +133,6 @@ const StudyRoom = () => {
       }
     }
 
-    const savedLive2dEnabled = localStorage.getItem(LIVE2D_ENABLED_KEY);
     setLive2dEnabled(savedLive2dEnabled === '1');
   }, []);
 
@@ -181,6 +184,7 @@ const StudyRoom = () => {
     e.preventDefault();
     const name = nameInput.trim();
     if (!name) return;
+
     const nextUser = { name };
     setUser(nextUser);
     localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
@@ -241,9 +245,7 @@ const StudyRoom = () => {
               <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', color: '#fff', marginBottom: '0.65rem' }}>
                 陪伴自习室
               </h1>
-              <p style={{ color: 'rgba(255,255,255,0.9)' }}>
-                登录后即可开始学习计时，和二次元伙伴一起专注。
-              </p>
+              <p style={{ color: 'rgba(255,255,255,0.9)' }}>登录后即可开始学习计时，和二次元伙伴一起专注。</p>
             </div>
 
             {!user ? (
@@ -260,9 +262,7 @@ const StudyRoom = () => {
                   }}
                 >
                   <h2 style={{ color: 'var(--text-heading)', marginBottom: '0.8rem' }}>登录进入</h2>
-                  <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                    输入昵称即可进入你的自习室。
-                  </p>
+                  <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>输入昵称即可进入你的自习室。</p>
                   <input
                     value={nameInput}
                     onChange={(e) => setNameInput(e.target.value)}
@@ -483,6 +483,7 @@ const StudyRoom = () => {
                     >
                       {live2dEnabled ? '关闭 Live2D（更流畅）' : '开启 Live2D'}
                     </button>
+
                     {live2dEnabled && !isStudying ? (
                       <Live2DCompanion />
                     ) : live2dEnabled && isStudying ? (
@@ -534,6 +535,8 @@ const StudyRoom = () => {
                     <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                       如果你设备性能较低，建议学习时关闭 Live2D。
                     </div>
+
+                    <AICompanionPanel isStudying={isStudying} sessionSeconds={sessionSeconds} />
                   </div>
                 </div>
               </div>
@@ -542,6 +545,7 @@ const StudyRoom = () => {
         </div>
       </section>
       <Footer />
+
       <style>{`
         @media (max-width: 980px) {
           .study-grid {
