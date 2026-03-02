@@ -1,23 +1,6 @@
 import { useState, useEffect } from 'react';
 import Header from './Header';
 
-const base = import.meta.env.BASE_URL;
-const images = [
-  `${base}slideshow/slideshow-0.png`,
-  `${base}slideshow/slideshow-1.png`,
-  `${base}slideshow/slideshow-2.png`,
-  `${base}slideshow/slideshow-3.png`,
-  `${base}slideshow/slideshow-4.png`,
-  `${base}slideshow/slideshow-5.png`,
-  `${base}slideshow/slideshow-6.png`,
-  `${base}slideshow/slideshow-7.png`,
-  `${base}slideshow/slideshow-8.png`,
-  `${base}slideshow/slideshow-9.png`,
-  `${base}slideshow/slideshow-10.png`,
-  `${base}slideshow/slideshow-11.png`,
-  `${base}slideshow/slideshow-12.png`,
-];
-
 const quotes = [
   '你好，这里是未被发现的天才的家 ——《海绵宝宝》',
   'では、ゲームを始めましょう——《游戏人生》',
@@ -29,16 +12,8 @@ const quotes = [
 ];
 
 export default function Hero() {
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [isQuoteVisible, setIsQuoteVisible] = useState(true);
-
-  useEffect(() => {
-    const imgInterval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 5000);
-    return () => clearInterval(imgInterval);
-  }, []);
 
   useEffect(() => {
     const quoteInterval = setInterval(() => {
@@ -55,14 +30,6 @@ export default function Hero() {
     <section id="home" className="hero-section">
       <Header />
       <div className="background-container">
-        {images.map((src, index) => (
-          <img
-            key={src}
-            src={src}
-            alt=""
-            className={`background-image ${index === currentIndex ? 'active' : ''}`}
-          />
-        ))}
         <div className="background-overlay" />
       </div>
 
@@ -90,22 +57,7 @@ export default function Hero() {
           left: 0;
           width: 100%;
           height: 100%;
-          background-color: transparent;
-        }
-
-        .background-image {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          opacity: 0;
-          transition: opacity 1.5s ease-in-out;
-        }
-
-        .background-image.active {
-          opacity: 1;
+          background: linear-gradient(135deg, rgba(255,255,255,0.86), rgba(255,245,248,0.9));
         }
 
         .background-overlay {
@@ -114,7 +66,7 @@ export default function Hero() {
           left: 0;
           width: 100%;
           height: 100%;
-          background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+          background: radial-gradient(circle at 20% 20%, rgba(255, 0, 64, 0.18), rgba(255, 0, 64, 0.04) 45%, transparent 70%);
         }
 
         .hero-content {
@@ -152,12 +104,12 @@ export default function Hero() {
 
         .hero-quote {
           font-size: clamp(0.875rem, 4vw, 1.5rem);
-          color: #fff;
+          color: #2a2a2a;
           max-width: 90%;
           margin: 0 auto;
           min-height: 2rem;
           animation: quoteFloat 3s ease-in-out infinite, quoteGlow 2s ease-in-out infinite alternate;
-          text-shadow: 0 0 20px rgba(255, 182, 193, 0.8), 0 0 40px rgba(255, 105, 180, 0.4);
+          text-shadow: 0 2px 8px rgba(255, 182, 193, 0.35);
           font-weight: 500;
           letter-spacing: 0.5px;
           line-height: 1.6;
@@ -170,8 +122,8 @@ export default function Hero() {
         }
 
         @keyframes quoteGlow {
-          from { text-shadow: 0 0 20px rgba(255, 182, 193, 0.8), 0 0 40px rgba(255, 105, 180, 0.4); }
-          to { text-shadow: 0 0 30px rgba(255, 182, 193, 1), 0 0 60px rgba(255, 105, 180, 0.6), 0 0 80px rgba(255, 159, 243, 0.4); }
+          from { text-shadow: 0 2px 8px rgba(255, 182, 193, 0.35); }
+          to { text-shadow: 0 4px 16px rgba(255, 105, 180, 0.25); }
         }
 
         .quote-visible {
