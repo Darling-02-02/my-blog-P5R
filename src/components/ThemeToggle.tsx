@@ -12,6 +12,7 @@ const ThemeToggle = () => {
       transition={{ delay: 1, type: 'spring', stiffness: 200 }}
       whileHover={{ scale: 1.15 }}
       whileTap={{ scale: 0.9 }}
+      className="theme-toggle-btn"
       aria-label={isDark ? '切换到日间模式' : '切换到夜间模式'}
       style={{
         position: 'fixed',
@@ -54,7 +55,13 @@ const ThemeToggle = () => {
 
       <style>{`
         @media (max-width: 768px) {
-          /* Adjust position on mobile so it doesn't overlap content */
+          .theme-toggle-btn {
+            right: 1rem !important;
+            bottom: 1rem !important;
+            width: 44px !important;
+            height: 44px !important;
+            font-size: 1.2rem !important;
+          }
         }
       `}</style>
     </motion.button>

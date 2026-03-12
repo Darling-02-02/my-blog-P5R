@@ -70,6 +70,7 @@ const AboutMe = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
+      className="about-page"
       style={{
         minHeight: '100vh',
         padding: '6rem 2rem 4rem',
@@ -109,6 +110,7 @@ const AboutMe = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
+          className="about-header"
           style={{
             textAlign: 'center',
             marginBottom: '3rem',
@@ -207,6 +209,7 @@ const AboutMe = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
+          className="about-quote"
           style={{
             borderLeft: '4px solid var(--p5-red)',
             paddingLeft: '1.5rem',
@@ -236,6 +239,7 @@ const AboutMe = () => {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 + sectionIndex * 0.1 }}
+            className="about-section"
             style={{
               marginBottom: '2rem',
               padding: '2rem',
@@ -390,7 +394,7 @@ const AboutMe = () => {
             )}
 
             {section.links && (
-              <div style={{
+              <div className="about-links-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
                 gap: '1rem',
@@ -438,6 +442,7 @@ const AboutMe = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
+          className="about-footer"
           style={{
             textAlign: 'center',
             padding: '2rem',
@@ -445,7 +450,7 @@ const AboutMe = () => {
             marginTop: '3rem',
           }}
         >
-          <div style={{
+          <div className="about-footer-socials" style={{
             display: 'flex',
             justifyContent: 'center',
             gap: '1.5rem',
@@ -487,6 +492,34 @@ const AboutMe = () => {
           </p>
         </motion.footer>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .about-page {
+            padding: 5rem 1rem 2.4rem !important;
+          }
+
+          .about-header {
+            padding: 2rem 1.25rem !important;
+            clip-path: none !important;
+            box-shadow: none !important;
+          }
+
+          .about-quote,
+          .about-section {
+            padding: 1.25rem !important;
+          }
+
+          .about-links-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .about-footer-socials {
+            gap: 0.75rem !important;
+            flex-wrap: wrap !important;
+          }
+        }
+      `}</style>
     </motion.div>
   );
 };

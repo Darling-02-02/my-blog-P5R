@@ -80,6 +80,7 @@ const Article = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const article = articles.find(a => a.id === Number(id));
+  const [readingProgress, setReadingProgress] = useState(0);
 
   useEffect(() => {
     const handleCopy = (e: ClipboardEvent) => {
@@ -105,6 +106,29 @@ const Article = () => {
         }
       }, 100);
     }
+  }, []);
+
+  useEffect(() => {
+    const updateReadingProgress = () => {
+      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+      if (scrollableHeight <= 0) {
+        setReadingProgress(0);
+        return;
+      }
+
+      const nextProgress = (window.scrollY / scrollableHeight) * 100;
+      setReadingProgress(Math.min(100, Math.max(0, nextProgress)));
+    };
+
+    updateReadingProgress();
+    window.addEventListener('scroll', updateReadingProgress, { passive: true });
+    window.addEventListener('resize', updateReadingProgress);
+
+    return () => {
+      window.removeEventListener('scroll', updateReadingProgress);
+      window.removeEventListener('resize', updateReadingProgress);
+    };
   }, []);
 
   if (!article) {
@@ -161,12 +185,13 @@ const Article = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
+      className="article-shell"
       style={{
         minHeight: '100vh',
         padding: '5rem 2rem 4rem',
       }}
     >
-      <div style={{
+      <div className="article-container" style={{
         maxWidth: '900px',
         margin: '0 auto',
       }}>
@@ -197,6 +222,7 @@ const Article = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
+          className="article-header"
           style={{
             marginBottom: '3rem',
           }}
@@ -224,7 +250,7 @@ const Article = () => {
             {article.title}
           </h1>
           
-          <div style={{
+          <div className="article-meta" style={{
             display: 'flex',
             gap: '1.5rem',
             color: 'var(--text-muted)',
@@ -234,12 +260,36 @@ const Article = () => {
             <span>📅 {article.date}</span>
             <span>⏱️ {article.readTime}</span>
           </div>
+
+          <div
+            className="article-progress-track"
+            style={{
+              marginTop: '1.35rem',
+              width: '100%',
+              height: '6px',
+              borderRadius: '999px',
+              background: 'rgba(255,255,255,0.08)',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${readingProgress}%`,
+                height: '100%',
+                borderRadius: '999px',
+                background: 'linear-gradient(90deg, #ff0040 0%, #ff7a59 100%)',
+                boxShadow: '0 0 18px rgba(255, 0, 64, 0.28)',
+                transition: 'width 0.15s ease-out',
+              }}
+            />
+          </div>
         </motion.header>
 
         <motion.div
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
+          className="article-content-card article-body"
           style={{
             background: 'var(--bg-article-content)',
             borderRadius: '16px',
@@ -462,6 +512,7 @@ const Article = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
+          className="article-tags"
           style={{
             marginTop: '2rem',
             display: 'flex',
@@ -486,6 +537,58 @@ const Article = () => {
           ))}
         </motion.div>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .article-shell {
+            padding: 4.6rem 1rem 2.4rem !important;
+          }
+
+          .article-header {
+            margin-bottom: 2rem !important;
+          }
+
+          .article-meta {
+            gap: 0.8rem !important;
+            font-size: 0.82rem !important;
+          }
+
+          .article-content-card {
+            padding: 1.35rem !important;
+            border-radius: 14px !important;
+          }
+
+          .article-body h2 {
+            font-size: 1.45rem !important;
+          }
+
+          .article-body h3 {
+            font-size: 1.18rem !important;
+          }
+
+          .article-body h4 {
+            font-size: 1.02rem !important;
+          }
+
+          .article-body blockquote {
+            padding: 0.9rem 1rem !important;
+          }
+        }
+
+        @media (max-width: 560px) {
+          .article-shell {
+            padding: 4.5rem 0.75rem 2rem !important;
+          }
+
+          .article-content-card {
+            padding: 1rem !important;
+          }
+
+          .article-tags {
+            gap: 0.35rem !important;
+          }
+        }
+      `}</style>
     </motion.article>
   );
 };

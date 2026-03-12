@@ -70,6 +70,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
     <>
       <Header />
       <section
+        className="archive-shell"
         style={{
           minHeight: '100vh',
           padding: '6.5rem 1rem 2rem',
@@ -133,6 +134,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                           key={article.id}
                           whileHover={{ y: -4 }}
                           onClick={() => navigate(`/article/${article.id}`)}
+                          className="archive-entry"
                           style={{
                             display: 'grid',
                             gridTemplateColumns: '120px 1fr',
@@ -174,7 +176,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
               )}
             </div>
 
-            <aside>
+            <aside className="archive-sidebar" style={{ position: 'sticky', top: '6.25rem', alignSelf: 'start' }}>
               <div
                 style={{
                   background: 'var(--bg-sidebar-card)',
@@ -273,15 +275,29 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
       </section>
       <Footer />
       <style>{`
+        @media (max-width: 1024px) {
+          .archive-sidebar {
+            position: static !important;
+          }
+        }
+
         @media (max-width: 900px) {
+          .archive-shell {
+            padding: 5.8rem 0.85rem 1.6rem !important;
+          }
+
           .archive-grid {
             grid-template-columns: 1fr !important;
           }
         }
 
         @media (max-width: 640px) {
-          .archive-grid article {
+          .archive-entry {
             grid-template-columns: 1fr !important;
+          }
+
+          .archive-shell {
+            padding: 5.25rem 0.75rem 1.4rem !important;
           }
         }
       `}</style>

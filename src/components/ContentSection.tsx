@@ -521,9 +521,9 @@ const StatsCard = () => {
 
 // 左侧边栏（固定）
 const Sidebar = () => (
-  <aside style={{
+  <aside className="home-sidebar" style={{
     position: 'sticky',
-    top: '2rem',
+    top: '5.5rem',
     width: '260px',
     flexShrink: 0,
     alignSelf: 'flex-start',
@@ -581,7 +581,7 @@ const MainContent = () => {
   const mainPosts = filteredArticles.map(a => ({ ...a, image: coverImage }));
 
   return (
-    <div style={{
+    <div className="home-main-card" style={{
       background: 'var(--bg-main-card)',
       borderRadius: '20px',
       border: '1px solid var(--border-card)',
@@ -598,7 +598,7 @@ const MainContent = () => {
           离神很近，也就是离人很远。——一个臭看番的。
         </p>
         
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginBottom: '3rem' }}>
+        <div className="home-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginBottom: '3rem' }}>
           <div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>🎓 教育背景</h3>
             <p style={{ color: 'var(--text-body)', fontSize: '1.15rem', lineHeight: 2.2, marginBottom: '0.5rem' }}>河南农业大学 · 本科 · 茶学</p>
@@ -629,7 +629,7 @@ const MainContent = () => {
           一切都是为了正义
         </p>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: '2.5rem' }}>
+        <div className="home-post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: '2.5rem' }}>
           {mainPosts.map((post, i) => (
             <BlogCard key={post.id} post={post} index={i} />
           ))}
@@ -665,7 +665,7 @@ const MainContent = () => {
           欢迎留下你的足迹
         </p>
         
-        <div style={{ 
+        <div className="home-comment-box" style={{ 
           background: 'var(--bg-comment-box)', 
           borderRadius: '12px', 
           padding: '1.5rem',
@@ -681,17 +681,62 @@ const MainContent = () => {
 // 主组件
 const ContentSection = () => {
   return (
-    <section style={{ padding: '2rem 1rem', position: 'relative', zIndex: 1 }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+    <section className="home-content-section" style={{ padding: '2rem 1rem', position: 'relative', zIndex: 1 }}>
+      <div className="home-content-shell" style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
         <Sidebar />
         <div style={{ flex: 1, minWidth: 0 }}>
           <MainContent />
         </div>
       </div>
       <style>{`
+        @media (max-width: 1100px) {
+          .home-main-card {
+            padding: 3rem 2rem !important;
+          }
+
+          .home-profile-grid {
+            grid-template-columns: 1fr !important;
+            gap: 2.5rem !important;
+          }
+
+          .home-post-grid {
+            gap: 1.5rem !important;
+          }
+        }
+
         @media (max-width: 900px) {
-          section > div { flex-direction: column !important; }
-          aside { position: static !important; width: 100% !important; }
+          .home-content-section {
+            padding: 1.25rem 0.85rem !important;
+          }
+
+          .home-content-shell {
+            flex-direction: column !important;
+          }
+
+          .home-sidebar {
+            position: static !important;
+            width: 100% !important;
+            top: auto !important;
+          }
+
+          .home-main-card {
+            padding: 2rem 1.35rem !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .home-main-card {
+            padding: 1.45rem 1rem !important;
+            border-radius: 16px !important;
+          }
+
+          .home-post-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .home-comment-box {
+            padding: 1rem !important;
+          }
         }
       `}</style>
     </section>
