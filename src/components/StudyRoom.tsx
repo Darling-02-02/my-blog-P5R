@@ -19,6 +19,61 @@ const TOTAL_SECONDS_KEY = 'study_room_total_seconds';
 const TODO_KEY = 'study_room_todos';
 const LIVE2D_ENABLED_KEY = 'study_room_live2d_enabled';
 
+const readStoredUser = (): StudyUser | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const savedUser = localStorage.getItem(USER_KEY);
+
+  if (!savedUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(savedUser) as StudyUser;
+  } catch {
+    localStorage.removeItem(USER_KEY);
+    return null;
+  }
+};
+
+const readStoredTotalSeconds = () => {
+  if (typeof window === 'undefined') {
+    return 0;
+  }
+
+  const savedTotalSeconds = Number(localStorage.getItem(TOTAL_SECONDS_KEY) ?? '0');
+  return Number.isNaN(savedTotalSeconds) ? 0 : savedTotalSeconds;
+};
+
+const readStoredTodos = (): TodoItem[] => {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  const savedTodos = localStorage.getItem(TODO_KEY);
+
+  if (!savedTodos) {
+    return [];
+  }
+
+  try {
+    return JSON.parse(savedTodos) as TodoItem[];
+  } catch {
+    localStorage.removeItem(TODO_KEY);
+    return [];
+  }
+};
+
+const readStoredLive2DEnabled = () => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return localStorage.getItem(LIVE2D_ENABLED_KEY) === '1';
+};
+
 const companionLines = [
   '先专注 25 分钟，我会一直陪着你。',
   '一点点进步，也是在变强。',
@@ -96,45 +151,16 @@ const Live2DCompanion = memo(() => {
 });
 
 const StudyRoom = () => {
-  const [user, setUser] = useState<StudyUser | null>(null);
+  const [user, setUser] = useState<StudyUser | null>(readStoredUser);
   const [nameInput, setNameInput] = useState('');
   const [isStudying, setIsStudying] = useState(false);
   const [sessionSeconds, setSessionSeconds] = useState(0);
-  const [totalSeconds, setTotalSeconds] = useState(0);
+  const [totalSeconds, setTotalSeconds] = useState(readStoredTotalSeconds);
   const [lineIndex, setLineIndex] = useState(0);
   const [todoInput, setTodoInput] = useState('');
-  const [todos, setTodos] = useState<TodoItem[]>([]);
-  const [live2dEnabled, setLive2dEnabled] = useState(false);
+  const [todos, setTodos] = useState<TodoItem[]>(readStoredTodos);
+  const [live2dEnabled, setLive2dEnabled] = useState(readStoredLive2DEnabled);
   const totalSecondsRef = useRef(0);
-
-  useEffect(() => {
-    const savedUser = localStorage.getItem(USER_KEY);
-    const savedTodos = localStorage.getItem(TODO_KEY);
-    const savedTotalSeconds = Number(localStorage.getItem(TOTAL_SECONDS_KEY) ?? '0');
-    const savedLive2dEnabled = localStorage.getItem(LIVE2D_ENABLED_KEY);
-
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser) as StudyUser);
-      } catch {
-        localStorage.removeItem(USER_KEY);
-      }
-    }
-
-    if (!Number.isNaN(savedTotalSeconds) && savedTotalSeconds > 0) {
-      setTotalSeconds(savedTotalSeconds);
-    }
-
-    if (savedTodos) {
-      try {
-        setTodos(JSON.parse(savedTodos) as TodoItem[]);
-      } catch {
-        localStorage.removeItem(TODO_KEY);
-      }
-    }
-
-    setLive2dEnabled(savedLive2dEnabled === '1');
-  }, []);
 
   useEffect(() => {
     totalSecondsRef.current = totalSeconds;

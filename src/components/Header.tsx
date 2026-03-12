@@ -1,16 +1,40 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
+import { articles } from '../data/articles';
+import { useTheme } from '../contexts/useTheme';
 
 const base = import.meta.env.BASE_URL;
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isInHeroSection, setIsInHeroSection] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+
+  const searchResults = useMemo(() => {
+    if (!normalizedQuery) {
+      return [];
+    }
+
+    return articles
+      .filter((article) => {
+        const searchableText = [
+          article.title,
+          article.excerpt,
+          article.category,
+          article.tags.join(' '),
+        ]
+          .join(' ')
+          .toLowerCase();
+
+        return searchableText.includes(normalizedQuery);
+      })
+      .slice(0, 6);
+  }, [normalizedQuery]);
 
   const isArticlePage =
     location.pathname.startsWith('/article') ||
@@ -78,6 +102,12 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
+  const handleArticleSelect = (articleId: number) => {
+    setSearchQuery('');
+    navigate(`/article/${articleId}`);
+    setIsMenuOpen(false);
+  };
+
   const headerOverlay = isDark
     ? 'linear-gradient(to bottom, rgba(10,10,10,0.24), rgba(10,10,10,0.08))'
     : 'linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(255,255,255,0.06))';
@@ -133,14 +163,14 @@ const Header = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.45 }}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundImage: `url(${base}封面图.jpg)`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center top',
-              backgroundRepeat: 'no-repeat',
-            }}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage: `url(${base}cover.png)`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center top',
+                backgroundRepeat: 'no-repeat',
+              }}
           />
         )}
       </AnimatePresence>
@@ -199,28 +229,120 @@ const Header = () => {
 
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: 'rgba(255,255,255,0.14)',
-              borderRadius: '20px',
-              padding: '0.45rem 0.9rem',
-              border: '1px solid rgba(255,255,255,0.2)',
+              position: 'relative',
             }}
           >
-            <input
-              type="text"
-              placeholder="搜索..."
+            <div
               style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#ffffff',
-                outline: 'none',
-                fontSize: '0.875rem',
-                width: '150px',
-                textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+                display: 'flex',
+                alignItems: 'center',
+                background: 'rgba(255,255,255,0.14)',
+                borderRadius: '20px',
+                padding: '0.45rem 0.9rem',
+                border: '1px solid rgba(255,255,255,0.2)',
               }}
-            />
-            <span style={{ color: '#ff0040', fontSize: '1rem' }}>🔍</span>
+            >
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && searchResults[0]) {
+                    event.preventDefault();
+                    handleArticleSelect(searchResults[0].id);
+                  }
+
+                  if (event.key === 'Escape') {
+                    setSearchQuery('');
+                  }
+                }}
+                placeholder="搜索文章..."
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#ffffff',
+                  outline: 'none',
+                  fontSize: '0.875rem',
+                  width: '150px',
+                  textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (searchResults[0]) {
+                    handleArticleSelect(searchResults[0].id);
+                  }
+                }}
+                style={{
+                  color: '#ff0040',
+                  fontSize: '1rem',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: searchResults[0] ? 'pointer' : 'default',
+                  padding: 0,
+                }}
+                aria-label="Search article"
+              >
+                🔍
+              </button>
+            </div>
+
+            {normalizedQuery && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 0.6rem)',
+                  right: 0,
+                  width: '320px',
+                  maxWidth: 'min(320px, 90vw)',
+                  background: isDark ? 'rgba(18,18,24,0.96)' : 'rgba(255,255,255,0.98)',
+                  border: '1px solid rgba(255, 0, 64, 0.28)',
+                  borderRadius: '16px',
+                  boxShadow: '0 18px 40px rgba(0, 0, 0, 0.25)',
+                  overflow: 'hidden',
+                  backdropFilter: 'blur(12px)',
+                }}
+              >
+                {searchResults.length > 0 ? (
+                  searchResults.map((article) => (
+                    <button
+                      key={article.id}
+                      type="button"
+                      onClick={() => handleArticleSelect(article.id)}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        background: 'transparent',
+                        border: 'none',
+                        borderBottom: '1px solid rgba(255,255,255,0.08)',
+                        padding: '0.85rem 1rem',
+                        cursor: 'pointer',
+                        display: 'grid',
+                        gap: '0.25rem',
+                      }}
+                    >
+                      <span style={{ color: 'var(--text-card-title)', fontWeight: 700, fontSize: '0.9rem' }}>
+                        {article.title}
+                      </span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+                        {article.category} · {article.date}
+                      </span>
+                    </button>
+                  ))
+                ) : (
+                  <div
+                    style={{
+                      padding: '0.95rem 1rem',
+                      color: 'var(--text-muted)',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    没有搜索到相关文章。
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,16 +1,7 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-
-type Theme = 'light' | 'dark';
-
-interface ThemeContextType {
-  theme: Theme;
-  toggleTheme: () => void;
-  isDark: boolean;
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-const THEME_STORAGE_KEY = 'blog_theme_v2';
+import { ThemeContext, THEME_STORAGE_KEY } from './theme-context';
+import type { Theme } from './theme-context';
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -32,12 +23,4 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </ThemeContext.Provider>
   );
-};
-
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
 };

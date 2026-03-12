@@ -1,23 +1,87 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { articles } from '../data/articles';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/useTheme';
 
 const base = import.meta.env.BASE_URL;
 const coverImage = `${base}cover.png`;
 
-const tagData = [
-  { name: '生物信息', count: 1 },
-  { name: 'RNA-seq', count: 1 },
-  { name: '单细胞', count: 1 },
-  { name: 'Python', count: 1 },
-  { name: '三维重建', count: 1 },
-  { name: 'NeRF', count: 1 },
-  { name: '机器学习', count: 1 },
-  { name: '随笔', count: 1 },
-  { name: '学习路线', count: 1 },
+const categoryColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#f39c12', '#8e44ad'];
+
+const categoryData = Object.entries(
+  articles.reduce<Record<string, number>>((acc, article) => {
+    acc[article.category] = (acc[article.category] ?? 0) + 1;
+    return acc;
+  }, {}),
+)
+  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN'))
+  .map(([name, count], index) => ({
+    name,
+    count,
+    color: categoryColors[index % categoryColors.length],
+  }));
+
+const tagData = Object.entries(
+  articles.reduce<Record<string, number>>((acc, article) => {
+    article.tags.forEach((tag) => {
+      acc[tag] = (acc[tag] ?? 0) + 1;
+    });
+    return acc;
+  }, {}),
+)
+  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN'))
+  .map(([name, count]) => ({ name, count }));
+
+const announcementSlogans = [
+  '凡所有相，皆是虚妄',
+  '天地不仁，以万物为刍狗',
+  '人类的悲欢并不相通，我只觉得他们吵闹',
+  '他人即地狱',
+  '存在先于本质',
+  '人是一根会思考的芦苇',
+  '上帝死了，是我们杀了他',
+  '未经审视的人生不值得过',
+  '人是生而自由的，却无往不在枷锁之中',
+  '认识你自己',
 ];
+
+const formatLastUpdate = () => new Date().toLocaleString('zh-CN', { hour12: false });
+
+const getInitialSiteStats = () => {
+  const fallback = {
+    articles: articles.length,
+    visitors: 0,
+    views: 0,
+    lastUpdate: formatLastUpdate(),
+  };
+
+  if (typeof window === 'undefined') {
+    return fallback;
+  }
+
+  const storedVisitors = Number.parseInt(localStorage.getItem('blog_visitors') || '0', 10);
+  const storedViews = Number.parseInt(localStorage.getItem('blog_views') || '0', 10);
+  const hasVisited = localStorage.getItem('blog_has_visited');
+
+  let nextVisitors = storedVisitors;
+  const nextViews = storedViews + 1;
+
+  if (!hasVisited) {
+    nextVisitors = storedVisitors + 1;
+    localStorage.setItem('blog_has_visited', 'true');
+  }
+
+  localStorage.setItem('blog_visitors', String(nextVisitors));
+  localStorage.setItem('blog_views', String(nextViews));
+
+  return {
+    articles: articles.length,
+    visitors: nextVisitors,
+    views: nextViews,
+    lastUpdate: formatLastUpdate(),
+  };
+};
 
 const GiscusComments = () => {
   const { isDark } = useTheme();
@@ -168,7 +232,9 @@ const AnnouncementCard = () => {
   const [location, setLocation] = useState('地球');
   const [weather, setWeather] = useState('获取中...');
   const [time, setTime] = useState('');
-  const [slogan, setSlogan] = useState('');
+  const [slogan] = useState(
+    () => announcementSlogans[Math.floor(Math.random() * announcementSlogans.length)],
+  );
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const weatherCodeText = (code: number) => {
     const map: Record<number, string> = {
@@ -194,19 +260,6 @@ const AnnouncementCard = () => {
     };
     return map[code] ?? '未知';
   };
-
-  const slogans = [
-    '凡所有相，皆是虚妄',
-    '天地不仁，以万物为刍狗',
-    '人类的悲欢并不相通，我只觉得他们吵闹',
-    '他人即地狱',
-    '存在先于本质',
-    '人是一根会思考的芦苇',
-    '上帝死了，是我们杀了他',
-    '未经审视的人生不值得过',
-    '人是生而自由的，却无往不在枷锁之中',
-    '认识你自己',
-  ];
 
   useEffect(() => {
     const updateTime = () => {
@@ -239,9 +292,6 @@ const AnnouncementCard = () => {
         setLocation('地球');
         setWeather('晴');
       });
-
-    setSlogan(slogans[Math.floor(Math.random() * slogans.length)]);
-
     return () => clearInterval(timer);
   }, []);
 
@@ -355,15 +405,9 @@ const AnnouncementCard = () => {
 // 分类
 const CategoriesCard = () => {
   const navigate = useNavigate();
-  const categories = [
-    { name: '生物信息', count: 1, color: '#ff6b6b' },
-    { name: '三维重建', count: 1, color: '#4ecdc4' },
-    { name: '机器学习', count: 1, color: '#45b7d1' },
-    { name: '随笔', count: 1, color: '#96ceb4' },
-  ];
   return (
     <SidebarCard title="分类" icon="📁">
-      {categories.map(cat => (
+      {categoryData.map(cat => (
         <div 
           key={cat.name} 
           onClick={() => navigate(`/category/${encodeURIComponent(cat.name)}`)}
@@ -442,39 +486,15 @@ const TagsCard = () => {
 
 // 网站资讯
 const StatsCard = () => {
-  const [stats, setStats] = useState({ articles: articles.length, visitors: 0, views: 0, lastUpdate: '' });
-  
-  useEffect(() => {
-    const storedVisitors = parseInt(localStorage.getItem('blog_visitors') || '0');
-    const storedViews = parseInt(localStorage.getItem('blog_views') || '0');
-    const hasVisited = localStorage.getItem('blog_has_visited');
-    
-    let newVisitors = storedVisitors;
-    let newViews = storedViews + 1;
-    
-    if (!hasVisited) {
-      newVisitors = storedVisitors + 1;
-      localStorage.setItem('blog_has_visited', 'true');
-    }
-    
-    localStorage.setItem('blog_visitors', String(newVisitors));
-    localStorage.setItem('blog_views', String(newViews));
-    
-    setStats({
-      articles: articles.length,
-      visitors: newVisitors,
-      views: newViews,
-      lastUpdate: new Date().toLocaleString('zh-CN', { hour12: false }),
-    });
-  }, []);
+  const [stats, setStats] = useState(getInitialSiteStats);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setStats((prev) => ({
         ...prev,
-        lastUpdate: new Date().toLocaleString('zh-CN', { hour12: false }),
+        lastUpdate: formatLastUpdate(),
       }));
-    }, 1000);
+    }, 60000);
 
     return () => clearInterval(timer);
   }, []);

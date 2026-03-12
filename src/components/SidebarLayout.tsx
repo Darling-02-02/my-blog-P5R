@@ -142,10 +142,19 @@ export const TagsCard = () => {
 
 // 网站资讯卡片
 export const StatsCard = () => {
-  const [stats, setStats] = useState({ articles: articles.length, words: 0, visitors: 0, views: 0, lastUpdate: new Date().toLocaleString('zh-CN') });
-  useEffect(() => {
+  const [stats, setStats] = useState(() => {
     const totalWords = articles.reduce((sum, article) => sum + (article.content ? article.content.length : 0), 0);
-    setStats(prev => ({ ...prev, words: totalWords, visitors: Math.floor(Math.random() * 1000) + 500, views: Math.floor(Math.random() * 5000) + 2000 }));
+
+    return {
+      articles: articles.length,
+      words: totalWords,
+      visitors: Math.floor(Math.random() * 1000) + 500,
+      views: Math.floor(Math.random() * 5000) + 2000,
+      lastUpdate: new Date().toLocaleString('zh-CN'),
+    };
+  });
+
+  useEffect(() => {
     const interval = setInterval(() => setStats(prev => ({ ...prev, lastUpdate: new Date().toLocaleString('zh-CN') })), 60000);
     return () => clearInterval(interval);
   }, []);

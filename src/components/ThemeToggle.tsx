@@ -1,4 +1,4 @@
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/useTheme';
 import { motion } from 'framer-motion';
 
 const ThemeToggle = () => {

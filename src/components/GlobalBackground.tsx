@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { heroSlideshowImages } from './imageConfig';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/useTheme';
 
 const base = import.meta.env.BASE_URL;
 
