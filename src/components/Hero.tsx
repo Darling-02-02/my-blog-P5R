@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from './Header';
+import { articles } from '../data/articles';
 import quotesRaw from '../../语录.txt?raw';
 
 const base = import.meta.env.BASE_URL;
@@ -20,6 +22,7 @@ const images = [
 ];
 
 export default function Hero() {
+  const navigate = useNavigate();
   const quotes = useMemo(
     () =>
       quotesRaw
@@ -28,23 +31,41 @@ export default function Hero() {
         .filter(Boolean),
     [],
   );
+  const stats = useMemo(
+    () => [
+      { label: '文章', value: String(articles.length).padStart(2, '0') },
+      { label: '分类', value: String(new Set(articles.map((article) => article.category)).size).padStart(2, '0') },
+      { label: '标签', value: String(new Set(articles.flatMap((article) => article.tags)).size).padStart(2, '0') },
+    ],
+    [],
+  );
+
   const [currentIndex, setCurrentIndex] = useState(0);
-  const marqueeText = useMemo(() => {
-    const source = quotes.slice(0, 8);
-    return [...source, ...source].join('  ·  ');
-  }, [quotes]);
+  const [quoteIndex, setQuoteIndex] = useState(0);
+  const [isQuoteVisible, setIsQuoteVisible] = useState(true);
 
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
-    const imgInterval = window.setInterval(() => {
+    const imgInterval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % images.length);
     }, 5000);
-
-    return () => window.clearInterval(imgInterval);
+    return () => clearInterval(imgInterval);
   }, []);
+
+  useEffect(() => {
+    if (!quotes.length) return;
+    const quoteInterval = setInterval(() => {
+      setIsQuoteVisible(false);
+      setTimeout(() => {
+        setQuoteIndex((prev) => (prev + 1) % quotes.length);
+        setIsQuoteVisible(true);
+      }, 450);
+    }, 5000);
+    return () => clearInterval(quoteInterval);
+  }, [quotes]);
 
   return (
     <section id="home" className="hero-section">
@@ -57,13 +78,32 @@ export default function Hero() {
       </div>
 
       <div className="hero-content">
-        <div className="hero-title-stack">
+        <div className="hero-surface">
+          <p className="hero-kicker">PERSONA MODE · PERSONAL BLOG</p>
           <h1 className="hero-title">灵敏度加满的 blog</h1>
-          <div className="hero-marquee" aria-label="站点语录滚动带">
-            <div className="hero-marquee-track">
-              <span>{marqueeText}</span>
-              <span>{marqueeText}</span>
-            </div>
+          <p className={`hero-quote ${isQuoteVisible ? 'quote-visible' : 'quote-hidden'}`}>
+            {quotes[quoteIndex] ?? ''}
+          </p>
+
+          <div className="hero-stats">
+            {stats.map((item) => (
+              <div key={item.label} className="hero-stat-card">
+                <span className="hero-stat-value">{item.value}</span>
+                <span className="hero-stat-label">{item.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="hero-actions">
+            <button type="button" className="hero-action hero-action-primary" onClick={() => scrollToSection('blog')}>
+              进入幕后
+            </button>
+            <button type="button" className="hero-action hero-action-secondary" onClick={() => navigate('/study-room')}>
+              打开 Study Room
+            </button>
+            <a className="hero-action hero-action-ghost" href="https://github.com/Darling-02-02" target="_blank" rel="noreferrer">
+              GitHub
+            </a>
           </div>
         </div>
 
@@ -85,12 +125,16 @@ export default function Hero() {
 
         .background-container {
           position: absolute;
-          inset: 0;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
         }
 
         .background-image {
           position: absolute;
-          inset: 0;
+          top: 0;
+          left: 0;
           width: 100%;
           height: 100%;
           object-fit: cover;
@@ -106,43 +150,56 @@ export default function Hero() {
         .background-overlay {
           position: absolute;
           inset: 0;
-          background:
-            linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.38) 42%, rgba(0, 0, 0, 0.58)),
-            radial-gradient(circle at center, rgba(255, 0, 64, 0.08), transparent 56%);
+          background: linear-gradient(to bottom, rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.52));
         }
 
         .hero-content {
           position: relative;
           z-index: 1;
-          width: 100%;
-          max-width: 1200px;
           padding: 1rem;
+          width: 100%;
+          max-width: 1100px;
           display: grid;
-          gap: 1.25rem;
+          gap: 1.5rem;
           justify-items: center;
         }
 
-        .hero-title-stack {
-          width: min(100%, 940px);
-          display: grid;
-          gap: 1.25rem;
-          justify-items: center;
+        .hero-surface {
+          width: min(100%, 840px);
           text-align: center;
+          padding: clamp(1.5rem, 3vw, 2.2rem);
+          border-radius: 28px;
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          background: linear-gradient(180deg, rgba(16, 16, 22, 0.52), rgba(16, 16, 22, 0.28));
+          box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+          backdrop-filter: blur(12px);
+        }
+
+        .hero-kicker {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          padding: 0.45rem 0.9rem;
+          margin-bottom: 1rem;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          background: rgba(255, 255, 255, 0.08);
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 0.8rem;
+          letter-spacing: 0.18em;
         }
 
         .hero-title {
-          margin: 0;
-          font-size: clamp(2.4rem, 11vw, 6rem);
-          font-weight: 900;
-          line-height: 0.95;
-          letter-spacing: 0.02em;
-          background: linear-gradient(45deg, #ffffff, #ffd9e3, #ff7c99, #ffffff);
+          font-size: clamp(1.5rem, 8vw, 4rem);
+          font-weight: 700;
+          margin-bottom: 1rem;
+          background: linear-gradient(45deg, #ff6b9d, #c44569, #ff9ff3, #feca57, #ff9ff3, #c44569, #ff6b9d);
           background-size: 300% 300%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          animation: gradientShift 6s ease infinite;
-          text-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+          animation: gradientShift 4s ease infinite, bounce 2s ease-in-out infinite;
+          word-break: break-word;
         }
 
         @keyframes gradientShift {
@@ -151,41 +208,120 @@ export default function Hero() {
           100% { background-position: 0% 50%; }
         }
 
-        .hero-marquee {
-          width: min(100%, 920px);
-          overflow: hidden;
-          border-top: 1px solid rgba(255, 255, 255, 0.22);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.22);
-          background: linear-gradient(90deg, rgba(10, 10, 16, 0.2), rgba(10, 10, 16, 0.62), rgba(10, 10, 16, 0.2));
-          backdrop-filter: blur(8px);
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
         }
 
-        .hero-marquee-track {
+        .hero-quote {
+          font-size: clamp(0.9rem, 3.8vw, 1.35rem);
+          color: #fff;
+          max-width: 90%;
+          margin: 0 auto;
+          min-height: 2rem;
+          text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+          font-weight: 500;
+          letter-spacing: 0.3px;
+          line-height: 1.6;
+          padding: 0 0.5rem;
+        }
+
+        .hero-stats {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 0.85rem;
+          margin-top: 1.8rem;
+        }
+
+        .hero-stat-card {
+          display: grid;
+          gap: 0.3rem;
+          padding: 0.95rem 1rem;
+          border-radius: 18px;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .hero-stat-value {
+          color: #fff;
+          font-size: clamp(1.35rem, 3vw, 2rem);
+          font-weight: 800;
+        }
+
+        .hero-stat-label {
+          color: rgba(255, 255, 255, 0.72);
+          font-size: 0.8rem;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .hero-actions {
           display: flex;
-          width: max-content;
-          gap: 2.4rem;
-          padding: 0.85rem 0;
-          color: rgba(255, 255, 255, 0.92);
-          font-size: clamp(0.86rem, 2vw, 1rem);
-          letter-spacing: 0.1em;
-          white-space: nowrap;
-          animation: marqueeMove 38s linear infinite;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 0.9rem;
+          margin-top: 1.8rem;
         }
 
-        @keyframes marqueeMove {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
+        .hero-action {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 160px;
+          padding: 0.8rem 1.2rem;
+          border-radius: 999px;
+          border: 1px solid transparent;
+          font-size: 0.95rem;
+          font-weight: 700;
+          text-decoration: none;
+          cursor: pointer;
+          transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
+        }
+
+        .hero-action:hover {
+          transform: translateY(-2px);
+        }
+
+        .hero-action-primary {
+          color: #fff;
+          background: linear-gradient(135deg, #ff0040, #ff5f6d);
+          box-shadow: 0 12px 24px rgba(255, 0, 64, 0.28);
+        }
+
+        .hero-action-secondary {
+          color: #fff;
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.18);
+          backdrop-filter: blur(10px);
+        }
+
+        .hero-action-ghost {
+          color: #fff;
+          background: transparent;
+          border-color: rgba(255, 255, 255, 0.28);
         }
 
         .hero-scroll {
           border: none;
           background: transparent;
-          color: rgba(255, 255, 255, 0.88);
-          font-size: 0.9rem;
-          letter-spacing: 0.16em;
+          color: rgba(255, 255, 255, 0.84);
+          font-size: 0.88rem;
+          letter-spacing: 0.08em;
           cursor: pointer;
           text-transform: uppercase;
           padding: 0.35rem 0.4rem;
+        }
+
+        .quote-visible {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+          transition: all 0.45s ease;
+        }
+
+        .quote-hidden {
+          opacity: 0;
+          transform: scale(0.96) translateY(14px);
+          transition: all 0.45s ease;
         }
 
         @media (max-width: 768px) {
@@ -193,12 +329,25 @@ export default function Hero() {
             padding: 4rem 1rem 2rem;
           }
 
-          .hero-title {
-            font-size: clamp(2.1rem, 16vw, 4rem);
+          .hero-surface {
+            border-radius: 22px;
           }
 
-          .hero-marquee-track {
-            animation-duration: 26s;
+          .hero-quote {
+            max-width: 95%;
+            min-height: 4.4rem;
+          }
+
+          .hero-stats {
+            grid-template-columns: 1fr;
+          }
+
+          .hero-actions {
+            flex-direction: column;
+          }
+
+          .hero-action {
+            width: 100%;
           }
         }
       `}</style>
