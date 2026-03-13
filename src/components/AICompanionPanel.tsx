@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 
-type ChatRole = 'user' | 'assistant';
+export type ChatRole = 'user' | 'assistant';
 
-interface ChatMessage {
+export interface ChatMessage {
   role: ChatRole;
   content: string;
 }
@@ -10,11 +10,18 @@ interface ChatMessage {
 interface AICompanionPanelProps {
   isStudying: boolean;
   sessionSeconds: number;
+  onDialogChange?: (message: ChatMessage) => void;
 }
 
 const API_BASE_KEY = 'study_ai_api_base';
 const API_KEY_KEY = 'study_ai_api_key';
 const MODEL_KEY = 'study_ai_model';
+
+const starterTips = [
+  '帮我安排 25 分钟专注冲刺',
+  '我有点分心，给我 3 条拉回状态的建议',
+  '根据我现在的学习时长，帮我做个简短复盘',
+];
 
 const toClock = (seconds: number) => {
   const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
@@ -23,23 +30,18 @@ const toClock = (seconds: number) => {
   return `${h}:${m}:${s}`;
 };
 
-const starterTips = [
-  '帮我规划一个45分钟学习冲刺',
-  '根据我现在状态给一句鼓励',
-  '我容易分心，给我3个专注建议',
-];
-
-const AICompanionPanel = ({ isStudying, sessionSeconds }: AICompanionPanelProps) => {
+const AICompanionPanel = ({ isStudying, sessionSeconds, onDialogChange }: AICompanionPanelProps) => {
   const [apiBase, setApiBase] = useState('https://api.openai.com/v1');
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState('gpt-4o-mini');
   const [prompt, setPrompt] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      content: '我是你的学习搭子。你可以让我做计划、复盘、背诵抽问，或给你专注提醒。',
+      content: '我已经到位了。你可以让我拆任务、抽问、复盘，或者单纯提醒你别分心。',
     },
   ]);
 
@@ -65,16 +67,27 @@ const AICompanionPanel = ({ isStudying, sessionSeconds }: AICompanionPanelProps)
     localStorage.setItem(MODEL_KEY, model);
   }, [model]);
 
+  useEffect(() => {
+    const latestMessage = messages[messages.length - 1];
+    if (latestMessage) {
+      onDialogChange?.(latestMessage);
+    }
+  }, [messages, onDialogChange]);
+
   const studyStatus = useMemo(
-    () => (isStudying ? `正在学习中，本次已学习 ${toClock(sessionSeconds)}` : '当前未开始学习'),
+    () => (isStudying ? `正在学习中，本轮已坚持 ${toClock(sessionSeconds)}` : '当前还没有开始学习'),
     [isStudying, sessionSeconds],
   );
 
   const sendMessage = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || sending) return;
+
+    if (!trimmed || sending) {
+      return;
+    }
+
     if (!apiBase.trim() || !apiKey.trim() || !model.trim()) {
-      setError('请先配置 API Base URL / API Key / Model。');
+      setError('请先填写 API Base、API Key 和模型名。');
       return;
     }
 
@@ -98,13 +111,16 @@ const AICompanionPanel = ({ isStudying, sessionSeconds }: AICompanionPanelProps)
             {
               role: 'system',
               content:
-                '你是一个中文学习陪伴助手，输出简洁、执行导向。优先给明确步骤、时间块安排和鼓励反馈。',
+                '你是中文学习搭子，回答要短、稳、可执行。优先给明确步骤、专注建议和复盘意见，不要空泛安慰。',
             },
             {
               role: 'system',
               content: `用户学习状态：${studyStatus}`,
             },
-            ...nextMessages.map((m) => ({ role: m.role, content: m.content })),
+            ...nextMessages.map((message) => ({
+              role: message.role,
+              content: message.content,
+            })),
           ],
           temperature: 0.7,
         }),
@@ -112,23 +128,31 @@ const AICompanionPanel = ({ isStudying, sessionSeconds }: AICompanionPanelProps)
 
       if (!response.ok) {
         const textBody = await response.text();
-        throw new Error(`请求失败(${response.status}) ${textBody.slice(0, 120)}`);
+        throw new Error(`请求失败（${response.status}）${textBody.slice(0, 120)}`);
       }
 
       const data = (await response.json()) as {
         choices?: Array<{ message?: { content?: string } }>;
       };
+
       const content = data.choices?.[0]?.message?.content?.trim();
+
       if (!content) {
         throw new Error('接口已返回，但没有拿到可用回复。');
       }
 
       setMessages((prev) => [...prev, { role: 'assistant', content }]);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '请求失败，请检查网络和接口配置。');
+    } catch (unknownError) {
+      const message =
+        unknownError instanceof Error ? unknownError.message : '请求失败，请检查网络和接口配置。';
+
+      setError(message);
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: '我这边连接接口失败了。请检查 API 地址、Key 或跨域设置。' },
+        {
+          role: 'assistant',
+          content: '接口这边没有通。我先留在这里，等你把地址、Key 或跨域配置调好。',
+        },
       ]);
     } finally {
       setSending(false);
@@ -138,96 +162,136 @@ const AICompanionPanel = ({ isStudying, sessionSeconds }: AICompanionPanelProps)
   return (
     <div
       style={{
-        marginTop: '0.8rem',
         border: '1px solid var(--border-card)',
-        borderRadius: '12px',
+        borderRadius: '18px',
         background: 'var(--bg-article-card)',
-        padding: '0.9rem',
+        padding: '1rem',
+        display: 'grid',
+        gap: '0.85rem',
       }}
     >
-      <h3 style={{ fontSize: '1rem', color: 'var(--text-heading)', marginBottom: '0.6rem' }}>AI 学习搭子</h3>
-
-      <div style={{ display: 'grid', gap: '0.45rem' }}>
-        <input
-          value={apiBase}
-          onChange={(e) => setApiBase(e.target.value)}
-          placeholder="API Base URL，例如 https://api.openai.com/v1"
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'center' }}>
+        <div>
+          <h3 style={{ fontSize: '1rem', color: 'var(--text-heading)' }}>AI 对话台</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '0.2rem' }}>{studyStatus}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowSettings((prev) => !prev)}
           style={{
-            width: '100%',
-            background: 'var(--bg-input)',
-            border: '1px solid var(--border-input)',
-            borderRadius: '8px',
+            border: '1px solid var(--border-card)',
+            background: 'transparent',
             color: 'var(--text-primary)',
-            padding: '0.55rem 0.7rem',
-            outline: 'none',
+            borderRadius: '999px',
+            padding: '0.45rem 0.8rem',
+            cursor: 'pointer',
+            fontWeight: 700,
           }}
-        />
-        <input
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
-          placeholder="API Key"
-          type="password"
-          style={{
-            width: '100%',
-            background: 'var(--bg-input)',
-            border: '1px solid var(--border-input)',
-            borderRadius: '8px',
-            color: 'var(--text-primary)',
-            padding: '0.55rem 0.7rem',
-            outline: 'none',
-          }}
-        />
-        <input
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-          placeholder="模型名，例如 gpt-4o-mini / deepseek-chat"
-          style={{
-            width: '100%',
-            background: 'var(--bg-input)',
-            border: '1px solid var(--border-input)',
-            borderRadius: '8px',
-            color: 'var(--text-primary)',
-            padding: '0.55rem 0.7rem',
-            outline: 'none',
-          }}
-        />
+        >
+          {showSettings ? '收起设置' : '接口设置'}
+        </button>
       </div>
+
+      {showSettings && (
+        <div style={{ display: 'grid', gap: '0.45rem' }}>
+          <input
+            value={apiBase}
+            onChange={(event) => setApiBase(event.target.value)}
+            placeholder="API Base，例如 https://api.openai.com/v1"
+            style={{
+              width: '100%',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-input)',
+              borderRadius: '10px',
+              color: 'var(--text-primary)',
+              padding: '0.6rem 0.75rem',
+              outline: 'none',
+            }}
+          />
+          <input
+            value={apiKey}
+            onChange={(event) => setApiKey(event.target.value)}
+            placeholder="API Key"
+            type="password"
+            style={{
+              width: '100%',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-input)',
+              borderRadius: '10px',
+              color: 'var(--text-primary)',
+              padding: '0.6rem 0.75rem',
+              outline: 'none',
+            }}
+          />
+          <input
+            value={model}
+            onChange={(event) => setModel(event.target.value)}
+            placeholder="模型名，例如 gpt-4o-mini"
+            style={{
+              width: '100%',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-input)',
+              borderRadius: '10px',
+              color: 'var(--text-primary)',
+              padding: '0.6rem 0.75rem',
+              outline: 'none',
+            }}
+          />
+        </div>
+      )}
 
       <div
         style={{
-          marginTop: '0.7rem',
           border: '1px solid var(--border-card)',
-          borderRadius: '10px',
-          padding: '0.65rem',
-          maxHeight: '190px',
+          borderRadius: '14px',
+          padding: '0.75rem',
+          maxHeight: '220px',
           overflowY: 'auto',
           background: 'var(--bg-card)',
           display: 'grid',
-          gap: '0.5rem',
+          gap: '0.6rem',
         }}
       >
-        {messages.map((msg, idx) => (
-          <div key={`${msg.role}-${idx}`} style={{ fontSize: '0.87rem', lineHeight: 1.6, color: 'var(--text-body)' }}>
-            <strong style={{ color: msg.role === 'user' ? '#ff0040' : 'var(--text-secondary)' }}>
-              {msg.role === 'user' ? '你' : 'AI'}：
-            </strong>
-            {msg.content}
+        {messages.map((message, index) => (
+          <div
+            key={`${message.role}-${index}`}
+            style={{
+              justifySelf: message.role === 'user' ? 'end' : 'start',
+              maxWidth: '90%',
+              padding: '0.7rem 0.85rem',
+              borderRadius: '14px',
+              background: message.role === 'user' ? 'rgba(255, 0, 64, 0.14)' : 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+          >
+            <div
+              style={{
+                fontSize: '0.74rem',
+                color: message.role === 'user' ? '#ff7a95' : 'var(--text-secondary)',
+                marginBottom: '0.25rem',
+                fontWeight: 700,
+              }}
+            >
+              {message.role === 'user' ? '你' : '搭子'}
+            </div>
+            <div style={{ fontSize: '0.88rem', lineHeight: 1.65, color: 'var(--text-body)' }}>{message.content}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ marginTop: '0.55rem', display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
         {starterTips.map((tip) => (
           <button
             key={tip}
-            onClick={() => sendMessage(tip)}
+            type="button"
+            onClick={() => void sendMessage(tip)}
             style={{
               border: '1px solid var(--border-tag)',
               background: 'var(--bg-tag)',
               color: '#ff0040',
               borderRadius: '999px',
-              padding: '0.28rem 0.6rem',
-              fontSize: '0.75rem',
+              padding: '0.32rem 0.7rem',
+              fontSize: '0.76rem',
               cursor: 'pointer',
             }}
           >
@@ -237,23 +301,23 @@ const AICompanionPanel = ({ isStudying, sessionSeconds }: AICompanionPanelProps)
       </div>
 
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
+        onSubmit={(event) => {
+          event.preventDefault();
           void sendMessage(prompt);
         }}
-        style={{ marginTop: '0.6rem', display: 'flex', gap: '0.45rem' }}
+        style={{ display: 'flex', gap: '0.55rem', alignItems: 'stretch' }}
       >
         <input
           value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="问AI：帮我安排下一轮学习"
+          onChange={(event) => setPrompt(event.target.value)}
+          placeholder="和角色说点什么，例如：帮我把这轮学习拆成 3 步"
           style={{
             flex: 1,
             background: 'var(--bg-input)',
             border: '1px solid var(--border-input)',
-            borderRadius: '8px',
+            borderRadius: '10px',
             color: 'var(--text-primary)',
-            padding: '0.6rem 0.7rem',
+            padding: '0.7rem 0.8rem',
             outline: 'none',
           }}
         />
@@ -264,19 +328,20 @@ const AICompanionPanel = ({ isStudying, sessionSeconds }: AICompanionPanelProps)
             border: 'none',
             background: sending ? 'var(--bg-hover)' : '#ff0040',
             color: '#fff',
-            borderRadius: '8px',
-            padding: '0.6rem 0.85rem',
+            borderRadius: '10px',
+            padding: '0.7rem 0.95rem',
             fontWeight: 700,
             cursor: sending ? 'not-allowed' : 'pointer',
+            minWidth: '84px',
           }}
         >
-          {sending ? '发送中...' : '发送'}
+          {sending ? '发送中' : '发送'}
         </button>
       </form>
 
-      {error && <div style={{ marginTop: '0.45rem', fontSize: '0.8rem', color: '#ff7676' }}>{error}</div>}
-      <div style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-        说明：这是前端直连模式，Key 会保存在本地浏览器。生产环境建议走后端代理。
+      {error && <div style={{ fontSize: '0.8rem', color: '#ff8f9d' }}>{error}</div>}
+      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+        当前仍是前端直连接口模式，Key 会保存在本地浏览器里。正式长期使用前，最好改成后端代理。
       </div>
     </div>
   );
