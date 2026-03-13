@@ -4,6 +4,7 @@ const base = import.meta.env.BASE_URL;
 
 const coverPool = [
   `${base}cover.png`,
+  `${base}kaguya-background.jpg`,
   `${base}R-C.jpg`,
   `${base}slideshow/slideshow-0.png`,
   `${base}slideshow/slideshow-1.png`,
@@ -38,4 +39,3 @@ export const pickCoverForArticle = (article: Pick<Article, 'category' | 'tags'>)
   const tags = article.tags.length ? article.tags.join('|') : 'untagged';
   return pickCoverByKey(`${category}::${tags}`);
 };
-

@@ -1,64 +1,142 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Live2D 子页面</title>
+    <title>Live2D 学习搭子</title>
     <style>
       html,
       body {
         margin: 0;
         width: 100%;
         height: 100%;
-        background: transparent;
         overflow: hidden;
+        background: transparent;
+        font-family: 'Noto Sans SC', sans-serif;
       }
 
-      #tip {
-        position: fixed;
-        left: 10px;
-        top: 10px;
-        color: #fff;
-        font-size: 12px;
+      #stage {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      #status {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 3;
+        padding: 6px 10px;
+        border-radius: 999px;
         background: rgba(0, 0, 0, 0.35);
-        border-radius: 8px;
-        padding: 4px 8px;
-        z-index: 10;
-        font-family: Arial, sans-serif;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+      }
+
+      #dialog {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        z-index: 3;
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(10, 10, 16, 0.72);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+        backdrop-filter: blur(12px);
+      }
+
+      #dialog[data-role='user'] {
+        border-color: rgba(255, 0, 64, 0.3);
+        background: rgba(38, 12, 20, 0.78);
+      }
+
+      #speaker {
+        margin-bottom: 6px;
+        color: #ff6d8d;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+      }
+
+      #text {
+        color: #ffffff;
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      canvas {
+        transform: translateY(6px);
       }
     </style>
   </head>
   <body>
-    <div id="tip">学习伙伴已就位</div>
+    <div id="stage">
+      <div id="status">Live2D 已就位</div>
+      <div id="dialog" data-role="assistant">
+        <div id="speaker">搭子</div>
+        <div id="text">开始吧，我会一直在。</div>
+      </div>
+    </div>
+
     <script src="https://fastly.jsdelivr.net/npm/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
     <script>
-      try {
-        L2Dwidget.init({
-          model: {
-            jsonPath:
-              'https://fastly.jsdelivr.net/npm/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json',
-          },
-          display: {
-            position: 'right',
-            width: 120,
-            height: 220,
-            hOffset: 8,
-            vOffset: -18,
-          },
-          mobile: { show: false, scale: 0.8 },
-          react: { opacityDefault: 0.92, opacityOnHover: 1 },
-          dialog: {
-            enable: true,
-            script: {
-              'tap body': '要继续专注吗？我会陪着你。',
-              'tap face': '别戳脸啦，快回去学习。',
-              idle: '保持节奏，你已经很棒了。',
+      const dialog = document.getElementById('dialog');
+      const speaker = document.getElementById('speaker');
+      const text = document.getElementById('text');
+      const status = document.getElementById('status');
+
+      const applyDialog = (payload) => {
+        const role = payload && payload.role === 'user' ? 'user' : 'assistant';
+        const content = payload && payload.content ? String(payload.content) : '开始吧，我会一直在。';
+        dialog.dataset.role = role;
+        speaker.textContent = role === 'user' ? '你' : '搭子';
+        text.textContent = content;
+      };
+
+      window.addEventListener('message', (event) => {
+        if (!event.data || event.data.type !== 'live2d-dialog') {
+          return;
+        }
+
+        applyDialog(event.data.payload);
+      });
+
+      const bootLive2D = async () => {
+        try {
+          await window.L2Dwidget.init({
+            model: {
+              jsonPath:
+                'https://fastly.jsdelivr.net/npm/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json',
             },
-          },
-        });
-      } catch (e) {
-        document.getElementById('tip').textContent = 'Live2D 加载失败';
-      }
+            display: {
+              position: 'right',
+              width: 170,
+              height: 310,
+              hOffset: 8,
+              vOffset: 0,
+            },
+            mobile: {
+              show: true,
+              scale: 0.9,
+              motion: false,
+            },
+            react: {
+              opacityDefault: 1,
+              opacityOnHover: 1,
+            },
+          });
+          status.textContent = 'Live2D 在线';
+        } catch (error) {
+          status.textContent = 'Live2D 加载失败';
+          text.textContent = '模型没有正常加载，但我还在。';
+          console.error(error);
+        }
+      };
+
+      bootLive2D();
     </script>
   </body>
-  </html>
+</html>

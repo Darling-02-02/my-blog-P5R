@@ -1,8 +1,9 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import AICompanionPanel from './AICompanionPanel';
+import type { ChatMessage } from './AICompanionPanel';
 
 interface StudyUser {
   name: string;
@@ -14,73 +15,50 @@ interface TodoItem {
   done: boolean;
 }
 
+interface ActiveSessionSnapshot {
+  startedAt: number;
+  sessionBaseSeconds: number;
+  totalBaseSeconds: number;
+}
+
 const USER_KEY = 'study_room_user';
 const TOTAL_SECONDS_KEY = 'study_room_total_seconds';
 const TODO_KEY = 'study_room_todos';
-const LIVE2D_ENABLED_KEY = 'study_room_live2d_enabled';
+const ACTIVE_SESSION_KEY = 'study_room_active_session';
 
-const readStoredUser = (): StudyUser | null => {
+const readJson = <T,>(key: string): T | null => {
   if (typeof window === 'undefined') {
     return null;
   }
 
-  const savedUser = localStorage.getItem(USER_KEY);
+  const raw = localStorage.getItem(key);
 
-  if (!savedUser) {
+  if (!raw) {
     return null;
   }
 
   try {
-    return JSON.parse(savedUser) as StudyUser;
+    return JSON.parse(raw) as T;
   } catch {
-    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(key);
     return null;
   }
 };
+
+const readStoredUser = () => readJson<StudyUser>(USER_KEY);
+
+const readStoredTodos = (): TodoItem[] => readJson<TodoItem[]>(TODO_KEY) ?? [];
 
 const readStoredTotalSeconds = () => {
   if (typeof window === 'undefined') {
     return 0;
   }
 
-  const savedTotalSeconds = Number(localStorage.getItem(TOTAL_SECONDS_KEY) ?? '0');
-  return Number.isNaN(savedTotalSeconds) ? 0 : savedTotalSeconds;
+  const parsed = Number(localStorage.getItem(TOTAL_SECONDS_KEY) ?? '0');
+  return Number.isNaN(parsed) ? 0 : parsed;
 };
 
-const readStoredTodos = (): TodoItem[] => {
-  if (typeof window === 'undefined') {
-    return [];
-  }
-
-  const savedTodos = localStorage.getItem(TODO_KEY);
-
-  if (!savedTodos) {
-    return [];
-  }
-
-  try {
-    return JSON.parse(savedTodos) as TodoItem[];
-  } catch {
-    localStorage.removeItem(TODO_KEY);
-    return [];
-  }
-};
-
-const readStoredLive2DEnabled = () => {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-
-  return localStorage.getItem(LIVE2D_ENABLED_KEY) === '1';
-};
-
-const companionLines = [
-  '先专注 25 分钟，我会一直陪着你。',
-  '一点点进步，也是在变强。',
-  '按自己的节奏来，你做得很好。',
-  '这一轮结束后记得休息一下。',
-  '再坚持一步，我们就离目标更近。',
-];
+const readActiveSession = () => readJson<ActiveSessionSnapshot>(ACTIVE_SESSION_KEY);
 
 const toClock = (seconds: number) => {
   const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
@@ -89,144 +67,161 @@ const toClock = (seconds: number) => {
   return `${h}:${m}:${s}`;
 };
 
-const Live2DCompanion = memo(() => {
-  const [loaded, setLoaded] = useState(false);
-  const frameSrc = `${import.meta.env.BASE_URL}live2d-frame.html`;
-
-  return (
-    <div
-      style={{
-        position: 'relative',
-        borderRadius: '14px',
-        minHeight: '260px',
-        background:
-          'radial-gradient(circle at 30% 20%, rgba(255,0,64,0.3) 0%, rgba(255,0,64,0.08) 40%, rgba(26,26,26,0.7) 100%)',
-        border: '1px solid rgba(255, 0, 64, 0.35)',
-        overflow: 'hidden',
-      }}
-    >
-      {!loaded && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            background: 'rgba(10,10,10,0.35)',
-            fontSize: '0.92rem',
-          }}
-        >
-          正在加载 Live2D...
-        </div>
-      )}
-
-      <iframe
-        title="Live2D 学习伙伴"
-        src={frameSrc}
-        onLoad={() => setLoaded(true)}
-        loading="lazy"
-        style={{
-          width: '100%',
-          height: '260px',
-          border: 'none',
-          background: 'transparent',
-        }}
-      />
-
-      <div
-        style={{
-          position: 'absolute',
-          left: '0.8rem',
-          bottom: '0.75rem',
-          color: 'rgba(255,255,255,0.85)',
-          fontSize: '0.78rem',
-        }}
-      >
-        Live2D 采用隔离模式运行，避免影响页面稳定性。
-      </div>
-    </div>
-  );
-});
-
 const StudyRoom = () => {
+  const initialActiveSession = readActiveSession();
   const [user, setUser] = useState<StudyUser | null>(readStoredUser);
   const [nameInput, setNameInput] = useState('');
-  const [isStudying, setIsStudying] = useState(false);
-  const [sessionSeconds, setSessionSeconds] = useState(0);
-  const [totalSeconds, setTotalSeconds] = useState(readStoredTotalSeconds);
-  const [lineIndex, setLineIndex] = useState(0);
   const [todoInput, setTodoInput] = useState('');
   const [todos, setTodos] = useState<TodoItem[]>(readStoredTodos);
-  const [live2dEnabled, setLive2dEnabled] = useState(readStoredLive2DEnabled);
-  const totalSecondsRef = useRef(0);
+  const [sessionBaseSeconds, setSessionBaseSeconds] = useState(initialActiveSession?.sessionBaseSeconds ?? 0);
+  const [totalBaseSeconds, setTotalBaseSeconds] = useState(
+    initialActiveSession?.totalBaseSeconds ?? readStoredTotalSeconds(),
+  );
+  const [startedAt, setStartedAt] = useState<number | null>(initialActiveSession?.startedAt ?? null);
+  const [clockTick, setClockTick] = useState(Date.now());
+  const [frameReady, setFrameReady] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState<ChatMessage>({
+    role: 'assistant',
+    content: '输入你的称呼，然后开始这轮自习。我会一直在右边盯着你。',
+  });
+  const frameRef = useRef<HTMLIFrameElement | null>(null);
 
-  useEffect(() => {
-    totalSecondsRef.current = totalSeconds;
-  }, [totalSeconds]);
-
-  useEffect(() => {
-    const persistTotal = () => {
-      localStorage.setItem(TOTAL_SECONDS_KEY, String(totalSecondsRef.current));
-    };
-
-    const saveInterval = window.setInterval(persistTotal, 10000);
-    window.addEventListener('beforeunload', persistTotal);
-    return () => {
-      window.clearInterval(saveInterval);
-      window.removeEventListener('beforeunload', persistTotal);
-      persistTotal();
-    };
-  }, []);
+  const frameSrc = `${import.meta.env.BASE_URL}live2d-frame.html`;
+  const liveElapsed = startedAt ? Math.max(0, Math.floor((clockTick - startedAt) / 1000)) : 0;
+  const sessionSeconds = sessionBaseSeconds + liveElapsed;
+  const totalSeconds = totalBaseSeconds + liveElapsed;
+  const isStudying = startedAt !== null;
+  const completedCount = useMemo(() => todos.filter((todo) => todo.done).length, [todos]);
 
   useEffect(() => {
     localStorage.setItem(TODO_KEY, JSON.stringify(todos));
   }, [todos]);
 
   useEffect(() => {
-    localStorage.setItem(LIVE2D_ENABLED_KEY, live2dEnabled ? '1' : '0');
-  }, [live2dEnabled]);
+    localStorage.setItem(TOTAL_SECONDS_KEY, String(totalBaseSeconds));
+  }, [totalBaseSeconds]);
 
   useEffect(() => {
-    if (!isStudying) return;
+    if (startedAt === null) {
+      localStorage.removeItem(ACTIVE_SESSION_KEY);
+      return;
+    }
+
+    localStorage.setItem(
+      ACTIVE_SESSION_KEY,
+      JSON.stringify({
+        startedAt,
+        sessionBaseSeconds,
+        totalBaseSeconds,
+      } satisfies ActiveSessionSnapshot),
+    );
+  }, [startedAt, sessionBaseSeconds, totalBaseSeconds]);
+
+  useEffect(() => {
+    if (!isStudying) {
+      return;
+    }
+
     const timer = window.setInterval(() => {
-      setSessionSeconds((prev) => prev + 1);
-      setTotalSeconds((prev) => prev + 1);
-    }, 1000);
+      setClockTick(Date.now());
+    }, 250);
+
     return () => window.clearInterval(timer);
   }, [isStudying]);
 
   useEffect(() => {
-    const speaker = window.setInterval(() => {
-      setLineIndex((prev) => (prev + 1) % companionLines.length);
-    }, 12000);
-    return () => window.clearInterval(speaker);
-  }, []);
+    if (!frameReady) {
+      return;
+    }
 
-  const completedCount = useMemo(() => todos.filter((t) => t.done).length, [todos]);
+    frameRef.current?.contentWindow?.postMessage(
+      {
+        type: 'live2d-dialog',
+        payload: dialogMessage,
+      },
+      '*',
+    );
+  }, [dialogMessage, frameReady]);
 
-  const handleLogin = (e: FormEvent) => {
-    e.preventDefault();
+  const commitElapsed = () => {
+    if (startedAt === null) {
+      return 0;
+    }
+
+    const elapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+    setSessionBaseSeconds((prev) => prev + elapsed);
+    setTotalBaseSeconds((prev) => prev + elapsed);
+    setStartedAt(null);
+    setClockTick(Date.now());
+    return elapsed;
+  };
+
+  const handleLogin = (event: FormEvent) => {
+    event.preventDefault();
     const name = nameInput.trim();
-    if (!name) return;
+
+    if (!name) {
+      return;
+    }
 
     const nextUser = { name };
     setUser(nextUser);
     localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
     setNameInput('');
+    setDialogMessage({
+      role: 'assistant',
+      content: `欢迎回来，${name}。先把今天要做的事列出来，然后按开始学习。`,
+    });
   };
 
   const handleLogout = () => {
-    setIsStudying(false);
+    commitElapsed();
     setUser(null);
     localStorage.removeItem(USER_KEY);
+    setDialogMessage({
+      role: 'assistant',
+      content: '今天先到这里。下次回来时，计时和待办都还在。',
+    });
   };
 
-  const addTodo = (e: FormEvent) => {
-    e.preventDefault();
+  const handleToggleStudy = () => {
+    if (isStudying) {
+      const elapsed = commitElapsed();
+      setDialogMessage({
+        role: 'assistant',
+        content: `先缓一口气。刚才这轮你已经专注了 ${toClock(elapsed || sessionSeconds)}。`,
+      });
+      return;
+    }
+
+    setStartedAt(Date.now());
+    setClockTick(Date.now());
+    setDialogMessage({
+      role: 'assistant',
+      content: '开始吧。我会把这轮时间盯紧，不再让计时慢半拍。',
+    });
+  };
+
+  const handleResetSession = () => {
+    if (isStudying) {
+      commitElapsed();
+    }
+
+    setSessionBaseSeconds(0);
+    setDialogMessage({
+      role: 'assistant',
+      content: '本轮自习已清零。重新整理一下，再开下一轮。',
+    });
+  };
+
+  const addTodo = (event: FormEvent) => {
+    event.preventDefault();
     const text = todoInput.trim();
-    if (!text) return;
+
+    if (!text) {
+      return;
+    }
+
     setTodos((prev) => [...prev, { id: Date.now(), text, done: false }]);
     setTodoInput('');
   };
@@ -243,6 +238,7 @@ const StudyRoom = () => {
     <>
       <Header />
       <section
+        className="study-room-shell"
         style={{
           minHeight: '100vh',
           padding: '6.5rem 1rem 2rem',
@@ -250,12 +246,12 @@ const StudyRoom = () => {
           zIndex: 1,
         }}
       >
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
           <div
             style={{
               background: 'var(--bg-main-card)',
               border: '1px solid var(--border-card)',
-              borderRadius: '18px',
+              borderRadius: '24px',
               overflow: 'hidden',
               boxShadow: 'var(--shadow-card)',
             }}
@@ -264,158 +260,213 @@ const StudyRoom = () => {
               style={{
                 padding: '2rem',
                 background:
-                  'linear-gradient(135deg, rgba(255,0,64,0.24) 0%, rgba(15,15,35,0.62) 55%, rgba(0,212,255,0.12) 100%)',
+                  'linear-gradient(135deg, rgba(255, 0, 64, 0.2) 0%, rgba(15, 15, 35, 0.7) 55%, rgba(0, 212, 255, 0.1) 100%)',
                 borderBottom: '1px solid var(--border-card)',
               }}
             >
-              <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', color: '#fff', marginBottom: '0.65rem' }}>
+              <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#fff', marginBottom: '0.65rem' }}>
                 陪伴自习室
               </h1>
-              <p style={{ color: 'rgba(255,255,255,0.9)' }}>登录后即可开始学习计时，和二次元伙伴一起专注。</p>
+              <p style={{ color: 'rgba(255, 255, 255, 0.9)', maxWidth: '42rem', lineHeight: 1.8 }}>
+                这次把 Live2D 和 AI 对话收进了同一个人物区域，计时也改成了按真实时间差计算，不再靠定时器硬加秒。
+              </p>
             </div>
 
             {!user ? (
               <div style={{ padding: '2rem' }}>
-                <form
-                  onSubmit={handleLogin}
-                  style={{
-                    maxWidth: '460px',
-                    margin: '0 auto',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border-card)',
-                    borderRadius: '14px',
-                    padding: '1.5rem',
-                  }}
+                <div
+                  className="study-login-grid"
+                  style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'stretch' }}
                 >
-                  <h2 style={{ color: 'var(--text-heading)', marginBottom: '0.8rem' }}>登录进入</h2>
-                  <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>输入昵称即可进入你的自习室。</p>
-                  <input
-                    value={nameInput}
-                    onChange={(e) => setNameInput(e.target.value)}
-                    placeholder="请输入昵称"
-                    style={{
-                      width: '100%',
-                      background: 'var(--bg-input)',
-                      color: 'var(--text-primary)',
-                      border: '1px solid var(--border-input)',
-                      borderRadius: '10px',
-                      padding: '0.8rem 0.95rem',
-                      outline: 'none',
-                      marginBottom: '0.9rem',
-                    }}
-                  />
-                  <button
-                    type="submit"
-                    style={{
-                      width: '100%',
-                      background: '#ff0040',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '10px',
-                      padding: '0.82rem 1rem',
-                      cursor: 'pointer',
-                      fontWeight: 700,
-                    }}
-                  >
-                    进入自习室
-                  </button>
-                </form>
-              </div>
-            ) : (
-              <div style={{ padding: '1.5rem' }}>
-                <div className="study-grid" style={{ display: 'grid', gridTemplateColumns: '1.15fr 0.85fr', gap: '1rem' }}>
-                  <div
+                  <form
+                    onSubmit={handleLogin}
                     style={{
                       background: 'var(--bg-card)',
                       border: '1px solid var(--border-card)',
-                      borderRadius: '14px',
-                      padding: '1.25rem',
+                      borderRadius: '18px',
+                      padding: '1.5rem',
+                      display: 'grid',
+                      gap: '0.9rem',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>欢迎回来</div>
-                        <div style={{ color: 'var(--text-heading)', fontSize: '1.2rem', fontWeight: 700 }}>{user.name}</div>
+                    <h2 style={{ color: 'var(--text-heading)', marginBottom: '0.2rem' }}>登录进入</h2>
+                    <p style={{ color: 'var(--text-muted)', lineHeight: 1.8 }}>
+                      输入你的称呼，直接进房间开始今天这轮学习。
+                    </p>
+                    <input
+                      value={nameInput}
+                      onChange={(event) => setNameInput(event.target.value)}
+                      placeholder="请输入昵称"
+                      style={{
+                        width: '100%',
+                        background: 'var(--bg-input)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border-input)',
+                        borderRadius: '12px',
+                        padding: '0.85rem 1rem',
+                        outline: 'none',
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      style={{
+                        width: '100%',
+                        background: '#ff0040',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '0.9rem 1rem',
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                      }}
+                    >
+                      进入自习室
+                    </button>
+                  </form>
+
+                  <div
+                    style={{
+                      position: 'relative',
+                      borderRadius: '18px',
+                      overflow: 'hidden',
+                      border: '1px solid var(--border-card)',
+                      background: 'radial-gradient(circle at top, rgba(255, 0, 64, 0.2), rgba(12, 12, 18, 0.9) 58%)',
+                      minHeight: '340px',
+                    }}
+                  >
+                    <iframe
+                      title="Live2D 学习搭子"
+                      src={frameSrc}
+                      onLoad={() => setFrameReady(true)}
+                      ref={frameRef}
+                      style={{ width: '100%', height: '100%', minHeight: '340px', border: 'none', background: 'transparent' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: '1.5rem' }}>
+                <div className="study-grid" style={{ display: 'grid', gridTemplateColumns: '1.05fr 0.95fr', gap: '1rem' }}>
+                  <div style={{ display: 'grid', gap: '1rem' }}>
+                    <div
+                      style={{
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border-card)',
+                        borderRadius: '18px',
+                        padding: '1.25rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>欢迎回来</div>
+                          <div style={{ color: 'var(--text-heading)', fontSize: '1.25rem', fontWeight: 700 }}>{user.name}</div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          style={{
+                            border: '1px solid var(--border-card)',
+                            background: 'transparent',
+                            color: 'var(--text-muted)',
+                            borderRadius: '10px',
+                            padding: '0.5rem 0.8rem',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          退出登录
+                        </button>
                       </div>
-                      <button
-                        onClick={handleLogout}
-                        style={{
-                          border: '1px solid var(--border-card)',
-                          background: 'transparent',
-                          color: 'var(--text-muted)',
-                          borderRadius: '8px',
-                          padding: '0.45rem 0.7rem',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        退出登录
-                      </button>
+
+                      <div className="study-timer-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.9rem', marginTop: '1rem' }}>
+                        <div
+                          style={{
+                            padding: '1rem',
+                            background: 'var(--bg-article-card)',
+                            border: '1px solid var(--border-card)',
+                            borderRadius: '14px',
+                          }}
+                        >
+                          <div style={{ color: 'var(--text-muted)', marginBottom: '0.45rem' }}>本轮学习时长</div>
+                          <div style={{ color: '#ff0040', fontWeight: 800, fontSize: '2rem', letterSpacing: '0.06em' }}>
+                            {toClock(sessionSeconds)}
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            padding: '1rem',
+                            background: 'var(--bg-article-card)',
+                            border: '1px solid var(--border-card)',
+                            borderRadius: '14px',
+                          }}
+                        >
+                          <div style={{ color: 'var(--text-muted)', marginBottom: '0.45rem' }}>累计学习时长</div>
+                          <div style={{ color: 'var(--text-heading)', fontWeight: 800, fontSize: '2rem', letterSpacing: '0.06em' }}>
+                            {toClock(totalSeconds)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ marginTop: '1rem', display: 'flex', gap: '0.7rem', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={handleToggleStudy}
+                          style={{
+                            background: isStudying ? 'var(--bg-hover)' : '#ff0040',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '12px',
+                            padding: '0.78rem 1rem',
+                            cursor: 'pointer',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {isStudying ? '暂停学习' : '开始学习'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleResetSession}
+                          style={{
+                            background: 'transparent',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--border-card)',
+                            borderRadius: '12px',
+                            padding: '0.78rem 1rem',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          清空本轮
+                        </button>
+                      </div>
                     </div>
 
                     <div
                       style={{
-                        marginTop: '1rem',
-                        padding: '1rem',
-                        background: 'var(--bg-article-card)',
+                        background: 'var(--bg-card)',
                         border: '1px solid var(--border-card)',
-                        borderRadius: '12px',
+                        borderRadius: '18px',
+                        padding: '1.25rem',
                       }}
                     >
-                      <div style={{ color: 'var(--text-muted)', marginBottom: '0.45rem' }}>本次学习时长</div>
-                      <div style={{ color: '#ff0040', fontWeight: 800, fontSize: '2rem', letterSpacing: '1px' }}>
-                        {toClock(sessionSeconds)}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'center' }}>
+                        <h2 style={{ color: 'var(--text-heading)', fontSize: '1.05rem' }}>学习待办</h2>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                          已完成 {completedCount} / {todos.length}
+                        </span>
                       </div>
-                      <div style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                        累计学习时长：{toClock(totalSeconds)}
-                      </div>
-                    </div>
 
-                    <div style={{ marginTop: '1rem', display: 'flex', gap: '0.7rem', flexWrap: 'wrap' }}>
-                      <button
-                        onClick={() => setIsStudying((prev) => !prev)}
-                        style={{
-                          background: isStudying ? 'var(--bg-hover)' : '#ff0040',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '10px',
-                          padding: '0.75rem 1rem',
-                          cursor: 'pointer',
-                          fontWeight: 700,
-                        }}
-                      >
-                        {isStudying ? '暂停学习' : '开始学习'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsStudying(false);
-                          setSessionSeconds(0);
-                        }}
-                        style={{
-                          background: 'transparent',
-                          color: 'var(--text-primary)',
-                          border: '1px solid var(--border-card)',
-                          borderRadius: '10px',
-                          padding: '0.75rem 1rem',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        结束本次学习
-                      </button>
-                    </div>
-
-                    <div style={{ marginTop: '1rem' }}>
-                      <form onSubmit={addTodo} style={{ display: 'flex', gap: '0.55rem' }}>
+                      <form onSubmit={addTodo} style={{ display: 'flex', gap: '0.55rem', marginTop: '1rem' }}>
                         <input
                           value={todoInput}
-                          onChange={(e) => setTodoInput(e.target.value)}
-                          placeholder="添加学习任务"
+                          onChange={(event) => setTodoInput(event.target.value)}
+                          placeholder="添加本轮任务"
                           style={{
                             flex: 1,
                             background: 'var(--bg-input)',
                             color: 'var(--text-primary)',
                             border: '1px solid var(--border-input)',
-                            borderRadius: '10px',
-                            padding: '0.7rem 0.9rem',
+                            borderRadius: '12px',
+                            padding: '0.75rem 0.9rem',
                             outline: 'none',
                           }}
                         />
@@ -425,8 +476,8 @@ const StudyRoom = () => {
                             background: '#ff0040',
                             color: '#fff',
                             border: 'none',
-                            borderRadius: '10px',
-                            padding: '0.7rem 0.95rem',
+                            borderRadius: '12px',
+                            padding: '0.75rem 1rem',
                             cursor: 'pointer',
                             fontWeight: 700,
                           }}
@@ -435,10 +486,7 @@ const StudyRoom = () => {
                         </button>
                       </form>
 
-                      <div style={{ marginTop: '0.75rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                        已完成 {completedCount} / {todos.length}
-                      </div>
-                      <div style={{ marginTop: '0.65rem', display: 'grid', gap: '0.55rem' }}>
+                      <div style={{ marginTop: '0.9rem', display: 'grid', gap: '0.55rem' }}>
                         {todos.map((todo) => (
                           <div
                             key={todo.id}
@@ -448,12 +496,12 @@ const StudyRoom = () => {
                               alignItems: 'center',
                               gap: '0.6rem',
                               border: '1px solid var(--border-card)',
-                              borderRadius: '10px',
-                              padding: '0.6rem 0.7rem',
+                              borderRadius: '12px',
+                              padding: '0.7rem 0.8rem',
                               background: 'var(--bg-article-card)',
                             }}
                           >
-                            <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flex: 1 }}>
+                            <label style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flex: 1 }}>
                               <input type="checkbox" checked={todo.done} onChange={() => toggleTodo(todo.id)} />
                               <span
                                 style={{
@@ -466,6 +514,7 @@ const StudyRoom = () => {
                               </span>
                             </label>
                             <button
+                              type="button"
                               onClick={() => removeTodo(todo.id)}
                               style={{
                                 border: 'none',
@@ -479,90 +528,99 @@ const StudyRoom = () => {
                             </button>
                           </div>
                         ))}
+
+                        {todos.length === 0 && (
+                          <div
+                            style={{
+                              borderRadius: '12px',
+                              border: '1px dashed var(--border-card)',
+                              padding: '1rem',
+                              color: 'var(--text-muted)',
+                              textAlign: 'center',
+                            }}
+                          >
+                            先写下这一轮最想完成的事。
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  <div
-                    style={{
-                      background: 'var(--bg-card)',
-                      border: '1px solid var(--border-card)',
-                      borderRadius: '14px',
-                      padding: '1.2rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '1rem',
-                    }}
-                  >
-                    <h2 style={{ color: 'var(--text-heading)', fontSize: '1.1rem' }}>学习伙伴</h2>
-                    <button
-                      onClick={() => setLive2dEnabled((prev) => !prev)}
-                      style={{
-                        border: '1px solid var(--border-card)',
-                        background: 'var(--bg-hover)',
-                        color: 'var(--text-primary)',
-                        borderRadius: '10px',
-                        padding: '0.6rem 0.8rem',
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {live2dEnabled ? '关闭 Live2D（更流畅）' : '开启 Live2D'}
-                    </button>
-
-                    {live2dEnabled && !isStudying ? (
-                      <Live2DCompanion />
-                    ) : live2dEnabled && isStudying ? (
-                      <div
-                        style={{
-                          borderRadius: '14px',
-                          minHeight: '260px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'var(--text-muted)',
-                          border: '1px solid rgba(255, 0, 64, 0.2)',
-                          background:
-                            'radial-gradient(circle at 30% 20%, rgba(255,0,64,0.18) 0%, rgba(255,0,64,0.06) 40%, rgba(26,26,26,0.55) 100%)',
-                        }}
-                      >
-                        学习进行中已暂停 Live2D，以保证流畅度。
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          borderRadius: '14px',
-                          minHeight: '260px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'var(--text-muted)',
-                          border: '1px solid rgba(255, 0, 64, 0.2)',
-                          background:
-                            'radial-gradient(circle at 30% 20%, rgba(255,0,64,0.18) 0%, rgba(255,0,64,0.06) 40%, rgba(26,26,26,0.55) 100%)',
-                        }}
-                      >
-                        当前为性能模式，Live2D 已关闭。
-                      </div>
-                    )}
-
+                  <div style={{ display: 'grid', gap: '1rem' }}>
                     <div
                       style={{
+                        background: 'var(--bg-card)',
                         border: '1px solid var(--border-card)',
-                        borderRadius: '10px',
-                        background: 'var(--bg-article-card)',
-                        padding: '0.8rem',
-                        color: 'var(--text-body)',
-                        lineHeight: 1.7,
+                        borderRadius: '18px',
+                        padding: '1.1rem',
                       }}
                     >
-                      {isStudying ? companionLines[lineIndex] : '点击“开始学习”，我会陪你进入状态。'}
-                    </div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                      如果你设备性能较低，建议学习时关闭 Live2D。
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'center', marginBottom: '0.8rem' }}>
+                        <div>
+                          <h2 style={{ color: 'var(--text-heading)', fontSize: '1.05rem' }}>角色舞台</h2>
+                          <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '0.2rem' }}>
+                            Live2D 常驻在线，AI 对话会同步进人物对话框。
+                          </p>
+                        </div>
+                        <span
+                          style={{
+                            color: isStudying ? '#fff' : 'var(--text-primary)',
+                            background: isStudying ? '#ff0040' : 'var(--bg-hover)',
+                            borderRadius: '999px',
+                            padding: '0.28rem 0.65rem',
+                            fontSize: '0.76rem',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {isStudying ? '学习中' : '待机中'}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          position: 'relative',
+                          borderRadius: '18px',
+                          minHeight: '360px',
+                          overflow: 'hidden',
+                          background:
+                            'radial-gradient(circle at top, rgba(255, 0, 64, 0.28), rgba(16, 16, 22, 0.92) 58%)',
+                          border: '1px solid rgba(255, 0, 64, 0.25)',
+                        }}
+                      >
+                        <iframe
+                          title="Live2D 学习搭子"
+                          src={frameSrc}
+                          onLoad={() => setFrameReady(true)}
+                          ref={frameRef}
+                          style={{
+                            width: '100%',
+                            minHeight: '360px',
+                            border: 'none',
+                            background: 'transparent',
+                          }}
+                        />
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop: '0.85rem',
+                          border: '1px solid var(--border-card)',
+                          borderRadius: '14px',
+                          background: 'var(--bg-article-card)',
+                          padding: '0.8rem',
+                          color: 'var(--text-body)',
+                          lineHeight: 1.7,
+                        }}
+                      >
+                        {dialogMessage.content}
+                      </div>
                     </div>
 
-                    <AICompanionPanel isStudying={isStudying} sessionSeconds={sessionSeconds} />
+                    <AICompanionPanel
+                      isStudying={isStudying}
+                      sessionSeconds={sessionSeconds}
+                      onDialogChange={(message) => setDialogMessage(message)}
+                    />
                   </div>
                 </div>
               </div>
@@ -574,8 +632,16 @@ const StudyRoom = () => {
 
       <style>{`
         @media (max-width: 980px) {
-          .study-grid {
+          .study-grid,
+          .study-login-grid,
+          .study-timer-grid {
             grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 720px) {
+          .study-room-shell {
+            padding: 5.6rem 0.8rem 1.4rem !important;
           }
         }
       `}</style>
