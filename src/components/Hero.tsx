@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
-import { articles } from '../data/articles';
 import quotesRaw from '../../语录.txt?raw';
 
 const base = import.meta.env.BASE_URL;
@@ -31,22 +30,10 @@ export default function Hero() {
         .filter(Boolean),
     [],
   );
-  const stats = useMemo(
-    () => [
-      { label: '文章', value: String(articles.length).padStart(2, '0') },
-      { label: '分类', value: String(new Set(articles.map((article) => article.category)).size).padStart(2, '0') },
-      { label: '标签', value: String(new Set(articles.flatMap((article) => article.tags)).size).padStart(2, '0') },
-    ],
-    [],
-  );
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [isQuoteVisible, setIsQuoteVisible] = useState(true);
-
-  const scrollToSection = (sectionId: string) => {
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   useEffect(() => {
     const imgInterval = setInterval(() => {
@@ -78,37 +65,20 @@ export default function Hero() {
       </div>
 
       <div className="hero-content">
-        <div className="hero-surface">
-          <p className="hero-kicker">PERSONA MODE · PERSONAL BLOG</p>
+        <div className="hero-copy">
           <h1 className="hero-title">灵敏度加满的 blog</h1>
           <p className={`hero-quote ${isQuoteVisible ? 'quote-visible' : 'quote-hidden'}`}>
             {quotes[quoteIndex] ?? ''}
           </p>
-
-          <div className="hero-stats">
-            {stats.map((item) => (
-              <div key={item.label} className="hero-stat-card">
-                <span className="hero-stat-value">{item.value}</span>
-                <span className="hero-stat-label">{item.label}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="hero-actions">
-            <button type="button" className="hero-action hero-action-primary" onClick={() => scrollToSection('blog')}>
-              进入幕后
-            </button>
-            <button type="button" className="hero-action hero-action-secondary" onClick={() => navigate('/study-room')}>
-              打开 Study Room
-            </button>
-            <a className="hero-action hero-action-ghost" href="https://github.com/Darling-02-02" target="_blank" rel="noreferrer">
-              GitHub
-            </a>
-          </div>
         </div>
 
-        <button type="button" className="hero-scroll" onClick={() => scrollToSection('profile')}>
-          向下阅读
+        <button type="button" className="hero-scroll" onClick={() => navigate('/explore')} aria-label="进入内容页">
+          <span className="hero-scroll-label">点击进入内容页</span>
+          <span className="hero-scroll-pointer">
+            <span className="hero-scroll-chevron" />
+            <span className="hero-scroll-chevron" />
+            <span className="hero-scroll-line" />
+          </span>
         </button>
       </div>
 
@@ -158,35 +128,15 @@ export default function Hero() {
           z-index: 1;
           padding: 1rem;
           width: 100%;
-          max-width: 1100px;
+          max-width: 920px;
           display: grid;
-          gap: 1.5rem;
+          gap: 1.1rem;
           justify-items: center;
         }
 
-        .hero-surface {
-          width: min(100%, 840px);
+        .hero-copy {
+          width: min(100%, 760px);
           text-align: center;
-          padding: clamp(1.5rem, 3vw, 2.2rem);
-          border-radius: 28px;
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          background: linear-gradient(180deg, rgba(16, 16, 22, 0.52), rgba(16, 16, 22, 0.28));
-          box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
-          backdrop-filter: blur(12px);
-        }
-
-        .hero-kicker {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.45rem;
-          padding: 0.45rem 0.9rem;
-          margin-bottom: 1rem;
-          border-radius: 999px;
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          background: rgba(255, 255, 255, 0.08);
-          color: rgba(255, 255, 255, 0.9);
-          font-size: 0.8rem;
-          letter-spacing: 0.18em;
         }
 
         .hero-title {
@@ -226,90 +176,51 @@ export default function Hero() {
           padding: 0 0.5rem;
         }
 
-        .hero-stats {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 0.85rem;
-          margin-top: 1.8rem;
-        }
-
-        .hero-stat-card {
-          display: grid;
-          gap: 0.3rem;
-          padding: 0.95rem 1rem;
-          border-radius: 18px;
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-
-        .hero-stat-value {
-          color: #fff;
-          font-size: clamp(1.35rem, 3vw, 2rem);
-          font-weight: 800;
-        }
-
-        .hero-stat-label {
-          color: rgba(255, 255, 255, 0.72);
-          font-size: 0.8rem;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-        }
-
-        .hero-actions {
-          display: flex;
-          justify-content: center;
-          flex-wrap: wrap;
-          gap: 0.9rem;
-          margin-top: 1.8rem;
-        }
-
-        .hero-action {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-width: 160px;
-          padding: 0.8rem 1.2rem;
-          border-radius: 999px;
-          border: 1px solid transparent;
-          font-size: 0.95rem;
-          font-weight: 700;
-          text-decoration: none;
-          cursor: pointer;
-          transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
-        }
-
-        .hero-action:hover {
-          transform: translateY(-2px);
-        }
-
-        .hero-action-primary {
-          color: #fff;
-          background: linear-gradient(135deg, #ff0040, #ff5f6d);
-          box-shadow: 0 12px 24px rgba(255, 0, 64, 0.28);
-        }
-
-        .hero-action-secondary {
-          color: #fff;
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.18);
-          backdrop-filter: blur(10px);
-        }
-
-        .hero-action-ghost {
-          color: #fff;
-          background: transparent;
-          border-color: rgba(255, 255, 255, 0.28);
-        }
-
         .hero-scroll {
           border: none;
           background: transparent;
-          color: rgba(255, 255, 255, 0.84);
-          font-size: 0.88rem;
-          letter-spacing: 0.08em;
+          color: rgba(255, 255, 255, 0.92);
           cursor: pointer;
+          display: grid;
+          gap: 0.5rem;
+          justify-items: center;
+          padding: 0.25rem 0.4rem 0.8rem;
+        }
+
+        .hero-scroll-label {
+          font-size: 0.92rem;
+          letter-spacing: 0.2em;
           text-transform: uppercase;
-          padding: 0.35rem 0.4rem;
+          text-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-scroll-pointer {
+          display: grid;
+          justify-items: center;
+          gap: 0.15rem;
+          animation: pointerFloat 1.8s ease-in-out infinite;
+        }
+
+        .hero-scroll-chevron {
+          width: 14px;
+          height: 14px;
+          border-right: 2px solid rgba(255, 255, 255, 0.92);
+          border-bottom: 2px solid rgba(255, 255, 255, 0.92);
+          transform: rotate(45deg);
+          filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.36));
+        }
+
+        .hero-scroll-line {
+          width: 2px;
+          height: 28px;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.18));
+          border-radius: 999px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+        }
+
+        @keyframes pointerFloat {
+          0%, 100% { transform: translateY(0); opacity: 0.84; }
+          50% { transform: translateY(6px); opacity: 1; }
         }
 
         .quote-visible {
@@ -329,25 +240,9 @@ export default function Hero() {
             padding: 4rem 1rem 2rem;
           }
 
-          .hero-surface {
-            border-radius: 22px;
-          }
-
           .hero-quote {
             max-width: 95%;
             min-height: 4.4rem;
-          }
-
-          .hero-stats {
-            grid-template-columns: 1fr;
-          }
-
-          .hero-actions {
-            flex-direction: column;
-          }
-
-          .hero-action {
-            width: 100%;
           }
         }
       `}</style>

@@ -166,6 +166,61 @@ body {
   width: 100%;
 }
 
+.secondary-page-theme {
+  --bg-primary: #f6f0ea;
+  --bg-secondary: #fffaf7;
+  --bg-card: rgba(255, 255, 255, 0.48);
+  --bg-card-solid: #fffaf7;
+  --bg-overlay: rgba(255, 248, 242, 0.08);
+  --bg-sidebar-card: rgba(255, 255, 255, 0.38);
+  --bg-main-card: rgba(255, 255, 255, 0.28);
+  --bg-input: rgba(255, 255, 255, 0.34);
+  --bg-code: rgba(250, 245, 241, 0.98);
+  --bg-code-header: rgba(242, 234, 228, 0.98);
+  --bg-tag: rgba(255, 0, 64, 0.1);
+  --bg-blockquote: rgba(255, 255, 255, 0.34);
+  --bg-hover: rgba(255, 0, 64, 0.08);
+  --bg-category-item: rgba(255, 255, 255, 0.22);
+  --bg-article-card: rgba(255, 255, 255, 0.42);
+  --bg-article-content: rgba(255, 255, 255, 0.48);
+  --bg-about-box: rgba(255, 255, 255, 0.28);
+  --bg-comment-box: rgba(255, 255, 255, 0.42);
+  --bg-social: rgba(255, 255, 255, 0.3);
+  --bg-social-hover: rgba(255, 0, 64, 0.14);
+  --bg-footer: rgba(255, 255, 255, 0.34);
+  --bg-mobile-menu: rgba(255, 255, 255, 0.92);
+  --bg-inline-code: rgba(255, 0, 64, 0.12);
+  --text-primary: #24181d;
+  --text-secondary: #402a32;
+  --text-muted: #6e5a63;
+  --text-body: #2f2328;
+  --text-heading: #21161b;
+  --text-card-title: #21161b;
+  --text-card-body: #3c2d35;
+  --text-strong: #1f1518;
+  --text-code: #3a2a32;
+  --text-inline-code: #c01f55;
+  --text-link: #c51c51;
+  --border-card: rgba(85, 53, 64, 0.14);
+  --border-section: rgba(85, 53, 64, 0.12);
+  --border-tag: rgba(197, 28, 81, 0.24);
+  --border-input: rgba(197, 28, 81, 0.2);
+  --border-table: rgba(85, 53, 64, 0.12);
+  --border-mobile-menu: rgba(85, 53, 64, 0.1);
+  --shadow-card: 0 18px 42px rgba(25, 18, 24, 0.18);
+  --shadow-hover: 0 20px 46px rgba(197, 28, 81, 0.16);
+  --scrollbar-track: rgba(255, 255, 255, 0.5);
+  --scrollbar-thumb: #d43d70;
+  --scrollbar-thumb-hover: #c51c51;
+  --table-header-bg: rgba(255, 255, 255, 0.88);
+  --table-border: rgba(85, 53, 64, 0.12);
+  color-scheme: light;
+}
+
+.secondary-page-theme .scanlines::after {
+  opacity: 0.04;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

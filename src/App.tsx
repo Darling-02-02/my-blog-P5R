@@ -1,8 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { lazy, Suspense, useEffect } from 'react';
 import Hero from './components/Hero'
-import ContentSection from './components/ContentSection'
-import Footer from './components/Footer'
 import { GlobalBackground } from './components/GlobalBackground'
 import { ThemeProvider } from './contexts/ThemeContext'
 import ThemeToggle from './components/ThemeToggle'
@@ -10,6 +8,7 @@ import ThemeToggle from './components/ThemeToggle'
 const Article = lazy(() => import('./components/Article'));
 const AboutMe = lazy(() => import('./components/AboutMe'));
 const ArchivePage = lazy(() => import('./components/ArchivePage'));
+const ExplorePage = lazy(() => import('./components/ExplorePage'));
 const StudyRoom = lazy(() => import('./components/StudyRoom'));
 
 const ScrollToTop = () => {
@@ -23,13 +22,7 @@ const ScrollToTop = () => {
 };
 
 function Home() {
-  return (
-    <>
-      <Hero />
-      <ContentSection />
-      <Footer />
-    </>
-  );
+  return <Hero />;
 }
 
 function App() {
@@ -43,6 +36,7 @@ function App() {
               <Suspense fallback={null}>
                 <Routes>
                   <Route path="/" element={<Home />} />
+                  <Route path="/explore" element={<ExplorePage />} />
                   <Route path="/article/:id" element={<Article />} />
                   <Route path="/about" element={<AboutMe />} />
                   <Route path="/study-room" element={<StudyRoom />} />

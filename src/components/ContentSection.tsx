@@ -1,11 +1,16 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { articles } from '../data/articles';
 import { useTheme } from '../contexts/useTheme';
+import { useSecondaryPageBackground } from './usePageBackground';
 
 const base = import.meta.env.BASE_URL;
 const coverImage = `${base}cover.png`;
+const sidebarBackground = 'var(--bg-card)';
+const articleCardBackground = 'var(--bg-article-card)';
+const aboutBoxBackground = 'var(--bg-article-card)';
+const commentBoxBackground = 'var(--bg-article-card)';
 
 const categoryColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#f39c12', '#8e44ad'];
 
@@ -48,37 +53,23 @@ const announcementSlogans = [
 
 const formatLastUpdate = () => new Date().toLocaleString('zh-CN', { hour12: false });
 
-const getInitialSiteStats = () => {
-  const fallback = {
-    articles: articles.length,
-    visitors: 0,
-    views: 0,
-    lastUpdate: formatLastUpdate(),
-  };
-
+const clearLegacySiteStats = () => {
   if (typeof window === 'undefined') {
-    return fallback;
+    return;
   }
 
-  const storedVisitors = Number.parseInt(localStorage.getItem('blog_visitors') || '0', 10);
-  const storedViews = Number.parseInt(localStorage.getItem('blog_views') || '0', 10);
-  const hasVisited = localStorage.getItem('blog_has_visited');
+  localStorage.removeItem('blog_visitors');
+  localStorage.removeItem('blog_views');
+  localStorage.removeItem('blog_has_visited');
+};
 
-  let nextVisitors = storedVisitors;
-  const nextViews = storedViews + 1;
-
-  if (!hasVisited) {
-    nextVisitors = storedVisitors + 1;
-    localStorage.setItem('blog_has_visited', 'true');
-  }
-
-  localStorage.setItem('blog_visitors', String(nextVisitors));
-  localStorage.setItem('blog_views', String(nextViews));
+const getInitialSiteStats = () => {
+  clearLegacySiteStats();
 
   return {
     articles: articles.length,
-    visitors: nextVisitors,
-    views: nextViews,
+    visitors: 0,
+    views: 0,
     lastUpdate: formatLastUpdate(),
   };
 };
@@ -155,7 +146,7 @@ const SidebarCard = ({
   icon?: string;
 }) => (
   <div style={{
-    background: 'var(--bg-sidebar-card)',
+    background: sidebarBackground,
     borderRadius: '14px',
     border: '1px solid var(--border-card)',
     backdropFilter: 'blur(15px)',
@@ -549,7 +540,7 @@ const BlogCard = ({ post, index }: { post: typeof articles[0] & { image: string 
       whileHover={{ y: -8 }}
       onClick={() => navigate(`/article/${post.id}`)}
       style={{
-        background: 'var(--bg-article-card)',
+        background: articleCardBackground,
         borderRadius: '16px',
         overflow: 'hidden',
         border: '1px solid var(--border-card)',
@@ -579,18 +570,30 @@ const MainContent = () => {
   const allowedCategories = ['生物信息', '三维重建', '机器学习', '随笔'];
   const filteredArticles = articles.filter(a => allowedCategories.includes(a.category));
   const mainPosts = filteredArticles.map(a => ({ ...a, image: coverImage }));
+  const sectionCardStyle: React.CSSProperties = {
+    marginBottom: '2rem',
+    padding: '1.25rem',
+    background: 'var(--bg-card)',
+    borderRadius: '14px',
+    border: '1px solid var(--border-card)',
+  };
+  const profilePaneStyle: React.CSSProperties = {
+    background: 'var(--bg-article-card)',
+    border: '1px solid var(--border-card)',
+    borderRadius: '12px',
+    padding: '1rem',
+  };
 
   return (
     <div className="home-main-card" style={{
-      background: 'var(--bg-main-card)',
+      background: 'transparent',
       borderRadius: '20px',
-      border: '1px solid var(--border-card)',
-      backdropFilter: 'blur(15px)',
-      boxShadow: 'var(--shadow-card)',
-      padding: '5rem',
+      border: 'none',
+      boxShadow: 'none',
+      padding: 0,
     }}>
       {/* 个人简介 */}
-      <section id="profile" style={{ marginBottom: '6rem' }}>
+      <section id="profile" className="home-content-block" style={sectionCardStyle}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
           <span style={{ color: '#ff0040' }}>个人</span>简介
         </h1>
@@ -599,13 +602,13 @@ const MainContent = () => {
         </p>
         
         <div className="home-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginBottom: '3rem' }}>
-          <div>
+          <div className="home-profile-pane" style={profilePaneStyle}>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>🎓 教育背景</h3>
             <p style={{ color: 'var(--text-body)', fontSize: '1.15rem', lineHeight: 2.2, marginBottom: '0.5rem' }}>河南农业大学 · 本科 · 茶学</p>
             <p style={{ color: 'var(--text-body)', fontSize: '1.15rem', lineHeight: 2.2, marginBottom: '1rem' }}>福建农林大学 · 硕士 · 智慧园艺</p>
             <p style={{ color: '#ff0040', fontSize: '1.1rem', lineHeight: 2, fontWeight: '500' }}>选择大于努力</p>
           </div>
-          <div>
+          <div className="home-profile-pane" style={profilePaneStyle}>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>💡 兴趣爱好</h3>
             <ul style={{ color: 'var(--text-body)', fontSize: '1.1rem', lineHeight: 2.2, paddingLeft: '1.2rem', listStyle: 'none' }}>
               <li style={{ color: '#ff0040', fontWeight: '500' }}>👤 CN：灵敏度加满，欢迎扩列</li>
@@ -621,7 +624,7 @@ const MainContent = () => {
       </section>
 
       {/* 幕后 - 文章 */}
-      <section id="blog" style={{ marginBottom: '6rem' }}>
+      <section id="blog" className="home-content-block" style={sectionCardStyle}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
           <span style={{ color: '#ff0040' }}>幕后</span>
         </h1>
@@ -637,7 +640,7 @@ const MainContent = () => {
       </section>
 
       {/* 关于 */}
-      <section id="about" style={{ marginBottom: '6rem' }}>
+      <section id="about" className="home-content-block" style={sectionCardStyle}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
           <span style={{ color: '#ff0040' }}>关于</span>本站
         </h1>
@@ -649,7 +652,7 @@ const MainContent = () => {
           垂死挣扎的双非硕，一切以实际为准。欢迎交流学习。
         </p>
         
-        <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'var(--bg-about-box)', borderRadius: '12px', border: '1px solid rgba(255,0,64,0.1)' }}>
+        <div style={{ marginTop: '2rem', padding: '1.5rem', background: aboutBoxBackground, borderRadius: '12px', border: '1px solid rgba(255,0,64,0.1)' }}>
           <p style={{ color: 'var(--text-body)', fontSize: '1rem', lineHeight: 1.8, margin: 0 }}>
             📧 联系邮箱：<a href="mailto:19503862693@163.com" style={{ color: '#ff0040', textDecoration: 'none', fontWeight: '600' }}>19503862693@163.com</a>
           </p>
@@ -657,7 +660,7 @@ const MainContent = () => {
       </section>
 
       {/* 评论区 */}
-      <section id="comments">
+      <section id="comments" className="home-content-block" style={{ ...sectionCardStyle, marginBottom: 0 }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
           <span style={{ color: '#ff0040' }}>留言</span>板
         </h1>
@@ -666,7 +669,7 @@ const MainContent = () => {
         </p>
         
         <div className="home-comment-box" style={{ 
-          background: 'var(--bg-comment-box)', 
+          background: commentBoxBackground, 
           borderRadius: '12px', 
           padding: '1.5rem',
           border: '1px solid var(--border-card)',
@@ -678,10 +681,28 @@ const MainContent = () => {
   );
 };
 
+interface ContentSectionProps {
+  standalone?: boolean;
+}
+
 // 主组件
-const ContentSection = () => {
+const ContentSection = ({ standalone = false }: ContentSectionProps) => {
+  const secondaryBackground = useSecondaryPageBackground();
+  const sectionBackground = `linear-gradient(180deg, rgba(255, 249, 244, 0.03), rgba(255, 246, 240, 0.06) 24%, rgba(255, 242, 235, 0.1) 100%), url(${secondaryBackground})`;
+
   return (
-    <section className="home-content-section" style={{ padding: '2rem 1rem', position: 'relative', zIndex: 1 }}>
+    <section
+      className="home-content-section"
+      style={{
+        padding: standalone ? '5.9rem 1rem 2rem' : '2rem 1rem',
+        position: 'relative',
+        zIndex: 1,
+        backgroundImage: sectionBackground,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundAttachment: 'fixed',
+      }}
+    >
       <div className="home-content-shell" style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
         <Sidebar />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -691,7 +712,7 @@ const ContentSection = () => {
       <style>{`
         @media (max-width: 1100px) {
           .home-main-card {
-            padding: 3rem 2rem !important;
+            padding: 0 !important;
           }
 
           .home-profile-grid {
@@ -706,7 +727,8 @@ const ContentSection = () => {
 
         @media (max-width: 900px) {
           .home-content-section {
-            padding: 1.25rem 0.85rem !important;
+            padding: ${standalone ? '5.25rem 0.85rem 1.35rem' : '1.25rem 0.85rem'} !important;
+            background-attachment: scroll !important;
           }
 
           .home-content-shell {
@@ -720,14 +742,30 @@ const ContentSection = () => {
           }
 
           .home-main-card {
-            padding: 2rem 1.35rem !important;
+            padding: 0 !important;
+          }
+
+          .home-content-block {
+            padding: 1.6rem 1.2rem !important;
           }
         }
 
         @media (max-width: 640px) {
+          .home-content-section {
+            padding: ${standalone ? '4.95rem 0.75rem 1.15rem' : '1.25rem 0.85rem'} !important;
+          }
+
           .home-main-card {
-            padding: 1.45rem 1rem !important;
+            padding: 0 !important;
+          }
+
+          .home-content-block {
+            padding: 1.25rem 0.95rem !important;
             border-radius: 16px !important;
+          }
+
+          .home-profile-pane {
+            padding: 1rem !important;
           }
 
           .home-post-grid {

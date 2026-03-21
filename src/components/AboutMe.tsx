@@ -3,6 +3,13 @@ import { useNavigate } from 'react-router-dom';
 
 const AboutMe = () => {
   const navigate = useNavigate();
+  const pagePanel = 'rgba(255, 255, 255, 0.18)';
+  const cardPanel = 'rgba(255, 255, 255, 0.22)';
+  const innerPanel = 'rgba(255, 255, 255, 0.16)';
+  const borderColor = 'rgba(110, 72, 84, 0.18)';
+  const subtleText = 'var(--text-secondary)';
+  const bodyText = 'var(--text-body)';
+  const headingText = 'var(--text-heading)';
 
   const sections = [
     {
@@ -115,11 +122,12 @@ const AboutMe = () => {
             textAlign: 'center',
             marginBottom: '3rem',
             padding: '3rem 2rem',
-            background: 'rgba(26, 26, 26, 0.8)',
+            background: pagePanel,
             borderRadius: '0',
-            border: '2px solid var(--p5-red)',
+            border: `1px solid ${borderColor}`,
             clipPath: 'polygon(0 0, 100% 0, 98% 100%, 0 100%)',
-            boxShadow: '8px 8px 0 rgba(255, 0, 64, 0.2)',
+            boxShadow: '0 16px 36px rgba(40, 26, 33, 0.14)',
+            backdropFilter: 'blur(10px)',
           }}
         >
           <motion.div
@@ -157,7 +165,7 @@ const AboutMe = () => {
 
           <p style={{
             fontSize: '1.1rem',
-            color: 'var(--p5-light-gray)',
+            color: subtleText,
             marginBottom: '1.5rem',
           }}>
             灵敏度加满的blog 主人
@@ -181,8 +189,9 @@ const AboutMe = () => {
                 transition={{ delay: 0.3 + index * 0.1 }}
                 style={{
                   padding: '0.5rem 1.5rem',
-                  background: 'rgba(255, 0, 64, 0.2)',
-                  border: '1px solid var(--p5-red)',
+                  background: 'rgba(255, 255, 255, 0.18)',
+                  border: `1px solid ${borderColor}`,
+                  backdropFilter: 'blur(10px)',
                 }}
               >
                 <div style={{
@@ -194,7 +203,7 @@ const AboutMe = () => {
                 </div>
                 <div style={{
                   fontSize: '0.8rem',
-                  color: 'var(--p5-light-gray)',
+                  color: subtleText,
                   textTransform: 'uppercase',
                   letterSpacing: '1px',
                 }}>
@@ -215,11 +224,12 @@ const AboutMe = () => {
             paddingLeft: '1.5rem',
             margin: '2rem 0',
             fontStyle: 'italic',
-            color: 'var(--p5-light-gray)',
-            background: 'rgba(255, 0, 64, 0.1)',
+            color: subtleText,
+            background: 'rgba(255, 255, 255, 0.2)',
             padding: '1.5rem',
             borderRadius: '0 8px 8px 0',
             fontSize: '1.1rem',
+            backdropFilter: 'blur(8px)',
           }}
         >
           "{quotes[0]}"
@@ -243,9 +253,10 @@ const AboutMe = () => {
             style={{
               marginBottom: '2rem',
               padding: '2rem',
-              background: 'rgba(26, 26, 26, 0.8)',
+              background: cardPanel,
               borderRadius: '8px',
-              border: '1px solid rgba(255, 0, 64, 0.3)',
+              border: `1px solid ${borderColor}`,
+              backdropFilter: 'blur(10px)',
             }}
           >
             <h2 style={{
@@ -279,13 +290,14 @@ const AboutMe = () => {
                       alignItems: 'center',
                       gap: '1rem',
                       padding: '0.75rem 1rem',
-                      background: 'rgba(255, 255, 255, 0.05)',
+                      background: innerPanel,
                       borderRadius: '5px',
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     <span style={{
                       minWidth: '60px',
-                      color: 'var(--p5-light-gray)',
+                      color: subtleText,
                       fontWeight: '500',
                     }}>
                       {item.label}:
@@ -304,7 +316,7 @@ const AboutMe = () => {
                         {item.value}
                       </a>
                     ) : (
-                      <span style={{ color: 'var(--p5-white)' }}>{item.value}</span>
+                      <span style={{ color: bodyText }}>{item.value}</span>
                     )}
                   </motion.div>
                 ))}
@@ -335,7 +347,7 @@ const AboutMe = () => {
                       color: 'var(--p5-red)',
                       fontSize: '1.2rem',
                     }}>▸</span>
-                    <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>{item}</span>
+                    <span style={{ color: bodyText }}>{item}</span>
                   </motion.li>
                 ))}
               </ul>
@@ -359,7 +371,7 @@ const AboutMe = () => {
                       marginBottom: '0.5rem',
                     }}>
                       <span style={{
-                        color: 'var(--p5-white)',
+                        color: headingText,
                         fontWeight: '500',
                       }}>
                         {skill.name}
@@ -373,7 +385,7 @@ const AboutMe = () => {
                     </div>
                     <div style={{
                       height: '8px',
-                      background: 'rgba(255, 255, 255, 0.1)',
+                      background: 'rgba(255, 255, 255, 0.2)',
                       borderRadius: '4px',
                       overflow: 'hidden',
                     }}>
@@ -412,21 +424,22 @@ const AboutMe = () => {
                     style={{
                       display: 'block',
                       padding: '1rem',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 0, 64, 0.3)',
+                      background: innerPanel,
+                      border: `1px solid ${borderColor}`,
                       borderRadius: '8px',
                       textDecoration: 'none',
+                      backdropFilter: 'blur(8px)',
                     }}
                   >
                     <div style={{
-                      color: 'var(--p5-white)',
+                      color: headingText,
                       fontWeight: '700',
                       marginBottom: '0.25rem',
                     }}>
                       {link.name}
                     </div>
                     <div style={{
-                      color: 'var(--p5-light-gray)',
+                      color: subtleText,
                       fontSize: '0.85rem',
                     }}>
                       {link.desc}
@@ -443,13 +456,13 @@ const AboutMe = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
           className="about-footer"
-          style={{
-            textAlign: 'center',
-            padding: '2rem',
-            borderTop: '1px solid rgba(255, 0, 64, 0.3)',
-            marginTop: '3rem',
-          }}
-        >
+            style={{
+              textAlign: 'center',
+              padding: '2rem',
+              borderTop: `1px solid ${borderColor}`,
+              marginTop: '3rem',
+            }}
+          >
           <div className="about-footer-socials" style={{
             display: 'flex',
             justifyContent: 'center',
@@ -473,11 +486,12 @@ const AboutMe = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: 'rgba(255, 0, 64, 0.2)',
-                  border: '2px solid var(--p5-red)',
+                  background: 'rgba(255, 255, 255, 0.18)',
+                  border: `1px solid ${borderColor}`,
                   borderRadius: '50%',
                   fontSize: '1.5rem',
                   textDecoration: 'none',
+                  backdropFilter: 'blur(8px)',
                 }}
               >
                 {social.icon}
@@ -485,7 +499,7 @@ const AboutMe = () => {
             ))}
           </div>
           <p style={{
-            color: 'var(--p5-light-gray)',
+            color: subtleText,
             fontSize: '0.9rem',
           }}>
             © 2026 灵敏度加满的blog

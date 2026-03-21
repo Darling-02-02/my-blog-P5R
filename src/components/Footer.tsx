@@ -1,28 +1,5 @@
-import { useState, useEffect } from 'react';
-
 const Footer = () => {
-  const [runningTime, setRunningTime] = useState('');
-
-  useEffect(() => {
-    const startDate = new Date('2026-02-22');
-    
-    const updateTime = () => {
-      const now = new Date();
-      const diff = now.getTime() - startDate.getTime();
-      
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
-      setRunningTime(`${days}天 ${hours}时 ${minutes}分 ${seconds}秒`);
-    };
-    
-    updateTime();
-    const timer = setInterval(updateTime, 1000);
-    
-    return () => clearInterval(timer);
-  }, []);
+  const runningTime = '0天 0时 0分 0秒';
 
   return (
     <footer
