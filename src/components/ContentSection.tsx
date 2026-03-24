@@ -571,17 +571,23 @@ const MainContent = () => {
   const filteredArticles = articles.filter(a => allowedCategories.includes(a.category));
   const mainPosts = filteredArticles.map(a => ({ ...a, image: coverImage }));
   const sectionCardStyle: React.CSSProperties = {
-    marginBottom: '2rem',
-    padding: '1.25rem',
-    background: 'var(--bg-card)',
-    borderRadius: '14px',
-    border: '1px solid var(--border-card)',
+    marginBottom: '4rem',
+    padding: 0,
+    background: 'transparent',
+    borderRadius: 0,
+    border: 'none',
   };
   const profilePaneStyle: React.CSSProperties = {
-    background: 'var(--bg-article-card)',
+    background: 'var(--bg-card)',
     border: '1px solid var(--border-card)',
-    borderRadius: '12px',
-    padding: '1rem',
+    borderRadius: '14px',
+    padding: '1.25rem',
+  };
+  const aboutPaneStyle: React.CSSProperties = {
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border-card)',
+    borderRadius: '14px',
+    padding: '1.25rem',
   };
 
   return (
@@ -647,15 +653,17 @@ const MainContent = () => {
         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
           博客介绍
         </p>
-        
-        <p style={{ color: 'var(--text-body)', fontSize: '1.15rem', lineHeight: 2.4 }}>
-          垂死挣扎的双非硕，一切以实际为准。欢迎交流学习。
-        </p>
-        
-        <div style={{ marginTop: '2rem', padding: '1.5rem', background: aboutBoxBackground, borderRadius: '12px', border: '1px solid rgba(255,0,64,0.1)' }}>
-          <p style={{ color: 'var(--text-body)', fontSize: '1rem', lineHeight: 1.8, margin: 0 }}>
-            📧 联系邮箱：<a href="mailto:19503862693@163.com" style={{ color: '#ff0040', textDecoration: 'none', fontWeight: '600' }}>19503862693@163.com</a>
+
+        <div style={aboutPaneStyle}>
+          <p style={{ color: 'var(--text-body)', fontSize: '1.15rem', lineHeight: 2.4 }}>
+            垂死挣扎的双非硕，一切以实际为准。欢迎交流学习。
           </p>
+
+          <div style={{ marginTop: '2rem', padding: '1.5rem', background: aboutBoxBackground, borderRadius: '12px', border: '1px solid rgba(255,0,64,0.1)' }}>
+            <p style={{ color: 'var(--text-body)', fontSize: '1rem', lineHeight: 1.8, margin: 0 }}>
+              📧 联系邮箱：<a href="mailto:19503862693@163.com" style={{ color: '#ff0040', textDecoration: 'none', fontWeight: '600' }}>19503862693@163.com</a>
+            </p>
+          </div>
         </div>
       </section>
 
@@ -746,7 +754,7 @@ const ContentSection = ({ standalone = false }: ContentSectionProps) => {
           }
 
           .home-content-block {
-            padding: 1.6rem 1.2rem !important;
+            margin-bottom: 3rem !important;
           }
         }
 
@@ -760,8 +768,7 @@ const ContentSection = ({ standalone = false }: ContentSectionProps) => {
           }
 
           .home-content-block {
-            padding: 1.25rem 0.95rem !important;
-            border-radius: 16px !important;
+            margin-bottom: 2.5rem !important;
           }
 
           .home-profile-pane {
