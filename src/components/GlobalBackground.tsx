@@ -13,8 +13,8 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
   const { isDark } = useTheme();
   const location = useLocation();
   const secondaryBackground = useSecondaryPageBackground();
-  const [isInHomeHeroSection, setIsInHomeHeroSection] = useState(location.pathname === '/');
   const isHomeRoute = location.pathname === '/';
+  const [isInHomeHeroSection, setIsInHomeHeroSection] = useState(isHomeRoute);
   const useSecondaryTheme = !isHomeRoute;
   const useHomeBackground = isHomeRoute && isInHomeHeroSection;
   const activeBackground = useHomeBackground ? homePageBackground : secondaryBackground;
@@ -26,7 +26,6 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
 
   useEffect(() => {
     if (!isHomeRoute) {
-      setIsInHomeHeroSection(false);
       return;
     }
 
@@ -43,9 +42,10 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
 
     window.addEventListener('scroll', syncHeroState, { passive: true });
     window.addEventListener('resize', syncHeroState);
-    syncHeroState();
+    const animationFrameId = window.requestAnimationFrame(syncHeroState);
 
     return () => {
+      window.cancelAnimationFrame(animationFrameId);
       window.removeEventListener('scroll', syncHeroState);
       window.removeEventListener('resize', syncHeroState);
     };
