@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from './Header';
 import Footer from './Footer';
-import { articles } from '../data/articles';
+import { articles, getArticlePath } from '../data/articles';
 import { pickCoverByKey, pickCoverForArticle } from './coverImage';
 
 type ArchiveMode = 'tag' | 'category';
@@ -133,7 +133,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                         <motion.article
                           key={article.id}
                           whileHover={{ y: -4 }}
-                          onClick={() => navigate(`/article/${article.id}`)}
+                          onClick={() => navigate(getArticlePath(article))}
                           className="archive-entry"
                           style={{
                             display: 'grid',
@@ -252,7 +252,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                 {latestArticles.map((article) => (
                   <button
                     key={article.id}
-                    onClick={() => navigate(`/article/${article.id}`)}
+                    onClick={() => navigate(getArticlePath(article))}
                     style={{
                       width: '100%',
                       border: 'none',

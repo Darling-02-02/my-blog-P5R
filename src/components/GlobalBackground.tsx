@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { heroSlideshowImages } from './imageConfig';
 import { useTheme } from '../contexts/useTheme';
-import { homePageBackground, useSecondaryPageBackground } from './usePageBackground';
+import { homePageBackground, useScrollBackgroundPosition, useSecondaryPageBackground } from './usePageBackground';
 
 interface BackgroundProps {
   children: React.ReactNode;
@@ -13,6 +13,7 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
   const { isDark } = useTheme();
   const location = useLocation();
   const secondaryBackground = useSecondaryPageBackground();
+  const backgroundPosition = useScrollBackgroundPosition();
   const [isInHomeHeroSection, setIsInHomeHeroSection] = useState(location.pathname === '/');
   const isHomeRoute = location.pathname === '/';
   const useSecondaryTheme = !isHomeRoute;
@@ -26,9 +27,10 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
 
   useEffect(() => {
     if (!isHomeRoute) {
-      setIsInHomeHeroSection(false);
       return;
     }
+
+    let frame = 0;
 
     const syncHeroState = () => {
       const heroSection = document.getElementById('home');
@@ -43,9 +45,12 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
 
     window.addEventListener('scroll', syncHeroState, { passive: true });
     window.addEventListener('resize', syncHeroState);
-    syncHeroState();
+    frame = window.requestAnimationFrame(syncHeroState);
 
     return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
       window.removeEventListener('scroll', syncHeroState);
       window.removeEventListener('resize', syncHeroState);
     };
@@ -62,7 +67,7 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
           height: '100%',
           backgroundImage: `url(${activeBackground})`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center top',
+          backgroundPosition,
           backgroundAttachment: 'fixed',
           zIndex: 0,
           pointerEvents: 'none',
