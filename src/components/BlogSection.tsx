@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { articles } from '../data/articles';
+import { articles, getArticlePath } from '../data/articles';
 import { PageLayout, MainContentCard } from './SidebarLayout';
 
 const base = import.meta.env.BASE_URL;
@@ -26,7 +26,7 @@ const BlogCard = ({ post, index }: BlogCardProps) => {
   const navigate = useNavigate();
   
   const handleClick = () => {
-    navigate(`/article/${post.id}`);
+    navigate(getArticlePath(post));
   };
 
   return (

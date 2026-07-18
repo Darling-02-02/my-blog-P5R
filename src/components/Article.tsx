@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { articles } from '../data/articles';
+import { findArticle } from '../data/articles';
 import { useState, useEffect } from 'react';
 
 const CodeBlock = ({ language, code }: { language: string; code: string }) => {
@@ -77,9 +77,9 @@ const InlineCode = ({ children }: { children: React.ReactNode }) => (
 );
 
 const Article = () => {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ '*': string }>();
   const navigate = useNavigate();
-  const article = articles.find(a => a.id === Number(id));
+  const article = findArticle(params['*']);
   const [readingProgress, setReadingProgress] = useState(0);
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { articles } from '../data/articles';
 import { useTheme } from '../contexts/useTheme';
-import { useSecondaryPageBackground } from './usePageBackground';
+import { useScrollBackgroundPosition, useSecondaryPageBackground } from './usePageBackground';
 
 const base = import.meta.env.BASE_URL;
 const coverImage = `${base}cover.png`;
@@ -13,6 +13,12 @@ const aboutBoxBackground = 'var(--bg-article-card)';
 const commentBoxBackground = 'var(--bg-article-card)';
 
 const categoryColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#f39c12', '#8e44ad'];
+const categoryDescriptions: Record<string, string> = {
+  生物信息: '生信分析流程、命令记录、报错处理和结果解释',
+  三维重建: 'COLMAP、NeRF、3DGS、点云处理和论文实验记录',
+  机器学习: '模型训练、数据处理、工程实践和实验复盘',
+  随笔: '学习复盘、生活记录和一些不太正经的想法',
+};
 
 const categoryData = Object.entries(
   articles.reduce<Record<string, number>>((acc, article) => {
@@ -527,10 +533,9 @@ const Sidebar = () => (
   </aside>
 );
 
-// 文章卡片
-const BlogCard = ({ post, index }: { post: typeof articles[0] & { image: string }; index: number }) => {
+// 大类栏目卡片
+const CategoryLandingCard = ({ category, index }: { category: typeof categoryData[number]; index: number }) => {
   const navigate = useNavigate();
-  const today = post.date;
   return (
     <motion.article
       initial={{ opacity: 0, y: 20 }}
@@ -538,7 +543,7 @@ const BlogCard = ({ post, index }: { post: typeof articles[0] & { image: string 
       viewport={{ once: true }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
       whileHover={{ y: -8 }}
-      onClick={() => navigate(`/article/${post.id}`)}
+      onClick={() => navigate(`/category/${encodeURIComponent(category.name)}`)}
       style={{
         background: articleCardBackground,
         borderRadius: '16px',
@@ -549,17 +554,19 @@ const BlogCard = ({ post, index }: { post: typeof articles[0] & { image: string 
       }}
     >
       <div style={{ height: '160px', overflow: 'hidden', position: 'relative' }}>
-        <img src={post.image} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: '#ff0040', color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '15px', fontSize: '0.85rem', fontWeight: '600' }}>暗影大人</span>
+        <img src={coverImage} alt={category.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: category.color, color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '15px', fontSize: '0.85rem', fontWeight: '600' }}>
+          {category.count} 篇文章
+        </span>
       </div>
       <div style={{ padding: '1.5rem' }}>
-        <h4 style={{ fontSize: '1.15rem', fontWeight: '600', color: 'var(--text-card-title)', marginBottom: '0.75rem', lineHeight: 1.5 }}>{post.title}</h4>
-        <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.8rem' }}>{today} · {post.readTime}</p>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {post.tags.slice(0, 2).map(tag => (
-            <span key={tag} style={{ color: '#ff0040', fontSize: '0.85rem', background: 'var(--bg-tag)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>#{tag}</span>
-          ))}
-        </div>
+        <h4 style={{ fontSize: '1.15rem', fontWeight: '600', color: 'var(--text-card-title)', marginBottom: '0.75rem', lineHeight: 1.5 }}>{category.name}</h4>
+        <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.8rem', lineHeight: 1.7 }}>
+          {categoryDescriptions[category.name] ?? '进入该栏目查看全部文章'}
+        </p>
+        <span style={{ color: '#ff0040', fontSize: '0.85rem', background: 'var(--bg-tag)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
+          查看全部
+        </span>
       </div>
     </motion.article>
   );
@@ -568,8 +575,9 @@ const BlogCard = ({ post, index }: { post: typeof articles[0] & { image: string 
 // 主内容
 const MainContent = () => {
   const allowedCategories = ['生物信息', '三维重建', '机器学习', '随笔'];
-  const filteredArticles = articles.filter(a => allowedCategories.includes(a.category));
-  const mainPosts = filteredArticles.map(a => ({ ...a, image: coverImage }));
+  const mainCategories = allowedCategories
+    .map((name) => categoryData.find((category) => category.name === name))
+    .filter((category): category is typeof categoryData[number] => Boolean(category));
   const sectionCardStyle: React.CSSProperties = {
     marginBottom: '4rem',
     padding: 0,
@@ -610,9 +618,6 @@ const MainContent = () => {
         <div className="home-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginBottom: '3rem' }}>
           <div className="home-profile-pane" style={profilePaneStyle}>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>🎓 教育背景</h3>
-            <p style={{ color: 'var(--text-body)', fontSize: '1.15rem', lineHeight: 2.2, marginBottom: '0.5rem' }}>河南农业大学 · 本科 · 茶学</p>
-            <p style={{ color: 'var(--text-body)', fontSize: '1.15rem', lineHeight: 2.2, marginBottom: '1rem' }}>福建农林大学 · 硕士 · 智慧园艺</p>
-            <p style={{ color: '#ff0040', fontSize: '1.1rem', lineHeight: 2, fontWeight: '500' }}>选择大于努力</p>
           </div>
           <div className="home-profile-pane" style={profilePaneStyle}>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>💡 兴趣爱好</h3>
@@ -629,7 +634,7 @@ const MainContent = () => {
         </div>
       </section>
 
-      {/* 幕后 - 文章 */}
+      {/* 幕后 - 大类栏目 */}
       <section id="blog" className="home-content-block" style={sectionCardStyle}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
           <span style={{ color: '#ff0040' }}>幕后</span>
@@ -639,8 +644,8 @@ const MainContent = () => {
         </p>
         
         <div className="home-post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: '2.5rem' }}>
-          {mainPosts.map((post, i) => (
-            <BlogCard key={post.id} post={post} index={i} />
+          {mainCategories.map((category, i) => (
+            <CategoryLandingCard key={category.name} category={category} index={i} />
           ))}
         </div>
       </section>
@@ -696,6 +701,7 @@ interface ContentSectionProps {
 // 主组件
 const ContentSection = ({ standalone = false }: ContentSectionProps) => {
   const secondaryBackground = useSecondaryPageBackground();
+  const backgroundPosition = useScrollBackgroundPosition();
   const sectionBackground = `linear-gradient(180deg, rgba(255, 249, 244, 0.03), rgba(255, 246, 240, 0.06) 24%, rgba(255, 242, 235, 0.1) 100%), url(${secondaryBackground})`;
 
   return (
@@ -707,7 +713,7 @@ const ContentSection = ({ standalone = false }: ContentSectionProps) => {
         zIndex: 1,
         backgroundImage: sectionBackground,
         backgroundSize: 'cover',
-        backgroundPosition: 'center top',
+        backgroundPosition,
         backgroundAttachment: 'fixed',
       }}
     >

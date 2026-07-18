@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "validate:content": "node scripts/validate-content.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

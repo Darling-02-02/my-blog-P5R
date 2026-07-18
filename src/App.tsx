@@ -37,7 +37,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/explore" element={<ExplorePage />} />
-                  <Route path="/article/:id" element={<Article />} />
+                  <Route path="/article/*" element={<Article />} />
                   <Route path="/about" element={<AboutMe />} />
                   <Route path="/study-room" element={<StudyRoom />} />
                   <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />

@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { articles } from '../data/articles';
+import { articles, getArticlePath } from '../data/articles';
 import { useTheme } from '../contexts/useTheme';
 import { useSecondaryPageBackground } from './usePageBackground';
 
@@ -102,9 +102,9 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
-  const handleArticleSelect = (articleId: number) => {
+  const handleArticleSelect = (article: (typeof articles)[number]) => {
     setSearchQuery('');
-    navigate(`/article/${articleId}`);
+    navigate(getArticlePath(article));
     setIsMenuOpen(false);
   };
 
@@ -264,7 +264,7 @@ const Header = () => {
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' && searchResults[0]) {
                     event.preventDefault();
-                    handleArticleSelect(searchResults[0].id);
+                    handleArticleSelect(searchResults[0]);
                   }
 
                   if (event.key === 'Escape') {
@@ -286,7 +286,7 @@ const Header = () => {
                 type="button"
                 onClick={() => {
                   if (searchResults[0]) {
-                    handleArticleSelect(searchResults[0].id);
+                    handleArticleSelect(searchResults[0]);
                   }
                 }}
                 style={{
@@ -324,7 +324,7 @@ const Header = () => {
                     <button
                       key={article.id}
                       type="button"
-                      onClick={() => handleArticleSelect(article.id)}
+                      onClick={() => handleArticleSelect(article)}
                       style={{
                         width: '100%',
                         textAlign: 'left',
