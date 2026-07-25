@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import Header from './Header';
 import Footer from './Footer';
 import { articles, getArticlePath } from '../data/articles';
-import { getCategoryData } from '../data/categories';
+import { getCategoryData, getTagData } from '../data/categories';
 import { pickCoverByKey, pickCoverForArticle } from './coverImage';
 
 type ArchiveMode = 'tag' | 'category';
@@ -62,13 +62,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
   }, [categories]);
 
   const tagCounts = useMemo(() => {
-    const map = new Map<string, number>();
-    articles.forEach((article) => {
-      article.tags.forEach((tag) => {
-        map.set(tag, (map.get(tag) ?? 0) + 1);
-      });
-    });
-    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+    return getTagData(articles);
   }, []);
 
   const latestArticles = useMemo(() => {
@@ -270,10 +264,10 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
               >
                 <h3 style={{ color: 'var(--text-heading)', marginBottom: '0.8rem', fontSize: '1rem' }}>标签</h3>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-                  {tagCounts.map(([tag]) => (
+                  {tagCounts.map((tag) => (
                     <button
-                      key={tag}
-                      onClick={() => navigate(`/tag/${encodeURIComponent(tag)}`)}
+                      key={tag.name}
+                      onClick={() => navigate(`/tag/${encodeURIComponent(tag.name)}`)}
                       style={{
                         border: '1px solid var(--border-tag)',
                         background: 'var(--bg-tag)',
@@ -284,7 +278,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                         fontSize: '0.8rem',
                       }}
                     >
-                      #{tag}
+                      #{tag.name}
                     </button>
                   ))}
                 </div>

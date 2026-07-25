@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { articles } from '../data/articles';
-import { getCategoryData } from '../data/categories';
+import { getCategoryData, getTagData } from '../data/categories';
 import { useTheme } from '../contexts/useTheme';
 import { useScrollBackgroundPosition, useSecondaryPageBackground } from './usePageBackground';
 
@@ -14,17 +14,7 @@ const aboutBoxBackground = 'var(--bg-article-card)';
 const commentBoxBackground = 'var(--bg-article-card)';
 
 const categoryData = getCategoryData(articles);
-
-const tagData = Object.entries(
-  articles.reduce<Record<string, number>>((acc, article) => {
-    article.tags.forEach((tag) => {
-      acc[tag] = (acc[tag] ?? 0) + 1;
-    });
-    return acc;
-  }, {}),
-)
-  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN'))
-  .map(([name, count]) => ({ name, count }));
+const tagData = getTagData(articles);
 
 const announcementSlogans = [
   '凡所有相，皆是虚妄',

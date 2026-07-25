@@ -9,6 +9,11 @@ export interface CategoryData extends CategoryDefinition {
   count: number;
 }
 
+export interface TagData {
+  name: string;
+  count: number;
+}
+
 export const bioinformaticsSubcategories = [
   '转录组',
   '代谢组',
@@ -81,3 +86,15 @@ export const getCategoryData = (items: Array<{ category: string }>): CategoryDat
 
   return [...configured, ...extra];
 };
+
+export const getTagData = (items: Array<{ tags: string[] }>): TagData[] =>
+  Object.entries(
+    items.reduce<Record<string, number>>((acc, article) => {
+      article.tags.forEach((tag) => {
+        acc[tag] = (acc[tag] ?? 0) + 1;
+      });
+      return acc;
+    }, {}),
+  )
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN'))
+    .map(([name, count]) => ({ name, count }));
