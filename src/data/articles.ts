@@ -4,6 +4,7 @@ export interface Article {
   title: string;
   excerpt: string;
   category: string;
+  subcategory?: string;
   date: string;
   readTime: string;
   tags: string[];
@@ -91,6 +92,7 @@ export const articles: Article[] = Object.entries(articleModules)
       title: String(meta.title),
       excerpt: String(meta.excerpt),
       category: String(meta.category),
+      subcategory: meta.subcategory ? String(meta.subcategory) : undefined,
       date: String(meta.date),
       readTime: String(meta.readTime),
       tags: meta.tags as string[],

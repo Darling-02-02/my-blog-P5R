@@ -21,19 +21,30 @@ const prettyDate = (value: string) => {
 
 const ArchivePage = ({ mode }: ArchivePageProps) => {
   const navigate = useNavigate();
-  const { name } = useParams<{ name: string }>();
+  const { name, subcategory } = useParams<{ name: string; subcategory?: string }>();
   const decodedName = decodeURIComponent(name ?? '');
+  const decodedSubcategory = decodeURIComponent(subcategory ?? '');
   const categories = useMemo(() => getCategoryData(articles), []);
   const selectedCategory = categories.find((category) => category.name === decodedName);
-  const subcategories = mode === 'category' ? (selectedCategory?.subcategories ?? []) : [];
+  const subcategories = mode === 'category' && !decodedSubcategory ? (selectedCategory?.subcategories ?? []) : [];
+  const archiveTitle =
+    mode === 'tag'
+      ? `标签: ${decodedName || '未指定'}`
+      : `分类: ${decodedSubcategory ? `${decodedName} / ${decodedSubcategory}` : decodedName || '未指定'}`;
 
   const filteredArticles = useMemo(() => {
     if (!decodedName) return [];
     if (mode === 'tag') {
       return articles.filter((article) => article.tags.includes(decodedName));
     }
+    if (decodedSubcategory) {
+      return articles.filter(
+        (article) => article.category === decodedName && article.subcategory === decodedSubcategory,
+      );
+    }
     return articles.filter((article) => article.category === decodedName);
-  }, [decodedName, mode]);
+  }, [decodedName, decodedSubcategory, mode]);
+  const archiveSummary = subcategories.length > 0 ? `共 ${subcategories.length} 个专题` : `共 ${filteredArticles.length} 篇文章`;
 
   const groupedByYear = useMemo(() => {
     const grouped = new Map<string, typeof filteredArticles>();
@@ -100,10 +111,10 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
               }}
             >
               <h1 style={{ color: '#fff', fontSize: 'clamp(1.6rem, 4vw, 2.3rem)', marginBottom: '0.8rem' }}>
-                {mode === 'tag' ? '标签' : '分类'}: {decodedName || '未指定'}
+                {archiveTitle}
               </h1>
               <p style={{ color: 'rgba(255,255,255,0.92)', fontSize: '0.95rem' }}>
-                共 {filteredArticles.length} 篇文章
+                {archiveSummary}
               </p>
             </div>
           </motion.div>
@@ -125,7 +136,9 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.25, delay: index * 0.04 }}
                       whileHover={{ y: -4 }}
-                      onClick={() => navigate(`/tag/${encodeURIComponent(subcategory)}`)}
+                      onClick={() =>
+                        navigate(`/category/${encodeURIComponent(decodedName)}/${encodeURIComponent(subcategory)}`)
+                      }
                       style={{
                         background: 'var(--bg-article-card)',
                         border: '1px solid var(--border-card)',

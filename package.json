@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --configLoader runner",
     "build": "tsc -b && vite build --configLoader runner",
+    "build:check": "tsc -b && vite build --configLoader runner --outDir .vite-build-check --emptyOutDir false",
     "validate:content": "node scripts/validate-content.mjs",
     "lint": "eslint .",
     "preview": "vite preview"

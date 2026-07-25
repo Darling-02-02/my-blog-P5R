@@ -41,6 +41,7 @@ function App() {
                   <Route path="/about" element={<AboutMe />} />
                   <Route path="/study-room" element={<StudyRoom />} />
                   <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />
+                  <Route path="/category/:name/:subcategory" element={<ArchivePage mode="category" />} />
                   <Route path="/category/:name" element={<ArchivePage mode="category" />} />
                 </Routes>
               </Suspense>

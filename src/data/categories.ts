@@ -1,5 +1,3 @@
-import type { Article } from './articles';
-
 export interface CategoryDefinition {
   name: string;
   description: string;
@@ -56,7 +54,10 @@ export const categoryDefinitions: CategoryDefinition[] = [
 
 const fallbackColors = ['#f39c12', '#8e44ad', '#2ecc71', '#e67e22'];
 
-export const getCategoryData = (items: Pick<Article, 'category'>[]): CategoryData[] => {
+export const getCategoryDefinition = (name: string) =>
+  categoryDefinitions.find((category) => category.name === name);
+
+export const getCategoryData = (items: Array<{ category: string }>): CategoryData[] => {
   const counts = items.reduce<Record<string, number>>((acc, article) => {
     acc[article.category] = (acc[article.category] ?? 0) + 1;
     return acc;

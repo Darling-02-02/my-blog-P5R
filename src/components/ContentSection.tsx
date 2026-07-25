@@ -541,6 +541,7 @@ const Sidebar = () => (
 // 大类栏目卡片
 const CategoryLandingCard = ({ category, index }: { category: typeof categoryData[number]; index: number }) => {
   const navigate = useNavigate();
+  const hasSubcategories = Boolean(category.subcategories?.length);
   return (
     <motion.article
       initial={{ opacity: 0, y: 20 }}
@@ -561,7 +562,7 @@ const CategoryLandingCard = ({ category, index }: { category: typeof categoryDat
       <div style={{ height: '160px', overflow: 'hidden', position: 'relative' }}>
         <img src={coverImage} alt={category.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: category.color, color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '15px', fontSize: '0.85rem', fontWeight: '600' }}>
-          {category.count} 篇文章
+          {hasSubcategories ? `${category.subcategories?.length ?? 0} 个专题` : `${category.count} 篇文章`}
         </span>
       </div>
       <div style={{ padding: '1.5rem' }}>
@@ -570,7 +571,7 @@ const CategoryLandingCard = ({ category, index }: { category: typeof categoryDat
           {category.description}
         </p>
         <span style={{ color: '#ff0040', fontSize: '0.85rem', background: 'var(--bg-tag)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
-          查看全部
+          {hasSubcategories ? '进入专题' : '查看全部'}
         </span>
       </div>
     </motion.article>
