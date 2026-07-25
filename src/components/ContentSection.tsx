@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { articles } from '../data/articles';
 import { getCategoryData, getTagData } from '../data/categories';
 import { useTheme } from '../contexts/useTheme';
+import { useLocationWeather } from './useLocationWeather';
 import { useScrollBackgroundPosition, useSecondaryPageBackground } from './usePageBackground';
 
 const base = import.meta.env.BASE_URL;
@@ -221,37 +222,11 @@ const ProfileCard = () => {
 
 // 公告
 const AnnouncementCard = () => {
-  const [location, setLocation] = useState('地球');
-  const [weather, setWeather] = useState('获取中...');
+  const { location, weather } = useLocationWeather();
   const [time, setTime] = useState('');
   const [slogan] = useState(
     () => announcementSlogans[Math.floor(Math.random() * announcementSlogans.length)],
   );
-  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
-  const weatherCodeText = (code: number) => {
-    const map: Record<number, string> = {
-      0: '晴',
-      1: '少云',
-      2: '多云',
-      3: '阴',
-      45: '雾',
-      48: '雾凇',
-      51: '小毛毛雨',
-      53: '毛毛雨',
-      55: '强毛毛雨',
-      61: '小雨',
-      63: '中雨',
-      65: '大雨',
-      71: '小雪',
-      73: '中雪',
-      75: '大雪',
-      80: '阵雨',
-      81: '强阵雨',
-      82: '暴雨',
-      95: '雷暴',
-    };
-    return map[code] ?? '未知';
-  };
 
   useEffect(() => {
     const updateTime = () => {
@@ -266,111 +241,8 @@ const AnnouncementCard = () => {
     };
     updateTime();
     const timer = setInterval(updateTime, 1000);
-
-    fetch('https://ipapi.co/json/')
-      .then(res => res.json())
-      .then(data => {
-        if (data.region) {
-          setLocation(data.region);
-        }
-        if (data.city) {
-          fetch(`https://wttr.in/${encodeURIComponent(data.city)}?format=%25c+%25t&lang=zh`)
-            .then(res => res.text())
-            .then(text => setWeather(text.trim() || '晴'))
-            .catch(() => setWeather('晴'));
-        }
-      })
-      .catch(() => {
-        setLocation('地球');
-        setWeather('晴');
-      });
     return () => clearInterval(timer);
   }, []);
-
-  useEffect(() => {
-    const updateFromIp = async () => {
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        const data = await res.json();
-        const regionName = [data.country_name, data.region, data.city].filter(Boolean).join(' ');
-        if (regionName) {
-          setLocation(regionName);
-        }
-        if (typeof data.latitude === 'number' && typeof data.longitude === 'number') {
-          setCoords({ latitude: data.latitude, longitude: data.longitude });
-        }
-      } catch {
-        setLocation('地球');
-      }
-    };
-
-    const reverseGeocode = async (latitude: number, longitude: number) => {
-      try {
-        const resp = await fetch(
-          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=zh`,
-        );
-        const data = await resp.json();
-        const regionName = [data.countryName, data.principalSubdivision, data.city || data.locality]
-          .filter(Boolean)
-          .join(' ');
-        if (regionName) {
-          setLocation(regionName);
-        }
-      } catch {
-        setLocation(`经纬度 ${latitude.toFixed(3)}, ${longitude.toFixed(3)}`);
-      }
-    };
-
-    updateFromIp();
-
-    if (navigator.geolocation) {
-      const watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
-          setCoords({ latitude, longitude });
-          reverseGeocode(latitude, longitude);
-        },
-        () => {
-          updateFromIp();
-        },
-        { enableHighAccuracy: false, maximumAge: 5 * 60 * 1000, timeout: 10000 },
-      );
-
-      const fallbackTimer = setInterval(updateFromIp, 10 * 60 * 1000);
-
-      return () => {
-        navigator.geolocation.clearWatch(watchId);
-        clearInterval(fallbackTimer);
-      };
-    }
-
-    const timer = setInterval(updateFromIp, 10 * 60 * 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const updateWeather = async () => {
-      if (!coords) return;
-      try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.latitude}&longitude=${coords.longitude}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto`;
-        const res = await fetch(url);
-        const data = await res.json();
-        const current = data.current;
-        if (!current) return;
-        const weatherText = weatherCodeText(Number(current.weather_code));
-        const temp = Number(current.temperature_2m).toFixed(1);
-        const wind = Number(current.wind_speed_10m).toFixed(1);
-        setWeather(`${weatherText} ${temp}°C · 风速${wind}km/h`);
-      } catch {
-        setWeather('天气获取失败');
-      }
-    };
-
-    updateWeather();
-    const timer = setInterval(updateWeather, 5 * 60 * 1000);
-    return () => clearInterval(timer);
-  }, [coords]);
 
   return (
     <SidebarCard title="公告" icon="📢">
