@@ -308,6 +308,12 @@ body {
   opacity: 0.3;
 }
 
+@media (max-width: 768px) {
+  .scanlines::after {
+    display: none;
+  }
+}
+
 /* Floating animation */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
@@ -339,5 +345,16 @@ body {
 @media (max-width: 768px) {
   :root {
     font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
   }
 }

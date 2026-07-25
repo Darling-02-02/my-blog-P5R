@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { articles } from '../data/articles';
+import { getCategoryData } from '../data/categories';
 import { useTheme } from '../contexts/useTheme';
 import { useScrollBackgroundPosition, useSecondaryPageBackground } from './usePageBackground';
 
@@ -12,26 +13,7 @@ const articleCardBackground = 'var(--bg-article-card)';
 const aboutBoxBackground = 'var(--bg-article-card)';
 const commentBoxBackground = 'var(--bg-article-card)';
 
-const categoryColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#f39c12', '#8e44ad'];
-const categoryDescriptions: Record<string, string> = {
-  生物信息: '生信分析流程、命令记录、报错处理和结果解释',
-  三维重建: 'COLMAP、NeRF、3DGS、点云处理和论文实验记录',
-  机器学习: '模型训练、数据处理、工程实践和实验复盘',
-  随笔: '学习复盘、生活记录和一些不太正经的想法',
-};
-
-const categoryData = Object.entries(
-  articles.reduce<Record<string, number>>((acc, article) => {
-    acc[article.category] = (acc[article.category] ?? 0) + 1;
-    return acc;
-  }, {}),
-)
-  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN'))
-  .map(([name, count], index) => ({
-    name,
-    count,
-    color: categoryColors[index % categoryColors.length],
-  }));
+const categoryData = getCategoryData(articles);
 
 const tagData = Object.entries(
   articles.reduce<Record<string, number>>((acc, article) => {
@@ -55,6 +37,29 @@ const announcementSlogans = [
   '未经审视的人生不值得过',
   '人是生而自由的，却无往不在枷锁之中',
   '认识你自己',
+];
+
+const usefulResources = [
+  {
+    name: 'GitHub',
+    url: 'https://github.com',
+    desc: '代码托管、开源项目和学习资料检索',
+  },
+  {
+    name: 'Papers with Code',
+    url: 'https://paperswithcode.com',
+    desc: '论文、代码和机器学习榜单',
+  },
+  {
+    name: 'Hugging Face',
+    url: 'https://huggingface.co',
+    desc: '模型、数据集和 AI 应用社区',
+  },
+  {
+    name: 'Bioinformatics Workbook',
+    url: 'https://bioinformaticsworkbook.org',
+    desc: '生物信息学流程、脚本和实战记录',
+  },
 ];
 
 const formatLastUpdate = () => new Date().toLocaleString('zh-CN', { hour12: false });
@@ -562,7 +567,7 @@ const CategoryLandingCard = ({ category, index }: { category: typeof categoryDat
       <div style={{ padding: '1.5rem' }}>
         <h4 style={{ fontSize: '1.15rem', fontWeight: '600', color: 'var(--text-card-title)', marginBottom: '0.75rem', lineHeight: 1.5 }}>{category.name}</h4>
         <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.8rem', lineHeight: 1.7 }}>
-          {categoryDescriptions[category.name] ?? '进入该栏目查看全部文章'}
+          {category.description}
         </p>
         <span style={{ color: '#ff0040', fontSize: '0.85rem', background: 'var(--bg-tag)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
           查看全部
@@ -617,7 +622,29 @@ const MainContent = () => {
         
         <div className="home-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginBottom: '3rem' }}>
           <div className="home-profile-pane" style={profilePaneStyle}>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>🎓 教育背景</h3>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>📚 一些好用的资源分享</h3>
+            <div style={{ display: 'grid', gap: '0.85rem' }}>
+              {usefulResources.map((resource) => (
+                <a
+                  key={resource.name}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'block',
+                    padding: '0.9rem 1rem',
+                    background: aboutBoxBackground,
+                    border: '1px solid var(--border-card)',
+                    borderRadius: '12px',
+                    color: 'inherit',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <strong style={{ display: 'block', color: 'var(--text-heading)', marginBottom: '0.25rem' }}>{resource.name}</strong>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: 1.6 }}>{resource.desc}</span>
+                </a>
+              ))}
+            </div>
           </div>
           <div className="home-profile-pane" style={profilePaneStyle}>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>💡 兴趣爱好</h3>

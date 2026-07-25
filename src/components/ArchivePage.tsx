@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Header from './Header';
 import Footer from './Footer';
 import { articles, getArticlePath } from '../data/articles';
+import { getCategoryData } from '../data/categories';
 import { pickCoverByKey, pickCoverForArticle } from './coverImage';
 
 type ArchiveMode = 'tag' | 'category';
@@ -22,6 +23,9 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
   const navigate = useNavigate();
   const { name } = useParams<{ name: string }>();
   const decodedName = decodeURIComponent(name ?? '');
+  const categories = useMemo(() => getCategoryData(articles), []);
+  const selectedCategory = categories.find((category) => category.name === decodedName);
+  const subcategories = mode === 'category' ? (selectedCategory?.subcategories ?? []) : [];
 
   const filteredArticles = useMemo(() => {
     if (!decodedName) return [];
@@ -43,12 +47,8 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
   }, [filteredArticles]);
 
   const categoryCounts = useMemo(() => {
-    const map = new Map<string, number>();
-    articles.forEach((article) => {
-      map.set(article.category, (map.get(article.category) ?? 0) + 1);
-    });
-    return [...map.entries()].sort((a, b) => b[1] - a[1]);
-  }, []);
+    return categories.map((category) => [category.name, category.count] as const);
+  }, [categories]);
 
   const tagCounts = useMemo(() => {
     const map = new Map<string, number>();
@@ -110,7 +110,44 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
 
           <div className="archive-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
             <div>
-              {filteredArticles.length === 0 ? (
+              {subcategories.length > 0 ? (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 180px), 1fr))',
+                    gap: '1rem',
+                  }}
+                >
+                  {subcategories.map((subcategory, index) => (
+                    <motion.article
+                      key={subcategory}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.25, delay: index * 0.04 }}
+                      whileHover={{ y: -4 }}
+                      onClick={() => navigate(`/tag/${encodeURIComponent(subcategory)}`)}
+                      style={{
+                        background: 'var(--bg-article-card)',
+                        border: '1px solid var(--border-card)',
+                        borderRadius: '14px',
+                        padding: '1.25rem',
+                        minHeight: '120px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <h3 style={{ color: 'var(--text-card-title)', fontSize: '1.05rem', margin: 0 }}>
+                        {subcategory}
+                      </h3>
+                      <span style={{ color: '#ff0040', fontSize: '0.82rem', marginTop: '1.2rem' }}>
+                        查看学习文档 →
+                      </span>
+                    </motion.article>
+                  ))}
+                </div>
+              ) : filteredArticles.length === 0 ? (
                 <div
                   style={{
                     background: 'var(--bg-card)',

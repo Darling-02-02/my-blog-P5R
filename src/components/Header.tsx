@@ -45,19 +45,36 @@ const Header = () => {
     location.pathname.startsWith('/category/');
 
   useEffect(() => {
+    let frame = 0;
+
     const handleScroll = () => {
-      const heroSection = document.getElementById('home');
-      if (!heroSection) {
-        setIsInHeroSection(false);
-        return;
-      }
-      const rect = heroSection.getBoundingClientRect();
-      setIsInHeroSection(rect.bottom > 0);
+      if (frame) return;
+
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const heroSection = document.getElementById('home');
+
+        if (!heroSection) {
+          setIsInHeroSection((prev) => (prev ? false : prev));
+          return;
+        }
+
+        const rect = heroSection.getBoundingClientRect();
+        const nextIsInHero = rect.bottom > 0;
+        setIsInHeroSection((prev) => (prev === nextIsInHero ? prev : nextIsInHero));
+      });
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
   }, []);
 
   const navItems = [

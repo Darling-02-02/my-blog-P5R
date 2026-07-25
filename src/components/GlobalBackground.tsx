@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { heroSlideshowImages } from './imageConfig';
 import { useTheme } from '../contexts/useTheme';
-import { homePageBackground, useScrollBackgroundPosition, useSecondaryPageBackground } from './usePageBackground';
+import { useSecondaryPageBackground } from './usePageBackground';
 
 interface BackgroundProps {
   children: React.ReactNode;
@@ -13,12 +13,12 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
   const { isDark } = useTheme();
   const location = useLocation();
   const secondaryBackground = useSecondaryPageBackground();
-  const backgroundPosition = useScrollBackgroundPosition();
   const [isInHomeHeroSection, setIsInHomeHeroSection] = useState(location.pathname === '/');
   const isHomeRoute = location.pathname === '/';
   const useSecondaryTheme = !isHomeRoute;
   const useHomeBackground = isHomeRoute && isInHomeHeroSection;
-  const activeBackground = useHomeBackground ? homePageBackground : secondaryBackground;
+  const activeBackground = useHomeBackground ? '' : secondaryBackground;
+  const backgroundPosition = useHomeBackground ? 'center center' : 'center top';
   const overlayColor = useHomeBackground
     ? isDark
       ? 'rgba(0, 0, 0, 0.38)'
@@ -33,14 +33,21 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
     let frame = 0;
 
     const syncHeroState = () => {
-      const heroSection = document.getElementById('home');
-      if (!heroSection) {
-        setIsInHomeHeroSection(false);
-        return;
-      }
+      if (frame) return;
 
-      const rect = heroSection.getBoundingClientRect();
-      setIsInHomeHeroSection(rect.bottom > 0);
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const heroSection = document.getElementById('home');
+
+        if (!heroSection) {
+          setIsInHomeHeroSection((prev) => (prev ? false : prev));
+          return;
+        }
+
+        const rect = heroSection.getBoundingClientRect();
+        const nextIsInHero = rect.bottom > 0;
+        setIsInHomeHeroSection((prev) => (prev === nextIsInHero ? prev : nextIsInHero));
+      });
     };
 
     window.addEventListener('scroll', syncHeroState, { passive: true });
@@ -65,10 +72,10 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundImage: `url(${activeBackground})`,
+          backgroundImage: activeBackground ? `url(${activeBackground})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition,
-          backgroundAttachment: 'fixed',
+          backgroundColor: useHomeBackground ? '#0a0a0a' : 'transparent',
           zIndex: 0,
           pointerEvents: 'none',
         }}

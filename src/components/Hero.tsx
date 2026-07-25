@@ -2,23 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import quotesRaw from '../../语录.txt?raw';
+import { heroSlideshowImages } from './imageConfig';
 
-const base = import.meta.env.BASE_URL;
-const images = [
-  `${base}slideshow/slideshow-0.png`,
-  `${base}slideshow/slideshow-1.png`,
-  `${base}slideshow/slideshow-2.png`,
-  `${base}slideshow/slideshow-3.png`,
-  `${base}slideshow/slideshow-4.png`,
-  `${base}slideshow/slideshow-5.png`,
-  `${base}slideshow/slideshow-6.png`,
-  `${base}slideshow/slideshow-7.png`,
-  `${base}slideshow/slideshow-8.png`,
-  `${base}slideshow/slideshow-9.png`,
-  `${base}slideshow/slideshow-10.png`,
-  `${base}slideshow/slideshow-11.png`,
-  `${base}slideshow/slideshow-12.png`,
-];
+const preloadSlide = (src: string) => {
+  const img = new Image();
+  img.decoding = 'async';
+  img.src = src;
+};
 
 export default function Hero() {
   const navigate = useNavigate();
@@ -31,35 +21,55 @@ export default function Hero() {
     [],
   );
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [slideState, setSlideState] = useState({ current: 0, previous: 0 });
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [isQuoteVisible, setIsQuoteVisible] = useState(true);
+  const visibleSlideIndexes = [...new Set([slideState.previous, slideState.current])];
+
+  useEffect(() => {
+    heroSlideshowImages.slice(0, 2).forEach(preloadSlide);
+  }, []);
 
   useEffect(() => {
     const imgInterval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
+      setSlideState((prev) => {
+        const next = (prev.current + 1) % heroSlideshowImages.length;
+        preloadSlide(heroSlideshowImages[(next + 1) % heroSlideshowImages.length]);
+        return { current: next, previous: prev.current };
+      });
     }, 5000);
     return () => clearInterval(imgInterval);
   }, []);
 
   useEffect(() => {
     if (!quotes.length) return;
+    let hideTimer = 0;
     const quoteInterval = setInterval(() => {
       setIsQuoteVisible(false);
-      setTimeout(() => {
+      hideTimer = window.setTimeout(() => {
         setQuoteIndex((prev) => (prev + 1) % quotes.length);
         setIsQuoteVisible(true);
       }, 450);
     }, 5000);
-    return () => clearInterval(quoteInterval);
+    return () => {
+      clearInterval(quoteInterval);
+      window.clearTimeout(hideTimer);
+    };
   }, [quotes]);
 
   return (
     <section id="home" className="hero-section">
       <Header />
       <div className="background-container">
-        {images.map((src, index) => (
-          <img key={src} src={src} alt="" className={`background-image ${index === currentIndex ? 'active' : ''}`} />
+        {visibleSlideIndexes.map((index) => (
+          <img
+            key={`${heroSlideshowImages[index]}-${index === slideState.current ? 'active' : 'previous'}`}
+            src={heroSlideshowImages[index]}
+            alt=""
+            className={`background-image ${index === slideState.current ? 'active' : ''}`}
+            decoding="async"
+            loading={index === 0 ? 'eager' : 'lazy'}
+          />
         ))}
         <div className="background-overlay" />
       </div>

@@ -7,32 +7,20 @@
     // Single Page Apps for GitHub Pages
     // MIT License
     // https://github.com/rafgraph/spa-github-pages
-    
-    // This script takes the current URL and converts the path and query
-    // string into just a query string, and then redirects the browser
-    // to the new URL with only a query string and hash fragment.
-    
     var pathPrefix = '/my-blog-P5R';
     var l = window.location;
-    
-    // 如果是文章页面，重定向到首页并保留路径信息
-    if (l.pathname.indexOf(pathPrefix + '/article/') === 0) {
-      var articleId = l.pathname.replace(pathPrefix + '/article/', '');
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        pathPrefix + '/?/article/' + articleId +
-        (l.search ? '&' + l.search.slice(1) : '') +
-        l.hash
-      );
-    } else {
-      // 其他情况重定向到首页
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        pathPrefix + '/' +
-        (l.search ? l.search : '') +
-        l.hash
-      );
-    }
+    var appPath = l.pathname.indexOf(pathPrefix) === 0
+      ? l.pathname.slice(pathPrefix.length)
+      : l.pathname;
+    var redirectPath = appPath.replace(/^\/?/, '/');
+    var redirectSearch = l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '';
+
+    l.replace(
+      l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+      pathPrefix + '/?' + redirectPath.replace(/&/g, '~and~') +
+      redirectSearch +
+      l.hash
+    );
   </script>
 </head>
 <body>

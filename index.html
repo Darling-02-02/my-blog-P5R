@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/jpeg" href="/p5_icon.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>灵敏度加满的blog</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,12 +14,16 @@
       var pathPrefix = '/my-blog-P5R';
       var l = window.location;
       if (l.search && l.search.indexOf('?/') === 0) {
-        // 从查询字符串中恢复路径
-        var restoredPath = l.search.slice(1);
-        l.replace(
-          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-          pathPrefix + restoredPath +
-          l.hash
+        var restoredPath = l.search
+          .slice(1)
+          .split('&')
+          .map(function (segment) { return segment.replace(/~and~/g, '&'); })
+          .join('?');
+
+        window.history.replaceState(
+          null,
+          '',
+          pathPrefix + restoredPath + l.hash
         );
       }
     </script>
