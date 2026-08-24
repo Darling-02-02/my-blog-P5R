@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import quotesRaw from '../../语录.txt?raw';
@@ -9,6 +9,11 @@ const preloadSlide = (src: string) => {
   img.decoding = 'async';
   img.src = src;
 };
+
+const initialSlideLayers = () => [
+  { src: heroSlideshowImages[0], active: true },
+  { src: heroSlideshowImages[1] ?? heroSlideshowImages[0], active: false },
+];
 
 export default function Hero() {
   const navigate = useNavigate();
@@ -21,22 +26,34 @@ export default function Hero() {
     [],
   );
 
-  const [slideState, setSlideState] = useState({ current: 0, previous: 0 });
+  const currentSlideRef = useRef(0);
+  const activeLayerRef = useRef(0);
+  const [slideLayers, setSlideLayers] = useState(initialSlideLayers);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [isQuoteVisible, setIsQuoteVisible] = useState(true);
-  const visibleSlideIndexes = [...new Set([slideState.previous, slideState.current])];
 
   useEffect(() => {
-    heroSlideshowImages.slice(0, 2).forEach(preloadSlide);
+    heroSlideshowImages.slice(0, 3).forEach(preloadSlide);
   }, []);
 
   useEffect(() => {
+    if (heroSlideshowImages.length < 2) return;
+
     const imgInterval = setInterval(() => {
-      setSlideState((prev) => {
-        const next = (prev.current + 1) % heroSlideshowImages.length;
-        preloadSlide(heroSlideshowImages[(next + 1) % heroSlideshowImages.length]);
-        return { current: next, previous: prev.current };
-      });
+      const nextSlide = (currentSlideRef.current + 1) % heroSlideshowImages.length;
+      const nextLayer = activeLayerRef.current === 0 ? 1 : 0;
+
+      setSlideLayers((layers) =>
+        layers.map((layer, index) =>
+          index === nextLayer
+            ? { src: heroSlideshowImages[nextSlide], active: true }
+            : { ...layer, active: false },
+        ),
+      );
+
+      currentSlideRef.current = nextSlide;
+      activeLayerRef.current = nextLayer;
+      preloadSlide(heroSlideshowImages[(nextSlide + 1) % heroSlideshowImages.length]);
     }, 5000);
     return () => clearInterval(imgInterval);
   }, []);
@@ -61,14 +78,15 @@ export default function Hero() {
     <section id="home" className="hero-section">
       <Header />
       <div className="background-container">
-        {visibleSlideIndexes.map((index) => (
+        {slideLayers.map((slide, index) => (
           <img
-            key={`${heroSlideshowImages[index]}-${index === slideState.current ? 'active' : 'previous'}`}
-            src={heroSlideshowImages[index]}
+            key={index}
+            src={slide.src}
             alt=""
-            className={`background-image ${index === slideState.current ? 'active' : ''}`}
+            className={`background-image ${slide.active ? 'active' : ''}`}
+            aria-hidden="true"
             decoding="async"
-            loading={index === 0 ? 'eager' : 'lazy'}
+            loading="eager"
           />
         ))}
         <div className="background-overlay" />
@@ -119,12 +137,18 @@ export default function Hero() {
           height: 100%;
           object-fit: cover;
           opacity: 0;
-          transition: opacity 1.4s ease-in-out;
-          will-change: opacity;
+          pointer-events: none;
+          transform: translate3d(0, 0, 0) scale(1.02);
+          transition:
+            opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1),
+            transform 7s ease;
+          will-change: opacity, transform;
+          backface-visibility: hidden;
         }
 
         .background-image.active {
           opacity: 1;
+          transform: translate3d(0, 0, 0) scale(1.05);
         }
 
         .background-overlay {
