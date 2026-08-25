@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { articles } from '../data/articles';
@@ -78,35 +78,33 @@ const getInitialSiteStats = () => {
 
 const GiscusComments = () => {
   const { isDark } = useTheme();
-  
-  const weatherCodeText = (code: number) => {
-    const map: Record<number, string> = {
-      0: '晴',
-      1: '少云',
-      2: '多云',
-      3: '阴',
-      45: '雾',
-      48: '雾凇',
-      51: '小毛毛雨',
-      53: '毛毛雨',
-      55: '强毛毛雨',
-      61: '小雨',
-      63: '中雨',
-      65: '大雨',
-      71: '小雪',
-      73: '中雪',
-      75: '大雪',
-      80: '阵雨',
-      81: '强阵雨',
-      82: '暴雨',
-      95: '雷暴',
-    };
-    return map[code] ?? '未知';
-  };
-
-  void weatherCodeText;
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [shouldLoad, setShouldLoad] = useState(
+    () => typeof window !== 'undefined' && !('IntersectionObserver' in window),
+  );
 
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container || shouldLoad) return;
+
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setShouldLoad(true);
+        observer.disconnect();
+      },
+      { rootMargin: '320px 0px' },
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [shouldLoad]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !shouldLoad) return;
+
     const script = document.createElement('script');
     script.src = 'https://giscus.app/client.js';
     script.setAttribute('data-repo', 'Darling-02-02/my-blog-P5R');
@@ -122,21 +120,17 @@ const GiscusComments = () => {
     script.setAttribute('data-lang', 'zh-CN');
     script.setAttribute('crossorigin', 'anonymous');
     script.async = true;
-    
-    const container = document.getElementById('giscus-container');
-    if (container) {
-      container.innerHTML = '';
-      container.appendChild(script);
-    }
-    
+
+    container.innerHTML = '';
+    container.appendChild(script);
+
     return () => {
-      if (container) container.innerHTML = '';
+      container.innerHTML = '';
     };
-  }, [isDark]);
+  }, [isDark, shouldLoad]);
 
-  return <div id="giscus-container" style={{ minHeight: '200px' }} />;
+  return <div ref={containerRef} id="giscus-container" style={{ minHeight: '200px' }} />;
 };
-
 // 侧边栏卡片
 const SidebarCard = ({ 
   children, 
