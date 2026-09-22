@@ -2,8 +2,12 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const contentRoot = path.join(root, 'src', 'content', 'articles');
+const articlesRoot = path.join(root, 'src', 'content', 'articles');
+const topicsRoot = path.join(root, 'src', 'content', 'topics');
 const requiredFields = ['id', 'title', 'excerpt', 'category', 'date', 'readTime', 'tags'];
+const topicFields = ['title', 'summary', 'order'];
+const sectionFields = ['title', 'order'];
+const topicDirs = new Set(['machine-learning', 'essays']);
 const taxonomy = new Map([
   [
     '生物信息',
@@ -25,6 +29,15 @@ const walkMarkdown = (dir) => {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) return walkMarkdown(fullPath);
     if (entry.isFile() && entry.name.endsWith('.md')) return [fullPath];
+    return [];
+  });
+};
+
+const walkDirs = (dir) => {
+  const entries = readdirSync(dir, { withFileTypes: true });
+  return entries.flatMap((entry) => {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) return [fullPath, ...walkDirs(fullPath)];
     return [];
   });
 };
@@ -61,62 +74,138 @@ const parseFrontmatter = (source, filePath) => {
   return { meta, body: match[2] };
 };
 
-if (!statSync(contentRoot, { throwIfNoEntry: false })?.isDirectory()) {
-  fail(`Missing content directory: ${path.relative(root, contentRoot)}`);
-  process.exit();
-}
-
-const files = walkMarkdown(contentRoot);
-if (!files.length) {
-  fail('No markdown articles found under src/content/articles');
-  process.exit();
-}
-
-const ids = new Set();
-const slugs = new Set();
-
-for (const filePath of files) {
-  const relativePath = path.relative(contentRoot, filePath).replace(/\\/g, '/');
-  const slug = relativePath.replace(/\.md$/, '');
-  const source = readFileSync(filePath, 'utf8');
-  const { meta, body } = parseFrontmatter(source, relativePath);
-
-  for (const field of requiredFields) {
+const requireFields = (meta, fields, label) => {
+  for (const field of fields) {
     if (meta[field] === undefined || meta[field] === '') {
-      fail(`${relativePath}: missing required field "${field}"`);
+      fail(`${label}: missing required field "${field}"`);
     }
   }
+};
 
-  if (!Array.isArray(meta.tags) || meta.tags.length === 0) {
-    fail(`${relativePath}: "tags" must contain at least one item`);
-  }
+let articleCount = 0;
 
-  if (!taxonomy.has(String(meta.category))) {
-    fail(`${relativePath}: unknown category "${meta.category}"`);
-  }
+if (statSync(articlesRoot, { throwIfNoEntry: false })?.isDirectory()) {
+  const files = walkMarkdown(articlesRoot);
+  const ids = new Set();
+  const slugs = new Set();
 
-  if (meta.subcategory) {
-    const subcategories = taxonomy.get(String(meta.category)) ?? [];
-    if (!subcategories.includes(String(meta.subcategory))) {
-      fail(`${relativePath}: subcategory "${meta.subcategory}" is not valid for category "${meta.category}"`);
+  for (const filePath of files) {
+    const relativePath = path.relative(articlesRoot, filePath).replace(/\\/g, '/');
+    const slug = relativePath.replace(/\.md$/, '');
+    const source = readFileSync(filePath, 'utf8');
+    const { meta, body } = parseFrontmatter(source, relativePath);
+
+    requireFields(meta, requiredFields, relativePath);
+
+    if (!Array.isArray(meta.tags) || meta.tags.length === 0) {
+      fail(`${relativePath}: "tags" must contain at least one item`);
     }
+
+    if (!taxonomy.has(String(meta.category))) {
+      fail(`${relativePath}: unknown category "${meta.category}"`);
+    }
+
+    if (meta.subcategory) {
+      const subcategories = taxonomy.get(String(meta.category)) ?? [];
+      if (!subcategories.includes(String(meta.subcategory))) {
+        fail(`${relativePath}: subcategory "${meta.subcategory}" is not valid for category "${meta.category}"`);
+      }
+    }
+
+    if (!body.trim()) {
+      fail(`${relativePath}: article body is empty`);
+    }
+
+    if (ids.has(String(meta.id))) {
+      fail(`${relativePath}: duplicate article id "${meta.id}"`);
+    }
+    ids.add(String(meta.id));
+
+    if (slugs.has(slug)) {
+      fail(`${relativePath}: duplicate slug "${slug}"`);
+    }
+    slugs.add(slug);
   }
 
-  if (!body.trim()) {
-    fail(`${relativePath}: article body is empty`);
-  }
-
-  if (ids.has(String(meta.id))) {
-    fail(`${relativePath}: duplicate article id "${meta.id}"`);
-  }
-  ids.add(String(meta.id));
-
-  if (slugs.has(slug)) {
-    fail(`${relativePath}: duplicate slug "${slug}"`);
-  }
-  slugs.add(slug);
+  articleCount = files.length;
 }
 
-if (!process.exitCode) {
-  console.log(`Validated ${files.length} markdown article(s).`);
+if (!statSync(topicsRoot, { throwIfNoEntry: false })?.isDirectory()) {
+  fail(`Missing content directory: ${path.relative(root, topicsRoot)}`);
+} else {
+  let topicCount = 0;
+  let sectionCount = 0;
+  const topicKeys = new Set();
+
+  for (const dir of walkDirs(topicsRoot)) {
+    const rel = path.relative(topicsRoot, dir).replace(/\\/g, '/');
+    const parts = rel.split('/');
+
+    if (parts.length !== 2) continue;
+
+    if (!topicDirs.has(parts[0])) {
+      fail(`${rel}: unknown topic category directory "${parts[0]}"`);
+    }
+
+    const entryNames = readdirSync(dir);
+    if (!entryNames.includes('topic.md')) {
+      fail(`${rel}: missing topic.md`);
+      continue;
+    }
+
+    const topicRel = `${rel}/topic.md`;
+    const { meta, body } = parseFrontmatter(readFileSync(path.join(dir, 'topic.md'), 'utf8'), topicRel);
+    requireFields(meta, topicFields, topicRel);
+
+    if (!body.trim()) {
+      fail(`${topicRel}: topic intro is empty`);
+    }
+
+    const key = `${parts[0]}/${parts[1]}`;
+    if (topicKeys.has(key)) {
+      fail(`${rel}: duplicate topic "${key}"`);
+    }
+    topicKeys.add(key);
+    topicCount += 1;
+
+    const sectionsDir = path.join(dir, 'sections');
+    if (!statSync(sectionsDir, { throwIfNoEntry: false })?.isDirectory()) {
+      fail(`${rel}: missing sections/ directory`);
+      continue;
+    }
+
+    const sectionFiles = walkMarkdown(sectionsDir);
+    if (!sectionFiles.length) {
+      fail(`${rel}: needs at least one section`);
+    }
+
+    const sectionSlugs = new Set();
+    for (const sectionFile of sectionFiles) {
+      const sectionRel = path.relative(topicsRoot, sectionFile).replace(/\\/g, '/');
+      const sectionSlug = path.basename(sectionFile).replace(/\.md$/, '');
+      const parsed = parseFrontmatter(readFileSync(sectionFile, 'utf8'), sectionRel);
+
+      requireFields(parsed.meta, sectionFields, sectionRel);
+
+      if (!parsed.body.trim()) {
+        fail(`${sectionRel}: section body is empty`);
+      }
+
+      if (sectionSlugs.has(sectionSlug)) {
+        fail(`${sectionRel}: duplicate section slug "${sectionSlug}"`);
+      }
+      sectionSlugs.add(sectionSlug);
+      sectionCount += 1;
+    }
+  }
+
+  if (!topicCount) {
+    fail('No topics found under src/content/topics');
+  }
+
+  if (!process.exitCode) {
+    console.log(
+      `Validated ${articleCount} markdown article(s) and ${topicCount} topic(s) (${sectionCount} section(s)).`,
+    );
+  }
 }

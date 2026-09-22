@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { articles, getArticlePath } from '../data/articles';
+import { getTopicPath, topics } from '../data/topics';
 import { useTheme } from '../contexts/useTheme';
 import { useSecondaryPageBackground } from './usePageBackground';
 
@@ -21,20 +22,28 @@ const Header = () => {
       return [];
     }
 
-    return articles
-      .filter((article) => {
-        const searchableText = [
-          article.title,
-          article.excerpt,
-          article.category,
-          article.tags.join(' '),
-        ]
-          .join(' ')
-          .toLowerCase();
+    const matches = (parts: string[]) =>
+      parts.join(' ').toLowerCase().includes(normalizedQuery);
 
-        return searchableText.includes(normalizedQuery);
-      })
-      .slice(0, 6);
+    const topicHits = topics
+      .filter((topic) => matches([topic.title, topic.summary, topic.category, topic.tags.join(' ')]))
+      .map((topic) => ({
+        key: `topic-${topic.category}-${topic.slug}`,
+        title: topic.title,
+        subtitle: `${topic.category} · ${topic.sections.length} 节专题`,
+        href: getTopicPath(topic),
+      }));
+
+    const articleHits = articles
+      .filter((article) => matches([article.title, article.excerpt, article.category, article.tags.join(' ')]))
+      .map((article) => ({
+        key: `article-${article.id}`,
+        title: article.title,
+        subtitle: `${article.category} · ${article.date}`,
+        href: getArticlePath(article),
+      }));
+
+    return [...topicHits, ...articleHits].slice(0, 6);
   }, [normalizedQuery]);
 
   const isArticlePage =
@@ -119,9 +128,9 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
-  const handleArticleSelect = (article: (typeof articles)[number]) => {
+  const handleSearchSelect = (href: string) => {
     setSearchQuery('');
-    navigate(getArticlePath(article));
+    navigate(href);
     setIsMenuOpen(false);
   };
 
@@ -281,7 +290,7 @@ const Header = () => {
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' && searchResults[0]) {
                     event.preventDefault();
-                    handleArticleSelect(searchResults[0]);
+                    handleSearchSelect(searchResults[0].href);
                   }
 
                   if (event.key === 'Escape') {
@@ -303,7 +312,7 @@ const Header = () => {
                 type="button"
                 onClick={() => {
                   if (searchResults[0]) {
-                    handleArticleSelect(searchResults[0]);
+                    handleSearchSelect(searchResults[0].href);
                   }
                 }}
                 style={{
@@ -337,11 +346,11 @@ const Header = () => {
                 }}
               >
                 {searchResults.length > 0 ? (
-                  searchResults.map((article) => (
+                  searchResults.map((hit) => (
                     <button
-                      key={article.id}
+                      key={hit.key}
                       type="button"
-                      onClick={() => handleArticleSelect(article)}
+                      onClick={() => handleSearchSelect(hit.href)}
                       style={{
                         width: '100%',
                         textAlign: 'left',
@@ -355,10 +364,10 @@ const Header = () => {
                       }}
                     >
                       <span style={{ color: 'var(--text-card-title)', fontWeight: 700, fontSize: '0.9rem' }}>
-                        {article.title}
+                        {hit.title}
                       </span>
                       <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-                        {article.category} · {article.date}
+                        {hit.subtitle}
                       </span>
                     </button>
                   ))

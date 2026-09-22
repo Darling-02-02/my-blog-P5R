@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { articles } from '../data/articles';
+import { topics } from '../data/topics';
 
 const base = import.meta.env.BASE_URL;
 
@@ -143,10 +144,17 @@ export const TagsCard = () => {
 // 网站资讯卡片
 export const StatsCard = () => {
   const [stats, setStats] = useState(() => {
-    const totalWords = articles.reduce((sum, article) => sum + (article.content ? article.content.length : 0), 0);
+    const topicWords = topics.reduce(
+      (sum, topic) =>
+        sum + topic.intro.length + topic.sections.reduce((inner, section) => inner + section.content.length, 0),
+      0,
+    );
+    const totalWords =
+      articles.reduce((sum, article) => sum + (article.content ? article.content.length : 0), 0) + topicWords;
 
     return {
       articles: articles.length,
+      topics: topics.length,
       words: totalWords,
       visitors: Math.floor(Math.random() * 1000) + 500,
       views: Math.floor(Math.random() * 5000) + 2000,
@@ -160,6 +168,7 @@ export const StatsCard = () => {
   }, []);
   const statItems = [
     { label: '文章数目', value: stats.articles, icon: '📝' },
+    { label: '专题数目', value: stats.topics, icon: '📚' },
     { label: '本站总字数', value: `${(stats.words / 1000).toFixed(1)}k`, icon: '📄' },
     { label: '本站访客数', value: stats.visitors, icon: '👥' },
     { label: '本站总访问量', value: stats.views, icon: '👁️' },

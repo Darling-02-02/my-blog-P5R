@@ -1,8 +1,9 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { articles } from '../data/articles';
 import { getCategoryData, getTagData } from '../data/categories';
+import { topics } from '../data/topics';
 import { useTheme } from '../contexts/useTheme';
 import { useLocationWeather } from './useLocationWeather';
 import { useScrollBackgroundPosition, useSecondaryPageBackground } from './usePageBackground';
@@ -15,7 +16,7 @@ const aboutBoxBackground = 'var(--bg-article-card)';
 const commentBoxBackground = 'var(--bg-article-card)';
 
 const categoryData = getCategoryData(articles);
-const tagData = getTagData(articles);
+const tagData = getTagData([...articles, ...topics]);
 
 const announcementSlogans = [
   '凡所有相，皆是虚妄',
@@ -70,6 +71,7 @@ const getInitialSiteStats = () => {
 
   return {
     articles: articles.length,
+    topics: topics.length,
     visitors: 0,
     views: 0,
     lastUpdate: formatLastUpdate(),
@@ -359,6 +361,7 @@ const StatsCard = () => {
   
   const items = [
     { label: '文章数目', value: stats.articles, icon: '📝' },
+    { label: '专题数目', value: stats.topics, icon: '📚' },
     { label: '访客数', value: stats.visitors, icon: '👥' },
     { label: '访问量', value: stats.views, icon: '👁️' },
   ];
@@ -398,6 +401,7 @@ const Sidebar = () => (
 const CategoryLandingCard = ({ category, index }: { category: typeof categoryData[number]; index: number }) => {
   const navigate = useNavigate();
   const hasSubcategories = Boolean(category.subcategories?.length);
+  const hasTopics = hasSubcategories || Boolean(category.usesTopics);
   return (
     <motion.article
       initial={{ opacity: 0, y: 20 }}
@@ -418,7 +422,9 @@ const CategoryLandingCard = ({ category, index }: { category: typeof categoryDat
       <div style={{ height: '160px', overflow: 'hidden', position: 'relative' }}>
         <img src={coverImage} alt={category.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: category.color, color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '15px', fontSize: '0.85rem', fontWeight: '600' }}>
-          {hasSubcategories ? `${category.subcategories?.length ?? 0} 个专题` : `${category.count} 篇文章`}
+          {hasTopics
+            ? `${hasSubcategories ? category.subcategories?.length ?? 0 : category.topicCount} 个专题`
+            : `${category.count} 篇文章`}
         </span>
       </div>
       <div style={{ padding: '1.5rem' }}>
@@ -427,7 +433,7 @@ const CategoryLandingCard = ({ category, index }: { category: typeof categoryDat
           {category.description}
         </p>
         <span style={{ color: '#ff0040', fontSize: '0.85rem', background: 'var(--bg-tag)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
-          {hasSubcategories ? '进入专题' : '查看全部'}
+          {hasTopics ? '进入专题' : '查看全部'}
         </span>
       </div>
     </motion.article>

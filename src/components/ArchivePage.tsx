@@ -5,6 +5,7 @@ import Header from './Header';
 import Footer from './Footer';
 import { articles, getArticlePath } from '../data/articles';
 import { getCategoryData, getTagData } from '../data/categories';
+import { getTopicsByCategory, getTopicPath, topics } from '../data/topics';
 import { pickCoverByKey, pickCoverForArticle } from './coverImage';
 
 type ArchiveMode = 'tag' | 'category';
@@ -27,6 +28,10 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
   const categories = useMemo(() => getCategoryData(articles), []);
   const selectedCategory = categories.find((category) => category.name === decodedName);
   const subcategories = mode === 'category' && !decodedSubcategory ? (selectedCategory?.subcategories ?? []) : [];
+  const topicsInCategory =
+    mode === 'category' && selectedCategory?.usesTopics && !decodedSubcategory
+      ? getTopicsByCategory(decodedName)
+      : [];
   const archiveTitle =
     mode === 'tag'
       ? `标签: ${decodedName || '未指定'}`
@@ -44,7 +49,12 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
     }
     return articles.filter((article) => article.category === decodedName);
   }, [decodedName, decodedSubcategory, mode]);
-  const archiveSummary = subcategories.length > 0 ? `共 ${subcategories.length} 个专题` : `共 ${filteredArticles.length} 篇文章`;
+  const archiveSummary =
+    topicsInCategory.length > 0
+      ? `共 ${topicsInCategory.length} 个专题`
+      : subcategories.length > 0
+        ? `共 ${subcategories.length} 个专题`
+        : `共 ${filteredArticles.length} 篇文章`;
 
   const groupedByYear = useMemo(() => {
     const grouped = new Map<string, typeof filteredArticles>();
@@ -58,17 +68,32 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
   }, [filteredArticles]);
 
   const categoryCounts = useMemo(() => {
-    return categories.map((category) => [category.name, category.count] as const);
+    return categories.map(
+      (category) => [category.name, category.usesTopics ? category.topicCount : category.count] as const,
+    );
   }, [categories]);
 
   const tagCounts = useMemo(() => {
     return getTagData(articles);
   }, []);
 
-  const latestArticles = useMemo(() => {
-    return [...articles]
+  const latestEntries = useMemo(() => {
+    const topicEntries = topics.map((topic) => ({
+      key: `topic-${topic.category}-${topic.slug}`,
+      title: topic.title,
+      meta: `${topic.category} · ${topic.sections.length} 节`,
+      href: getTopicPath(topic),
+    }));
+    const articleEntries = [...articles]
       .sort((a, b) => b.date.localeCompare(a.date))
-      .slice(0, 5);
+      .map((article) => ({
+        key: `article-${article.id}`,
+        title: article.title,
+        meta: prettyDate(article.date),
+        href: getArticlePath(article),
+      }));
+
+    return [...topicEntries, ...articleEntries].slice(0, 5);
   }, []);
 
   return (
@@ -115,7 +140,61 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
 
           <div className="archive-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
             <div>
-              {subcategories.length > 0 ? (
+              {topicsInCategory.length > 0 ? (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 240px), 1fr))',
+                    gap: '1rem',
+                  }}
+                >
+                  {topicsInCategory.map((topic, index) => (
+                    <motion.article
+                      key={topic.slug}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.25, delay: index * 0.05 }}
+                      whileHover={{ y: -4 }}
+                      onClick={() => navigate(getTopicPath(topic))}
+                      style={{
+                        background: 'var(--bg-article-card)',
+                        border: '1px solid var(--border-card)',
+                        borderRadius: '14px',
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: '128px',
+                          backgroundImage: `linear-gradient(180deg, rgba(12,8,12,0.1) 0%, rgba(12,8,12,0.7) 100%), url(${topic.cover})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                        }}
+                      />
+                      <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        <h3 style={{ color: 'var(--text-card-title)', fontSize: '1.05rem', margin: '0 0 0.5rem' }}>
+                          {topic.title}
+                        </h3>
+                        <p style={{
+                          color: 'var(--text-muted)',
+                          fontSize: '0.88rem',
+                          lineHeight: 1.6,
+                          margin: '0 0 1rem',
+                          flex: 1,
+                        }}>
+                          {topic.summary}
+                        </p>
+                        <span style={{ color: '#ff0040', fontSize: '0.82rem', fontWeight: 600 }}>
+                          {topic.sections.length} 节 · 进入专题 →
+                        </span>
+                      </div>
+                    </motion.article>
+                  ))}
+                </div>
+              ) : subcategories.length > 0 ? (
                 <div
                   style={{
                     display: 'grid',
@@ -292,11 +371,11 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                   padding: '1rem',
                 }}
               >
-                <h3 style={{ color: 'var(--text-heading)', marginBottom: '0.8rem', fontSize: '1rem' }}>最新文章</h3>
-                {latestArticles.map((article) => (
+                <h3 style={{ color: 'var(--text-heading)', marginBottom: '0.8rem', fontSize: '1rem' }}>最新内容</h3>
+                {latestEntries.map((entry) => (
                   <button
-                    key={article.id}
-                    onClick={() => navigate(getArticlePath(article))}
+                    key={entry.key}
+                    onClick={() => navigate(entry.href)}
                     style={{
                       width: '100%',
                       border: 'none',
@@ -308,8 +387,8 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                       borderBottom: '1px dashed var(--border-section)',
                     }}
                   >
-                    <div style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>{article.title}</div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{prettyDate(article.date)}</div>
+                    <div style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>{entry.title}</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{entry.meta}</div>
                   </button>
                 ))}
               </div>

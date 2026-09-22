@@ -1,12 +1,16 @@
+import { getTopicCountByCategory } from './topics';
+
 export interface CategoryDefinition {
   name: string;
   description: string;
   color: string;
   subcategories?: string[];
+  usesTopics?: boolean;
 }
 
 export interface CategoryData extends CategoryDefinition {
   count: number;
+  topicCount: number;
 }
 
 export interface TagData {
@@ -49,11 +53,13 @@ export const categoryDefinitions: CategoryDefinition[] = [
     name: '机器学习',
     description: '模型训练、数据处理、工程实践和实验复盘',
     color: '#45b7d1',
+    usesTopics: true,
   },
   {
     name: '随笔',
     description: '学习复盘、生活记录和一些不太正经的想法',
     color: '#96ceb4',
+    usesTopics: true,
   },
 ];
 
@@ -71,6 +77,7 @@ export const getCategoryData = (items: Array<{ category: string }>): CategoryDat
   const configured = categoryDefinitions.map((category) => ({
     ...category,
     count: counts[category.name] ?? 0,
+    topicCount: getTopicCountByCategory(category.name),
   }));
 
   const configuredNames = new Set(categoryDefinitions.map((category) => category.name));
@@ -80,6 +87,7 @@ export const getCategoryData = (items: Array<{ category: string }>): CategoryDat
     .map(([name, count], index) => ({
       name,
       count,
+      topicCount: 0,
       description: '进入该栏目查看全部文章',
       color: fallbackColors[index % fallbackColors.length],
     }));

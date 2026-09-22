@@ -10,6 +10,7 @@ const AboutMe = lazy(() => import('./components/AboutMe'));
 const ArchivePage = lazy(() => import('./components/ArchivePage'));
 const ExplorePage = lazy(() => import('./components/ExplorePage'));
 const StudyRoom = lazy(() => import('./components/StudyRoom'));
+const TopicPage = lazy(() => import('./components/TopicPage'));
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -43,6 +44,8 @@ function App() {
                   <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />
                   <Route path="/category/:name/:subcategory" element={<ArchivePage mode="category" />} />
                   <Route path="/category/:name" element={<ArchivePage mode="category" />} />
+                  <Route path="/topic/:category/:topic" element={<TopicPage />} />
+                  <Route path="/topic/:category/:topic/:section" element={<TopicPage />} />
                 </Routes>
               </Suspense>
             </main>
