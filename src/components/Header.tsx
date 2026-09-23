@@ -207,7 +207,9 @@ const Header = () => {
                style={{
                  position: 'absolute',
                  inset: 0,
-                backgroundImage: `url(${secondaryBackground})`,
+                backgroundImage: isDark
+                  ? `linear-gradient(rgba(10, 10, 10, 0.62), rgba(10, 10, 10, 0.62)), url(${secondaryBackground})`
+                  : `url(${secondaryBackground})`,
                  backgroundSize: 'cover',
                 backgroundPosition: 'center top',
                  backgroundRepeat: 'no-repeat',

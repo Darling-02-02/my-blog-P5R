@@ -78,6 +78,8 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
           backgroundSize: 'cover',
           backgroundPosition,
           backgroundColor: useHomeBackground ? (isDark ? '#0a0a0a' : '#f5f5f7') : 'transparent',
+          filter: isDark ? 'brightness(0.6)' : 'none',
+          transition: 'filter 0.4s ease',
           zIndex: 0,
           pointerEvents: 'none',
         }}
@@ -106,6 +108,7 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
 
 // Hero 区域背景 - 图片渐变切换
 export const HeroSlideshowBackground = () => {
+  const { isDark } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -134,6 +137,8 @@ export const HeroSlideshowBackground = () => {
         zIndex: 0,
         overflow: 'hidden',
         backgroundColor: '#0a0a0a',
+        filter: isDark ? 'brightness(0.6)' : 'none',
+        transition: 'filter 0.4s ease',
       }}
     >
       {heroSlideshowImages.map((src, index) => (

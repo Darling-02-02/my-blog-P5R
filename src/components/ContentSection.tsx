@@ -590,9 +590,13 @@ interface ContentSectionProps {
 
 // 主组件
 const ContentSection = ({ standalone = false }: ContentSectionProps) => {
+  const { isDark } = useTheme();
   const secondaryBackground = useSecondaryPageBackground();
   const backgroundPosition = useScrollBackgroundPosition();
-  const sectionBackground = `linear-gradient(180deg, rgba(255, 249, 244, 0.03), rgba(255, 246, 240, 0.06) 24%, rgba(255, 242, 235, 0.1) 100%), url(${secondaryBackground})`;
+  // CY.png 本身很亮（平均亮度 0.78），夜间模式必须压一层黑，否则页面背景还是白的
+  const sectionBackground = isDark
+    ? `linear-gradient(180deg, rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0.72) 24%, rgba(0, 0, 0, 0.82) 100%), url(${secondaryBackground})`
+    : `linear-gradient(180deg, rgba(255, 249, 244, 0.03), rgba(255, 246, 240, 0.06) 24%, rgba(255, 242, 235, 0.1) 100%), url(${secondaryBackground})`;
 
   return (
     <section
