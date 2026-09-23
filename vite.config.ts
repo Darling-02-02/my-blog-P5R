@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/my-blog-P5R/',
+  base: '/',
   cacheDir: '.vite-cache',
   build: {
     rollupOptions: {
