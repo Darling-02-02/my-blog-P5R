@@ -29,7 +29,7 @@ function Home() {
 function App() {
   return (
     <ThemeProvider>
-      <Router basename="/my-blog-P5R">
+      <Router basename={import.meta.env.BASE_URL}>
         <GlobalBackground>
           <div className="scanlines">
             <main>
