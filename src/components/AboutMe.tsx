@@ -1,12 +1,17 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../contexts/useTheme';
 
 const AboutMe = () => {
   const navigate = useNavigate();
-  const pagePanel = 'rgba(255, 255, 255, 0.18)';
-  const cardPanel = 'rgba(255, 255, 255, 0.22)';
-  const innerPanel = 'rgba(255, 255, 255, 0.16)';
-  const borderColor = 'rgba(110, 72, 84, 0.18)';
+  const { isDark } = useTheme();
+  // 这几个面板原本是写死的半透明白，夜间模式下会糊成中灰，所以按主题给两组值
+  const pagePanel = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.18)';
+  const cardPanel = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.22)';
+  const innerPanel = isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.16)';
+  const tilePanel = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.2)';
+  const chipPanel = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.18)';
+  const borderColor = isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(110, 72, 84, 0.18)';
   const subtleText = 'var(--text-secondary)';
   const bodyText = 'var(--text-body)';
   const headingText = 'var(--text-heading)';
@@ -189,7 +194,7 @@ const AboutMe = () => {
                 transition={{ delay: 0.3 + index * 0.1 }}
                 style={{
                   padding: '0.5rem 1.5rem',
-                  background: 'rgba(255, 255, 255, 0.18)',
+                  background: chipPanel,
                   border: `1px solid ${borderColor}`,
                   backdropFilter: 'blur(10px)',
                 }}
@@ -225,7 +230,7 @@ const AboutMe = () => {
             margin: '2rem 0',
             fontStyle: 'italic',
             color: subtleText,
-            background: 'rgba(255, 255, 255, 0.2)',
+            background: tilePanel,
             padding: '1.5rem',
             borderRadius: '0 8px 8px 0',
             fontSize: '1.1rem',
@@ -385,7 +390,7 @@ const AboutMe = () => {
                     </div>
                     <div style={{
                       height: '8px',
-                      background: 'rgba(255, 255, 255, 0.2)',
+                      background: tilePanel,
                       borderRadius: '4px',
                       overflow: 'hidden',
                     }}>
@@ -486,7 +491,7 @@ const AboutMe = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: 'rgba(255, 255, 255, 0.18)',
+                  background: chipPanel,
                   border: `1px solid ${borderColor}`,
                   borderRadius: '50%',
                   fontSize: '1.5rem',
