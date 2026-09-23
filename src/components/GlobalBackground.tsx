@@ -23,7 +23,9 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
     ? isDark
       ? 'rgba(0, 0, 0, 0.38)'
       : 'rgba(0, 0, 0, 0.08)'
-    : 'rgba(255, 248, 242, 0.08)';
+    : isDark
+      ? 'rgba(0, 0, 0, 0.42)'
+      : 'rgba(255, 248, 242, 0.08)';
 
   useEffect(() => {
     if (!isHomeRoute) {
@@ -75,7 +77,7 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
           backgroundImage: activeBackground ? `url(${activeBackground})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition,
-          backgroundColor: useHomeBackground ? '#0a0a0a' : 'transparent',
+          backgroundColor: useHomeBackground ? (isDark ? '#0a0a0a' : '#f5f5f7') : 'transparent',
           zIndex: 0,
           pointerEvents: 'none',
         }}

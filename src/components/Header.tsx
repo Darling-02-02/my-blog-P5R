@@ -14,7 +14,7 @@ const Header = () => {
   const navigate = useNavigate();
   const { isDark } = useTheme();
   const secondaryBackground = useSecondaryPageBackground();
-  const useLightHeaderTheme = location.pathname !== '/';
+  const useLightHeaderTheme = !isDark && location.pathname !== '/';
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
   const searchResults = useMemo(() => {
