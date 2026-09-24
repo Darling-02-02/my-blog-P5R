@@ -24,10 +24,16 @@ export const buildApp = ({ db, adminToken, corsOrigin }: BuildAppOptions) => {
   });
 
   app.setErrorHandler((error, request, reply) => {
-    request.log.error(error);
-    if (!reply.sent) {
+    if (reply.sent) return;
+
+    const statusCode = error.statusCode ?? 500;
+    if (statusCode >= 500) {
+      request.log.error(error);
       reply.code(500).send({ error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } });
+      return;
     }
+
+    reply.code(statusCode).send({ error: { code: error.code ?? 'BAD_REQUEST', message: error.message } });
   });
 
   registerArticleRoutes(app, repository, adminToken);

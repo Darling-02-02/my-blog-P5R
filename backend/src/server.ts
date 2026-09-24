@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { buildApp } from './app.js';

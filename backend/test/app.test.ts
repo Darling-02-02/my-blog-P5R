@@ -114,6 +114,21 @@ test('admin can create, edit, publish, read, unpublish, and delete an article', 
   db.close();
 });
 
+test('malformed request errors keep their own status code', async () => {
+  const { app, db } = createTestApp();
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/admin/articles/1/publish',
+    headers: { 'x-admin-token': ADMIN_TOKEN, 'content-type': 'application/json' },
+  });
+
+  assert.equal(response.statusCode, 400);
+  assert.notEqual(response.json().error.code, 'INTERNAL_ERROR');
+  await app.close();
+  db.close();
+});
+
 test('admin routes reject missing token and duplicate slugs', async () => {
   const { app, db } = createTestApp();
   const payload = {

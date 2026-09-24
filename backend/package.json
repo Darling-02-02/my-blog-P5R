@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch --ignore ./data/** src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "test": "tsx test/app.test.ts"
@@ -12,12 +12,13 @@
   "dependencies": {
     "@fastify/cors": "^7.0.0",
     "better-sqlite3": "^7.6.2",
+    "dotenv": "^16.4.5",
     "fastify": "^3.29.5",
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@types/node": "^16.18.126",
     "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^16.18.126",
     "tsx": "^3.12.1",
     "typescript": "~5.9.3"
   }
