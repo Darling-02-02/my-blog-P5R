@@ -140,7 +140,8 @@ CREATE TABLE articles (
   excerpt TEXT NOT NULL DEFAULT '',
   content TEXT NOT NULL,
   cover_url TEXT NOT NULL DEFAULT '',
-  category TEXT NOT NULL,
+  subcategory TEXT,
+  read_time TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'draft'
     CHECK (status IN ('draft', 'published')),
   published_at TEXT,
@@ -169,6 +170,9 @@ CREATE TABLE article_tags (
   FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
 );
 ```
+
+- `subcategory` 和 `read_time` 保留当前前端文章 DTO 所需的分类层级与阅读时长字段；公开 API 同时提供兼容现有组件的 `date`、`readTime` 字段。
+- 列表/详情 API 的字段映射必须覆盖当前 `src/data/articles.ts` 的 `id`、`slug`、`title`、`excerpt`、`category`、`subcategory`、`date`、`readTime`、`tags`、`content` 语义。
 
 分类第一阶段保留为 `articles.category` 字段，避免为尚未需要管理的分类元数据增加表和后台页面。
 
