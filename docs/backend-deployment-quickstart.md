@@ -251,3 +251,39 @@ https://darling-02.cn/admin
 ```
 
 后台登录密钥就是后端 `.env` 中的 `ADMIN_TOKEN`。
+
+## 10. 网络前置条件（务必先确认）
+
+DNS 解析正确**不代表**公网能访问。必须确认外部网络可以主动连入服务器的 TCP 80/443，否则 Caddy 无法申请证书，前端也无法调用 API。
+
+2026-09-24 在学校服务器（`59.79.241.232`，Ubuntu 18.04）上的实测结果：
+
+```text
+DNS                : api.darling-02.cn -> 59.79.241.232，IP 直接绑定在网卡 enp37s0f1 上
+主机防火墙          : UFW 未启用，iptables INPUT 策略 ACCEPT
+Caddy 监听          : 0.0.0.0:80 与 0.0.0.0:443 正常
+Let's Encrypt      : tls-alpn-01 与 http-01 均返回 Connection refused（生产与测试环境一致）
+境外检测节点        : 80/443/8080/8443/4000 全部 refused 或 timed out
+手机流量（国内）     : 无法打开页面
+```
+
+结论：校园网出口拒绝外部入站连接，因此任何公网监听与 ACME 证书签发都无法完成。
+
+部署前先做这个判断：
+
+```bash
+# 1. 本机确认真在监听
+ss -lntp | grep -E ':(80|443)'
+
+# 2. 从外部网络验证（手机流量或校外的电脑）
+curl -I --max-time 10 http://api.darling-02.cn
+```
+
+只有当第 2 步能建立连接（返回任意 HTTP 状态码，而不是拒绝或超时）时，才继续配置 Caddy 与证书。
+
+如果入站被拦截，可选路径：
+
+1. 请学校网管开放到该主机的入站 TCP 80/443；
+2. 使用仅需出站的内网穿透（如 Cloudflare Tunnel、frp 等），注意 Cloudflare Tunnel 要求域名 NS 托管在 Cloudflare；
+3. 把 API 部署到具备公网入站的机器上，代码无需改动，只需调整 `DATABASE_PATH` 与 DNS。
+
