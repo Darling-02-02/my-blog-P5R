@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { articles } from '../data/articles';
 import { getCategoryData, getTagData } from '../data/categories';
+import type { CategoryData } from '../data/categories';
 import { topics } from '../data/topics';
+import { useArticles } from '../contexts/useArticles';
 import { useTheme } from '../contexts/useTheme';
 import { useLocationWeather } from './useLocationWeather';
 import { useScrollBackgroundPosition, useSecondaryPageBackground } from './usePageBackground';
@@ -14,9 +15,6 @@ const sidebarBackground = 'var(--bg-card)';
 const articleCardBackground = 'var(--bg-article-card)';
 const aboutBoxBackground = 'var(--bg-article-card)';
 const commentBoxBackground = 'var(--bg-article-card)';
-
-const categoryData = getCategoryData(articles);
-const tagData = getTagData([...articles, ...topics]);
 
 const announcementSlogans = [
   '凡所有相，皆是虚妄',
@@ -70,7 +68,7 @@ const getInitialSiteStats = () => {
   clearLegacySiteStats();
 
   return {
-    articles: articles.length,
+    articles: 0,
     topics: topics.length,
     visitors: 0,
     views: 0,
@@ -265,6 +263,8 @@ const AnnouncementCard = () => {
 // 分类
 const CategoriesCard = () => {
   const navigate = useNavigate();
+  const { articles } = useArticles();
+  const categoryData = getCategoryData(articles);
   return (
     <SidebarCard title="分类" icon="📁">
       {categoryData.map(cat => (
@@ -302,6 +302,8 @@ const CategoriesCard = () => {
 // 标签
 const TagsCard = () => {
   const navigate = useNavigate();
+  const { articles } = useArticles();
+  const tagData = getTagData([...articles, ...topics]);
   const getTagSize = (count: number) => {
     if (count >= 3) return { fontSize: '1rem', padding: '0.4rem 0.8rem' };
     if (count >= 2) return { fontSize: '0.85rem', padding: '0.3rem 0.65rem' };
@@ -346,6 +348,7 @@ const TagsCard = () => {
 
 // 网站资讯
 const StatsCard = () => {
+  const { articles } = useArticles();
   const [stats, setStats] = useState(getInitialSiteStats);
 
   useEffect(() => {
@@ -360,7 +363,7 @@ const StatsCard = () => {
   }, []);
   
   const items = [
-    { label: '文章数目', value: stats.articles, icon: '📝' },
+    { label: '文章数目', value: articles.length, icon: '📝' },
     { label: '专题数目', value: stats.topics, icon: '📚' },
     { label: '访客数', value: stats.visitors, icon: '👥' },
     { label: '访问量', value: stats.views, icon: '👁️' },
@@ -398,7 +401,7 @@ const Sidebar = () => (
 );
 
 // 大类栏目卡片
-const CategoryLandingCard = ({ category, index }: { category: typeof categoryData[number]; index: number }) => {
+const CategoryLandingCard = ({ category, index }: { category: CategoryData; index: number }) => {
   const navigate = useNavigate();
   const hasSubcategories = Boolean(category.subcategories?.length);
   const hasTopics = hasSubcategories || Boolean(category.usesTopics);
@@ -442,10 +445,12 @@ const CategoryLandingCard = ({ category, index }: { category: typeof categoryDat
 
 // 主内容
 const MainContent = () => {
+  const { articles } = useArticles();
+  const categoryData = getCategoryData(articles);
   const allowedCategories = ['生物信息', '三维重建', '机器学习', '随笔'];
   const mainCategories = allowedCategories
     .map((name) => categoryData.find((category) => category.name === name))
-    .filter((category): category is typeof categoryData[number] => Boolean(category));
+    .filter((category): category is CategoryData => Boolean(category));
   const sectionCardStyle: React.CSSProperties = {
     marginBottom: '4rem',
     padding: 0,

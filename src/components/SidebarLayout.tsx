@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { articles } from '../data/articles';
 import { topics } from '../data/topics';
+import { useArticles } from '../contexts/useArticles';
 
 const base = import.meta.env.BASE_URL;
 
@@ -107,12 +107,13 @@ export const AnnouncementCard = () => (
 
 // 分类卡片
 export const CategoriesCard = () => {
-  const categories = [
-    { name: '生物信息', count: 3, color: '#ff6b6b' },
-    { name: '三维重建', count: 1, color: '#4ecdc4' },
-    { name: '机器学习', count: 1, color: '#45b7d1' },
-    { name: '学习ing', count: 3, color: '#96ceb4' },
-  ];
+  const { articles } = useArticles();
+  const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
+  const categories = [...new Set(articles.map((article) => article.category))].map((name, index) => ({
+    name,
+    count: articles.filter((article) => article.category === name).length,
+    color: colors[index % colors.length],
+  }));
   return (
     <SidebarCard title="分类" icon="📁" delay={0.2}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -129,7 +130,8 @@ export const CategoriesCard = () => {
 
 // 标签卡片
 export const TagsCard = () => {
-  const tags = ['生物信息', 'Python', '三维重建', 'NeRF', '机器学习', 'Docker', 'CI/CD'];
+  const { articles } = useArticles();
+  const tags = [...new Set(articles.flatMap((article) => article.tags))].slice(0, 20);
   return (
     <SidebarCard title="标签" icon="🏷️" delay={0.3}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -143,14 +145,14 @@ export const TagsCard = () => {
 
 // 网站资讯卡片
 export const StatsCard = () => {
+  const { articles } = useArticles();
   const [stats, setStats] = useState(() => {
     const topicWords = topics.reduce(
       (sum, topic) =>
         sum + topic.intro.length + topic.sections.reduce((inner, section) => inner + section.content.length, 0),
       0,
     );
-    const totalWords =
-      articles.reduce((sum, article) => sum + (article.content ? article.content.length : 0), 0) + topicWords;
+    const totalWords = topicWords;
 
     return {
       articles: articles.length,
@@ -167,7 +169,7 @@ export const StatsCard = () => {
     return () => clearInterval(interval);
   }, []);
   const statItems = [
-    { label: '文章数目', value: stats.articles, icon: '📝' },
+    { label: '文章数目', value: articles.length, icon: '📝' },
     { label: '专题数目', value: stats.topics, icon: '📚' },
     { label: '本站总字数', value: `${(stats.words / 1000).toFixed(1)}k`, icon: '📄' },
     { label: '本站访客数', value: stats.visitors, icon: '👥' },

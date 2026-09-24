@@ -144,8 +144,11 @@ export const createArticleRepository = (db: Database.Database) => {
   };
 
   const update = (id: number, input: ArticleWriteInput) => {
+    const existing = getById(id);
+    if (!existing) return undefined;
+
     const updatedAt = now();
-    const publishedAt = input.status === 'published' ? input.publishedAt ?? updatedAt : null;
+    const publishedAt = input.status === 'published' ? input.publishedAt ?? existing.publishedAt ?? updatedAt : null;
     const result = db.prepare(`
       UPDATE articles
       SET slug = ?, title = ?, excerpt = ?, content = ?, cover_url = ?, category = ?, subcategory = ?, read_time = ?, status = ?, published_at = ?, updated_at = ?

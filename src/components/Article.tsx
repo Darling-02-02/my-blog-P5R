@@ -174,6 +174,10 @@ const Article = () => {
           ← 返回
         </motion.button>
 
+        {status === 'error' && error && (
+          <p role="alert" style={{ color: '#b00020', marginBottom: '1rem' }}>文章 API 暂不可用，当前显示本地内容：{error}</p>
+        )}
+
         <motion.header
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}

@@ -61,7 +61,7 @@ export const useArticle = (articleKey: string | undefined) => {
       } catch (requestError) {
         if (cancelled) return;
         if (requestError instanceof ArticleApiError && requestError.status === 404) {
-          setArticle(staticArticle);
+          setArticle(undefined);
           setStatus('ready');
           setError(null);
           return;

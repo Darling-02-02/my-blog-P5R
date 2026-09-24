@@ -28,7 +28,7 @@ export const ArticleProvider = ({ children }: { children: ReactNode }) => {
     setError(null);
 
     try {
-      const response = await articleApi.listPublished();
+      const response = await articleApi.listAllPublished();
       setArticles(response.items);
       setStatus('ready');
     } catch (requestError) {

@@ -4,7 +4,7 @@ const configSchema = z.object({
   HOST: z.string().trim().default('127.0.0.1'),
   PORT: z.coerce.number().int().min(1).max(65_535).default(4000),
   DATABASE_PATH: z.string().trim().min(1).default('./data/blog.db'),
-  ADMIN_TOKEN: z.string().min(1),
+  ADMIN_TOKEN: z.string().min(32, 'ADMIN_TOKEN must be at least 32 characters'),
   CORS_ORIGIN: z.string().trim().min(1).default('http://localhost:5173'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });

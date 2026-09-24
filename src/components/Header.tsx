@@ -14,7 +14,7 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isDark } = useTheme();
-  const { articles } = useArticles();
+  const { articles, status, error } = useArticles();
   const secondaryBackground = useSecondaryPageBackground();
   const useLightHeaderTheme = !isDark && location.pathname !== '/';
   const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -408,6 +408,12 @@ const Header = () => {
           {isMenuOpen ? '✕' : '☰'}
         </button>
       </nav>
+
+      {status === 'error' && error && (
+        <div role="alert" style={{ position: 'relative', zIndex: 2, padding: '0.35rem 1rem', textAlign: 'center', background: 'rgba(176,0,32,0.9)', color: '#fff', fontSize: '0.78rem' }}>
+          文章 API 暂不可用，搜索已使用本地内容：{error}
+        </div>
+      )}
 
       <AnimatePresence>
         {isMenuOpen && (

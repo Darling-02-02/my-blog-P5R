@@ -24,7 +24,7 @@ const prettyDate = (value: string) => {
 const ArchivePage = ({ mode }: ArchivePageProps) => {
   const navigate = useNavigate();
   const { name, subcategory } = useParams<{ name: string; subcategory?: string }>();
-  const { articles } = useArticles();
+  const { articles, status, error } = useArticles();
   const decodedName = decodeURIComponent(name ?? '');
   const decodedSubcategory = decodeURIComponent(subcategory ?? '');
   const categories = useMemo(() => getCategoryData(articles), [articles]);
@@ -137,6 +137,9 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
               <p style={{ color: 'rgba(255,255,255,0.92)', fontSize: '0.95rem' }}>
                 {archiveSummary}
               </p>
+              {status === 'error' && error && (
+                <p role="alert" style={{ color: '#ffd7df', fontSize: '0.85rem', margin: '0.8rem 0 0' }}>文章 API 暂不可用，已显示本地内容：{error}</p>
+              )}
             </div>
           </motion.div>
 

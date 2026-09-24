@@ -62,6 +62,21 @@ const encodeQuery = (params: Record<string, string | number | undefined>) => {
 export const articleApi = {
   listPublished: (params: { category?: string; tag?: string; page?: number; pageSize?: number } = {}) =>
     request<ArticleListResponse>(`/api/articles${encodeQuery(params)}`),
+  listAllPublished: async () => {
+    const items = [];
+    let page = 1;
+    let total = 0;
+
+    while (items.length < total || page === 1) {
+      const response = await articleApi.listPublished({ page, pageSize: 100 });
+      items.push(...response.items);
+      total = response.total;
+      if (response.items.length === 0) break;
+      page += 1;
+    }
+
+    return { items, page: 1, pageSize: items.length, total: items.length } satisfies ArticleListResponse;
+  },
   findPublishedBySlug: (slug: string) => request<Article>(`/api/articles/${encodeURIComponent(slug)}`),
   listAdmin: (token: string) => request<AdminArticleListResponse>('/api/admin/articles', {}, token),
   create: (token: string, input: ArticleWriteInput) =>

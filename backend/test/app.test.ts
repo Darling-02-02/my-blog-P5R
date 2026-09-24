@@ -1,14 +1,24 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildApp } from '../src/app.js';
+import { getConfig } from '../src/config.js';
 import { createDatabase, migrateDatabase } from '../src/db.js';
+
+const ADMIN_TOKEN = 'test-token-012345678901234567890123';
 
 const createTestApp = () => {
   const db = createDatabase(':memory:');
   migrateDatabase(db);
-  const app = buildApp({ db, adminToken: 'test-token', corsOrigin: ['http://localhost:5173'] });
+  const app = buildApp({ db, adminToken: ADMIN_TOKEN, corsOrigin: ['http://localhost:5173'] });
   return { app, db };
 };
+
+test('configuration rejects weak admin tokens', () => {
+  assert.throws(
+    () => getConfig({ ADMIN_TOKEN: 'short-token' }),
+    /ADMIN_TOKEN must be at least 32 characters/,
+  );
+});
 
 test('health endpoint returns ok', async () => {
   const { app, db } = createTestApp();
@@ -37,7 +47,7 @@ test('public article list excludes drafts', async () => {
 
 test('admin can create, edit, publish, read, unpublish, and delete an article', async () => {
   const { app, db } = createTestApp();
-  const headers = { 'x-admin-token': 'test-token' };
+  const headers = { 'x-admin-token': ADMIN_TOKEN };
   const draft = {
     slug: 'first-post',
     title: 'First post',
@@ -69,6 +79,16 @@ test('admin can create, edit, publish, read, unpublish, and delete an article', 
   assert.equal(updateResponse.statusCode, 200);
   assert.equal(updateResponse.json().title, 'Updated post');
   assert.equal(updateResponse.json().status, 'published');
+  const publishedAt = updateResponse.json().publishedAt;
+
+  const publishedEdit = await app.inject({
+    method: 'PUT',
+    url: `/api/admin/articles/${created.id}`,
+    headers,
+    payload: { ...draft, title: 'Updated again', content: '# Published body v2', status: 'published' },
+  });
+  assert.equal(publishedEdit.statusCode, 200);
+  assert.equal(publishedEdit.json().publishedAt, publishedAt);
 
   const publicList = await app.inject({ method: 'GET', url: '/api/articles' });
   assert.equal(publicList.statusCode, 200);
@@ -77,7 +97,7 @@ test('admin can create, edit, publish, read, unpublish, and delete an article', 
 
   const detail = await app.inject({ method: 'GET', url: '/api/articles/first-post' });
   assert.equal(detail.statusCode, 200);
-  assert.equal(detail.json().content, '# Published body');
+  assert.equal(detail.json().content, '# Published body v2');
 
   const unpublish = await app.inject({ method: 'POST', url: `/api/admin/articles/${created.id}/unpublish`, headers });
   assert.equal(unpublish.statusCode, 200);
@@ -111,10 +131,10 @@ test('admin routes reject missing token and duplicate slugs', async () => {
   const unauthorized = await app.inject({ method: 'GET', url: '/api/admin/articles' });
   assert.equal(unauthorized.statusCode, 401);
 
-  const first = await app.inject({ method: 'POST', url: '/api/admin/articles', headers: { 'x-admin-token': 'test-token' }, payload });
+  const first = await app.inject({ method: 'POST', url: '/api/admin/articles', headers: { 'x-admin-token': ADMIN_TOKEN }, payload });
   assert.equal(first.statusCode, 201);
 
-  const duplicate = await app.inject({ method: 'POST', url: '/api/admin/articles', headers: { 'x-admin-token': 'test-token' }, payload });
+  const duplicate = await app.inject({ method: 'POST', url: '/api/admin/articles', headers: { 'x-admin-token': ADMIN_TOKEN }, payload });
   assert.equal(duplicate.statusCode, 409);
   assert.equal(duplicate.json().error.code, 'SLUG_EXISTS');
 
