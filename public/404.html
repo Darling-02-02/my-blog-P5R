@@ -3,6 +3,17 @@
 <head>
   <meta charset="utf-8">
   <title>灵敏度加满的blog</title>
+  <script>
+    // GitHub Pages 对没有对应文件的路径（/study-room、/topic/... 等）会返回这个 404 页面。
+    // 这里把深链接改写成 /?/<原路径>，再由 index.html 里的脚本还原成真实路径，交给前端路由。
+    // 前提：整站部署在域名根目录（vite base = '/'）。若将来改回 /my-blog-P5R/，把下面的 '/' 换成 '/my-blog-P5R/'。
+    (function () {
+      var l = window.location;
+      var path = l.pathname.slice(1).replace(/&/g, '~and~');
+      var query = l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '';
+      l.replace(l.protocol + '//' + l.host + '/?/' + path + query + l.hash);
+    })();
+  </script>
 </head>
 <body>
   <noscript>

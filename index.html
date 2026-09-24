@@ -9,9 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
     <script type="text/javascript">
-      // Single Page Apps for GitHub Pages
-      // https://github.com/rafgraph/spa-github-pages
-      var pathPrefix = '/my-blog-P5R';
+      // 接收 404.html 改写过来的 /?/<原路径>，还原成真实路径再交给前端路由。
+      // 这里不再拼 pathPrefix：还原出来的就是站内绝对路径，与 Vite base 保持一致。
       var l = window.location;
       if (l.search && l.search.indexOf('?/') === 0) {
         var restoredPath = l.search
@@ -23,7 +22,7 @@
         window.history.replaceState(
           null,
           '',
-          pathPrefix + restoredPath + l.hash
+          restoredPath + l.hash
         );
       }
     </script>
