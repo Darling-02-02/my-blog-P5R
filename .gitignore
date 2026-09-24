@@ -38,8 +38,11 @@ lerna-debug.log*
 # TypeScript
 *.tsbuildinfo
 
-# Misc
-*.tgz
+# Backend runtime data
+backend/data/*.db
+backend/data/*.db-*
+backend/dist/
+
 .yarn-integrity
 .cache/
 .parcel-cache/

@@ -1,0 +1,21 @@
+[Unit]
+Description=My Blog Article API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=blog
+Group=blog
+WorkingDirectory=/srv/my-blog-api/app/backend
+EnvironmentFile=/srv/my-blog-api/app/backend/.env
+ExecStart=/usr/bin/node /srv/my-blog-api/app/backend/dist/server.js
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/srv/my-blog-api/data
+
+[Install]
+WantedBy=multi-user.target

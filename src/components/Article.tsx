@@ -1,13 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { findArticle } from '../data/articles';
 import MarkdownBody from './MarkdownBody';
 import { useState, useEffect } from 'react';
+import { useArticle } from '../contexts/useArticles';
 
 const Article = () => {
   const params = useParams<{ '*': string }>();
   const navigate = useNavigate();
-  const article = findArticle(params['*']);
+  const { article, status, error } = useArticle(params['*']);
   const [readingProgress, setReadingProgress] = useState(0);
 
   useEffect(() => {
@@ -27,14 +27,16 @@ const Article = () => {
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     if (hash) {
-      setTimeout(() => {
+      const timer = window.setTimeout(() => {
         const element = document.getElementById(hash);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
       }, 100);
+      return () => window.clearTimeout(timer);
     }
-  }, []);
+    return undefined;
+  }, [article]);
 
   useEffect(() => {
     const updateReadingProgress = () => {
@@ -57,8 +59,34 @@ const Article = () => {
       window.removeEventListener('scroll', updateReadingProgress);
       window.removeEventListener('resize', updateReadingProgress);
     };
-  }, []);
+  }, [article]);
 
+  if (status === 'loading') {
+    return (
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: '2rem', color: 'var(--text-muted)' }} role="status">
+        正在加载文章…
+      </div>
+    );
+  }
+
+  if (status === 'error' && !article) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: '2rem' }}>
+        <div style={{ background: 'var(--bg-card)', padding: '2rem', borderRadius: '10px', border: '1px solid #ff0040', textAlign: 'center' }}>
+          <h1 style={{ color: '#ff0040', marginBottom: '1rem' }}>文章加载失败</h1>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>{error ?? '请稍后重试'}</p>
+          <motion.button
+            onClick={() => window.location.reload()}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{ padding: '0.8rem 1.5rem', background: '#ff0040', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 700 }}
+          >
+            重新加载
+          </motion.button>
+        </div>
+      </div>
+    );
+  }
   if (!article) {
     return (
       <div style={{

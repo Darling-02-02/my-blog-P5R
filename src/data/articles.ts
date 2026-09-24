@@ -1,16 +1,6 @@
-export interface Article {
-  id: number;
-  slug: string;
-  title: string;
-  excerpt: string;
-  category: string;
-  subcategory?: string;
-  date: string;
-  readTime: string;
-  tags: string[];
-  content: string;
-}
+import type { Article } from '../lib/article-types';
 
+export type { Article } from '../lib/article-types';
 type FrontmatterValue = string | string[];
 type Frontmatter = Record<string, FrontmatterValue>;
 

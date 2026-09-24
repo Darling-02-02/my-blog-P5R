@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { articles, getArticlePath } from '../data/articles';
+import { getArticlePath } from '../data/articles';
+import { useArticles } from '../contexts/useArticles';
 import { getTopicPath, topics } from '../data/topics';
 import { useTheme } from '../contexts/useTheme';
 import { useSecondaryPageBackground } from './usePageBackground';
@@ -13,6 +14,7 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { articles } = useArticles();
   const secondaryBackground = useSecondaryPageBackground();
   const useLightHeaderTheme = !isDark && location.pathname !== '/';
   const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -44,7 +46,7 @@ const Header = () => {
       }));
 
     return [...topicHits, ...articleHits].slice(0, 6);
-  }, [normalizedQuery]);
+  }, [normalizedQuery, articles]);
 
   const isArticlePage =
     location.pathname.startsWith('/article') ||

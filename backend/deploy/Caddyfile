@@ -1,0 +1,7 @@
+# Production API for the static frontend.
+# Create a DNS A record for api.darling-02.cn that points to the server's
+# public fixed IP. If the campus network blocks inbound 80/443, ask the
+# network administrator for public port mapping or use a VPN/tunnel.
+api.darling-02.cn {
+  reverse_proxy 127.0.0.1:4000
+}

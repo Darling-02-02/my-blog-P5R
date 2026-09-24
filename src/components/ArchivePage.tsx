@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from './Header';
 import Footer from './Footer';
-import { articles, getArticlePath } from '../data/articles';
+import { getArticlePath } from '../data/articles';
+import { useArticles } from '../contexts/useArticles';
 import { getCategoryData, getTagData } from '../data/categories';
 import { getTopicsByCategory, getTopicPath, topics } from '../data/topics';
 import { pickCoverByKey, pickCoverForArticle } from './coverImage';
@@ -23,9 +24,10 @@ const prettyDate = (value: string) => {
 const ArchivePage = ({ mode }: ArchivePageProps) => {
   const navigate = useNavigate();
   const { name, subcategory } = useParams<{ name: string; subcategory?: string }>();
+  const { articles } = useArticles();
   const decodedName = decodeURIComponent(name ?? '');
   const decodedSubcategory = decodeURIComponent(subcategory ?? '');
-  const categories = useMemo(() => getCategoryData(articles), []);
+  const categories = useMemo(() => getCategoryData(articles), [articles]);
   const selectedCategory = categories.find((category) => category.name === decodedName);
   const subcategories = mode === 'category' && !decodedSubcategory ? (selectedCategory?.subcategories ?? []) : [];
   const topicsInCategory =
@@ -48,7 +50,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
       );
     }
     return articles.filter((article) => article.category === decodedName);
-  }, [decodedName, decodedSubcategory, mode]);
+  }, [articles, decodedName, decodedSubcategory, mode]);
   const archiveSummary =
     topicsInCategory.length > 0
       ? `共 ${topicsInCategory.length} 个专题`
@@ -75,7 +77,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
 
   const tagCounts = useMemo(() => {
     return getTagData(articles);
-  }, []);
+  }, [articles]);
 
   const latestEntries = useMemo(() => {
     const topicEntries = topics.map((topic) => ({
@@ -94,7 +96,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
       }));
 
     return [...topicEntries, ...articleEntries].slice(0, 5);
-  }, []);
+  }, [articles]);
 
   return (
     <>

@@ -1,30 +1,22 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { articles, getArticlePath } from '../data/articles';
+import { getArticlePath } from '../data/articles';
+import { useArticles } from '../contexts/useArticles';
+import type { ArticleSummary } from '../lib/article-types';
 import { PageLayout, MainContentCard } from './SidebarLayout';
 
 const base = import.meta.env.BASE_URL;
 const coverImage = `${base}cover.png`;
 
-const mainPosts = articles.slice(0, 5).map(article => ({
-  ...article,
-  image: coverImage,
-}));
-
-const morePosts = articles.slice(5).map(article => ({
-  ...article,
-  image: coverImage,
-}));
-
 interface BlogCardProps {
-  post: typeof articles[0] & { image: string };
+  post: ArticleSummary & { image: string };
   index: number;
 }
 
 const BlogCard = ({ post, index }: BlogCardProps) => {
   const navigate = useNavigate();
-  
+
   const handleClick = () => {
     navigate(getArticlePath(post));
   };
@@ -95,6 +87,15 @@ const BlogCard = ({ post, index }: BlogCardProps) => {
 
 const BlogSection = () => {
   const [showAll, setShowAll] = useState(false);
+  const { articles, status, error } = useArticles();
+  const mainPosts = useMemo(
+    () => articles.slice(0, 5).map((article) => ({ ...article, image: article.coverUrl || coverImage })),
+    [articles],
+  );
+  const morePosts = useMemo(
+    () => articles.slice(5).map((article) => ({ ...article, image: article.coverUrl || coverImage })),
+    [articles],
+  );
 
   return (
     <section id="blog" style={{ padding: 'clamp(2rem, 5vw, 4rem) 0', position: 'relative', zIndex: 1 }}>
@@ -107,11 +108,24 @@ const BlogSection = () => {
             一切都是为了正义
           </p>
 
+          {status === 'loading' && (
+            <p role="status" style={{ color: '#666', marginBottom: '1rem' }}>正在加载文章…</p>
+          )}
+          {status === 'error' && error && (
+            <p role="alert" style={{ color: '#b00020', marginBottom: '1rem' }}>文章 API 暂不可用，已显示本地内容：{error}</p>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             {mainPosts.map((post, index) => (
               <BlogCard key={post.id} post={post} index={index} />
             ))}
           </div>
+
+          {status !== 'loading' && articles.length === 0 && (
+            <div style={{ padding: '2rem', textAlign: 'center', color: '#666', border: '1px dashed rgba(255, 0, 64, 0.35)', borderRadius: '10px' }}>
+              暂无已发布文章
+            </div>
+          )}
 
           {morePosts.length > 0 && (
             <div style={{ textAlign: 'center' }}>
@@ -194,6 +208,7 @@ const BlogSection = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
+                aria-label="关闭全部文章"
               >
                 ×
               </button>

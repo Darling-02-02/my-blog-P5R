@@ -1,0 +1,77 @@
+import type {
+  AdminArticleListResponse,
+  Article,
+  ArticleListResponse,
+  ArticleWriteInput,
+} from './article-types';
+
+const source = import.meta.env.VITE_ARTICLE_SOURCE ?? 'static';
+const apiBase = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+
+export const isArticleApiEnabled = source === 'api' && Boolean(apiBase);
+
+export class ArticleApiError extends Error {
+  status: number;
+  code: string;
+
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.name = 'ArticleApiError';
+    this.status = status;
+    this.code = code;
+  }
+}
+
+const request = async <T>(path: string, options: RequestInit = {}, token?: string): Promise<T> => {
+  if (!apiBase) {
+    throw new ArticleApiError(0, 'API_NOT_CONFIGURED', 'Article API is not configured');
+  }
+
+  const headers = new Headers(options.headers);
+  headers.set('Accept', 'application/json');
+  if (options.body) headers.set('Content-Type', 'application/json');
+  if (token) headers.set('X-Admin-Token', token);
+
+  const response = await fetch(`${apiBase}${path}`, { ...options, headers });
+  const payload = (await response.json().catch(() => null)) as
+    | { error?: { code?: string; message?: string } }
+    | T
+    | null;
+
+  if (!response.ok) {
+    const error = payload && typeof payload === 'object' && 'error' in payload ? payload.error : undefined;
+    throw new ArticleApiError(
+      response.status,
+      error?.code ?? 'API_ERROR',
+      error?.message ?? `Article API request failed (${response.status})`,
+    );
+  }
+
+  return payload as T;
+};
+
+const encodeQuery = (params: Record<string, string | number | undefined>) => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') query.set(key, String(value));
+  });
+  const value = query.toString();
+  return value ? `?${value}` : '';
+};
+
+export const articleApi = {
+  listPublished: (params: { category?: string; tag?: string; page?: number; pageSize?: number } = {}) =>
+    request<ArticleListResponse>(`/api/articles${encodeQuery(params)}`),
+  findPublishedBySlug: (slug: string) => request<Article>(`/api/articles/${encodeURIComponent(slug)}`),
+  listAdmin: (token: string) => request<AdminArticleListResponse>('/api/admin/articles', {}, token),
+  create: (token: string, input: ArticleWriteInput) =>
+    request<Article>('/api/admin/articles', { method: 'POST', body: JSON.stringify(input) }, token),
+  update: (token: string, id: number, input: ArticleWriteInput) =>
+    request<Article>(`/api/admin/articles/${id}`, { method: 'PUT', body: JSON.stringify(input) }, token),
+  remove: (token: string, id: number) =>
+    request<void>(`/api/admin/articles/${id}`, { method: 'DELETE' }, token),
+  publish: (token: string, id: number) =>
+    request<Article>(`/api/admin/articles/${id}/publish`, { method: 'POST' }, token),
+  unpublish: (token: string, id: number) =>
+    request<Article>(`/api/admin/articles/${id}/unpublish`, { method: 'POST' }, token),
+};
