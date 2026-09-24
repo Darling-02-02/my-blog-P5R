@@ -74,11 +74,12 @@ test('admin can create, edit, publish, read, unpublish, and delete an article', 
     method: 'PUT',
     url: `/api/admin/articles/${created.id}`,
     headers,
-    payload: { ...draft, title: 'Updated post', content: '# Published body', status: 'published' },
+    payload: { ...draft, title: 'Updated post', content: '# Published body', status: 'published', publishedAt: '2030-01-01T00:00:00.000Z' },
   });
   assert.equal(updateResponse.statusCode, 200);
   assert.equal(updateResponse.json().title, 'Updated post');
   assert.equal(updateResponse.json().status, 'published');
+  assert.notEqual(updateResponse.json().publishedAt, '2030-01-01T00:00:00.000Z');
   const publishedAt = updateResponse.json().publishedAt;
 
   const publishedEdit = await app.inject({

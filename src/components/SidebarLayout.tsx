@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { getCategoryData } from '../data/categories';
 import { topics } from '../data/topics';
 import { useArticles } from '../contexts/useArticles';
 
@@ -108,12 +109,7 @@ export const AnnouncementCard = () => (
 // 分类卡片
 export const CategoriesCard = () => {
   const { articles } = useArticles();
-  const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
-  const categories = [...new Set(articles.map((article) => article.category))].map((name, index) => ({
-    name,
-    count: articles.filter((article) => article.category === name).length,
-    color: colors[index % colors.length],
-  }));
+  const categories = getCategoryData(articles).map(({ name, count, color }) => ({ name, count, color }));
   return (
     <SidebarCard title="分类" icon="📁" delay={0.2}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>

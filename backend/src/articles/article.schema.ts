@@ -13,7 +13,6 @@ export const articleWriteSchema = z.object({
   readTime: z.string().trim().max(40).default(''),
   tags: z.array(z.string().trim().min(1).max(50)).max(30).default([]),
   status: z.enum(['draft', 'published']).default('draft'),
-  publishedAt: z.string().datetime().nullable().optional(),
 });
 
 export const publicListQuerySchema = z.object({

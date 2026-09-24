@@ -31,7 +31,6 @@ export interface ArticleWriteInput {
   readTime: string;
   tags: string[];
   status: ArticleStatus;
-  publishedAt?: string | null;
 }
 
 export interface ArticleListQuery {

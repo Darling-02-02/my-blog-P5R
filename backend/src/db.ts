@@ -1,6 +1,5 @@
 import Database from 'better-sqlite3';
 import { readFileSync } from 'node:fs';
-import path from 'node:path';
 
 export const createDatabase = (filename: string) => {
   const db = new Database(filename);
@@ -10,6 +9,6 @@ export const createDatabase = (filename: string) => {
 };
 
 export const migrateDatabase = (db: Database.Database) => {
-  const migration = readFileSync(path.resolve(process.cwd(), 'migrations/001_init.sql'), 'utf8');
+  const migration = readFileSync(new URL('../migrations/001_init.sql', import.meta.url), 'utf8');
   db.exec(migration);
 };

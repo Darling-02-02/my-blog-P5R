@@ -79,7 +79,7 @@ npm run dev
 cd backend
 npm install
 # PowerShell example; use the equivalent export syntax on Ubuntu/macOS.
-$env:ADMIN_TOKEN='local-development-secret'
+$env:ADMIN_TOKEN='local-development-secret-012345678901234567890123'
 $env:CORS_ORIGIN='http://localhost:5173'
 npm run dev
 ```

@@ -9,7 +9,7 @@ const TOKEN_KEY = 'blog_admin_token';
 const toMessage = (error: unknown) => {
   if (error instanceof ArticleApiError) {
     if (error.status === 401) return '管理密钥无效或未提供';
-    if (error.status === 409) return 'Slug 已存在，请更换一个';
+    if (error.status === 403) return '当前密钥没有管理权限';
     return error.message;
   }
   if (error instanceof Error) return error.message;

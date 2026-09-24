@@ -73,8 +73,6 @@ export const createArticleRepository = (db: Database.Database) => {
     }
   };
 
-  const saveTags = db.transaction(replaceTags);
-
   const toSummary = (article: ArticleRecord): ArticleSummary => {
     const summary = { ...article } as Partial<ArticleRecord>;
     delete summary.content;
@@ -118,9 +116,9 @@ export const createArticleRepository = (db: Database.Database) => {
     return row ? mapRow(row) : undefined;
   };
 
-  const create = (input: ArticleWriteInput) => {
+  const create = db.transaction((input: ArticleWriteInput) => {
     const createdAt = now();
-    const publishedAt = input.status === 'published' ? input.publishedAt ?? createdAt : null;
+    const publishedAt = input.status === 'published' ? createdAt : null;
     const result = db.prepare(`
       INSERT INTO articles (slug, title, excerpt, content, cover_url, category, subcategory, read_time, status, published_at, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -139,16 +137,16 @@ export const createArticleRepository = (db: Database.Database) => {
       createdAt,
     );
     const id = Number(result.lastInsertRowid);
-    saveTags(id, input.tags);
+    replaceTags(id, input.tags);
     return getById(id) as ArticleRecord;
-  };
+  });
 
-  const update = (id: number, input: ArticleWriteInput) => {
+  const update = db.transaction((id: number, input: ArticleWriteInput) => {
     const existing = getById(id);
     if (!existing) return undefined;
 
     const updatedAt = now();
-    const publishedAt = input.status === 'published' ? input.publishedAt ?? existing.publishedAt ?? updatedAt : null;
+    const publishedAt = input.status === 'published' ? existing.publishedAt ?? updatedAt : null;
     const result = db.prepare(`
       UPDATE articles
       SET slug = ?, title = ?, excerpt = ?, content = ?, cover_url = ?, category = ?, subcategory = ?, read_time = ?, status = ?, published_at = ?, updated_at = ?
@@ -169,9 +167,9 @@ export const createArticleRepository = (db: Database.Database) => {
     );
 
     if (!result.changes) return undefined;
-    saveTags(id, input.tags);
+    replaceTags(id, input.tags);
     return getById(id);
-  };
+  });
 
   const remove = (id: number) => db.prepare('DELETE FROM articles WHERE id = ?').run(id).changes > 0;
 
