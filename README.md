@@ -69,6 +69,8 @@ public/
 
 The frontend can read published articles from the standalone service under `backend/`. The existing topic Markdown flow remains static and unchanged.
 
+A concise server deployment walkthrough is available in [`docs/backend-deployment-quickstart.md`](docs/backend-deployment-quickstart.md).
+
 ### Local development
 
 Run the frontend and API in separate terminals:
@@ -94,6 +96,8 @@ VITE_API_BASE_URL=http://localhost:4000
 If `VITE_ARTICLE_SOURCE=static`, the frontend keeps using the existing static article index. If the API is enabled but unavailable, the public article surfaces fall back to that static index and show a visible warning.
 
 ### Backend checks
+
+The backend targets Node.js 16 because the deployment server cannot upgrade, so run backend commands with a matching Node version.
 
 ```bash
 npm --prefix backend test
