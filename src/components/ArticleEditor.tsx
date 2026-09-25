@@ -3,6 +3,7 @@ import type { Article, ArticleWriteInput } from '../lib/article-types';
 
 interface ArticleEditorProps {
   initialArticle?: Article;
+  categories: string[];
   busy: boolean;
   error: string | null;
   onSave: (input: ArticleWriteInput) => Promise<void>;
@@ -10,19 +11,18 @@ interface ArticleEditorProps {
 }
 
 const toInitialState = (article?: Article) => ({
-  slug: article?.slug ?? '',
+  slug: article?.slug.split('/').pop() ?? '',
   title: article?.title ?? '',
   excerpt: article?.excerpt ?? '',
   content: article?.content ?? '',
   coverUrl: article?.coverUrl ?? '',
-  category: article?.category ?? '随笔',
+  category: article?.category ?? '',
   subcategory: article?.subcategory ?? '',
   readTime: article?.readTime ?? '',
   tagsText: article?.tags.join(', ') ?? '',
-  status: article?.status ?? 'draft',
 });
 
-const ArticleEditor = ({ initialArticle, busy, error, onSave, onCancel }: ArticleEditorProps) => {
+const ArticleEditor = ({ initialArticle, categories, busy, error, onSave, onCancel }: ArticleEditorProps) => {
   const [form, setForm] = useState(() => toInitialState(initialArticle));
 
   const update = (key: keyof typeof form, value: string) => {
@@ -41,7 +41,6 @@ const ArticleEditor = ({ initialArticle, busy, error, onSave, onCancel }: Articl
       subcategory: form.subcategory.trim(),
       readTime: form.readTime.trim(),
       tags: form.tagsText.split(',').map((tag) => tag.trim()).filter(Boolean),
-      status: form.status,
     });
   };
 
@@ -68,23 +67,21 @@ const ArticleEditor = ({ initialArticle, busy, error, onSave, onCancel }: Articl
           <input required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={form.slug} onChange={(event) => update('slug', event.target.value)} style={inputStyle} />
         </label>
         <label style={fieldStyle}>
-          分类
-          <input required value={form.category} onChange={(event) => update('category', event.target.value)} style={inputStyle} />
+          分类（栏目）
+          <input required list="article-category-options" value={form.category} onChange={(event) => update('category', event.target.value)} style={inputStyle} placeholder="直接输入就是新栏目" />
+          <datalist id="article-category-options">
+            {categories.map((category) => (
+              <option key={category} value={category} />
+            ))}
+          </datalist>
         </label>
         <label style={fieldStyle}>
-          子分类
+          子分类（可留空）
           <input value={form.subcategory} onChange={(event) => update('subcategory', event.target.value)} style={inputStyle} />
         </label>
         <label style={fieldStyle}>
           阅读时长
           <input value={form.readTime} onChange={(event) => update('readTime', event.target.value)} style={inputStyle} placeholder="5 分钟" />
-        </label>
-        <label style={fieldStyle}>
-          状态
-          <select value={form.status} onChange={(event) => update('status', event.target.value)} style={inputStyle}>
-            <option value="draft">草稿</option>
-            <option value="published">已发布</option>
-          </select>
         </label>
       </div>
 

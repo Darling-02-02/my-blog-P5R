@@ -8,15 +8,6 @@ const requiredFields = ['id', 'title', 'excerpt', 'category', 'date', 'readTime'
 const topicFields = ['title', 'summary', 'order'];
 const sectionFields = ['title', 'order'];
 const topicDirs = new Set(['machine-learning', 'essays']);
-const taxonomy = new Map([
-  [
-    '生物信息',
-    ['转录组', '代谢组', '蛋白组', '网络药理学', 'lncRNA', 'ScRNA-seq', '线粒体', '比较基因组', 'meta分析'],
-  ],
-  ['三维重建', ['单帧作物点云数据处理流程', 'MVS(多视角重建)', '开源算法总结和使用']],
-  ['机器学习', []],
-  ['随笔', []],
-]);
 
 const fail = (message) => {
   console.error(message);
@@ -101,15 +92,10 @@ if (statSync(articlesRoot, { throwIfNoEntry: false })?.isDirectory()) {
       fail(`${relativePath}: "tags" must contain at least one item`);
     }
 
-    if (!taxonomy.has(String(meta.category))) {
-      fail(`${relativePath}: unknown category "${meta.category}"`);
-    }
-
-    if (meta.subcategory) {
-      const subcategories = taxonomy.get(String(meta.category)) ?? [];
-      if (!subcategories.includes(String(meta.subcategory))) {
-        fail(`${relativePath}: subcategory "${meta.subcategory}" is not valid for category "${meta.category}"`);
-      }
+    // Columns are free-form, so only require that the name can also be a folder.
+    const category = String(meta.category).trim();
+    if (!category || /[\\/:*?"<>|]/.test(category)) {
+      fail(`${relativePath}: category "${meta.category}" cannot be used as a folder name`);
     }
 
     if (!body.trim()) {

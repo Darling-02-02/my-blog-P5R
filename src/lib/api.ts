@@ -1,9 +1,4 @@
-import type {
-  AdminArticleListResponse,
-  Article,
-  ArticleListResponse,
-  ArticleWriteInput,
-} from './article-types';
+import type { Article, ArticleListResponse } from './article-types';
 
 const source = import.meta.env.VITE_ARTICLE_SOURCE ?? 'static';
 const apiBase = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
@@ -22,7 +17,7 @@ export class ArticleApiError extends Error {
   }
 }
 
-const request = async <T>(path: string, options: RequestInit = {}, token?: string): Promise<T> => {
+const request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
   if (!apiBase) {
     throw new ArticleApiError(0, 'API_NOT_CONFIGURED', 'Article API is not configured');
   }
@@ -30,7 +25,6 @@ const request = async <T>(path: string, options: RequestInit = {}, token?: strin
   const headers = new Headers(options.headers);
   headers.set('Accept', 'application/json');
   if (options.body) headers.set('Content-Type', 'application/json');
-  if (token) headers.set('X-Admin-Token', token);
 
   const response = await fetch(`${apiBase}${path}`, { ...options, headers });
   const payload = (await response.json().catch(() => null)) as
@@ -78,15 +72,4 @@ export const articleApi = {
     return { items, page: 1, pageSize: items.length, total: items.length } satisfies ArticleListResponse;
   },
   findPublishedBySlug: (slug: string) => request<Article>(`/api/articles/${encodeURIComponent(slug)}`),
-  listAdmin: (token: string) => request<AdminArticleListResponse>('/api/admin/articles', {}, token),
-  create: (token: string, input: ArticleWriteInput) =>
-    request<Article>('/api/admin/articles', { method: 'POST', body: JSON.stringify(input) }, token),
-  update: (token: string, id: number, input: ArticleWriteInput) =>
-    request<Article>(`/api/admin/articles/${id}`, { method: 'PUT', body: JSON.stringify(input) }, token),
-  remove: (token: string, id: number) =>
-    request<void>(`/api/admin/articles/${id}`, { method: 'DELETE' }, token),
-  publish: (token: string, id: number) =>
-    request<Article>(`/api/admin/articles/${id}/publish`, { method: 'POST' }, token),
-  unpublish: (token: string, id: number) =>
-    request<Article>(`/api/admin/articles/${id}/unpublish`, { method: 'POST' }, token),
 };

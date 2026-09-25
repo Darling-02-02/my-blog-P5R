@@ -30,8 +30,6 @@ export interface ArticleWriteInput {
   subcategory: string;
   readTime: string;
   tags: string[];
-  status: ArticleStatus;
-  publishedAt?: string | null;
 }
 
 export interface ArticleListResponse {
@@ -39,8 +37,4 @@ export interface ArticleListResponse {
   page: number;
   pageSize: number;
   total: number;
-}
-
-export interface AdminArticleListResponse {
-  items: Article[];
 }

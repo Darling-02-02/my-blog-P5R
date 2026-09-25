@@ -447,10 +447,8 @@ const CategoryLandingCard = ({ category, index }: { category: CategoryData; inde
 const MainContent = () => {
   const { articles } = useArticles();
   const categoryData = getCategoryData(articles);
-  const allowedCategories = ['生物信息', '三维重建', '机器学习', '随笔'];
-  const mainCategories = allowedCategories
-    .map((name) => categoryData.find((category) => category.name === name))
-    .filter((category): category is CategoryData => Boolean(category));
+  // Every column that has content shows up here, including ones created from the admin page.
+  const mainCategories = categoryData.filter((category) => category.count > 0 || category.topicCount > 0);
   const sectionCardStyle: React.CSSProperties = {
     marginBottom: '4rem',
     padding: 0,
