@@ -56,6 +56,12 @@ export const categoryDefinitions: CategoryDefinition[] = [
     usesTopics: true,
   },
   {
+    name: '后端',
+    description: '后端学习路线、服务端工程实践和踩坑记录',
+    color: '#7c5cff',
+    usesTopics: true,
+  },
+  {
     name: '随笔',
     description: '学习复盘、生活记录和一些不太正经的想法',
     color: '#96ceb4',

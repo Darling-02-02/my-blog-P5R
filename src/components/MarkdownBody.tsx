@@ -1,15 +1,38 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeHighlight from 'rehype-highlight';
+import rehypeKatex from 'rehype-katex';
 import { useState } from 'react';
+import 'katex/dist/katex.min.css';
+import 'highlight.js/styles/github-dark-dimmed.css';
+import { textOf } from '../lib/hast-text';
+import type { HastNode } from '../lib/hast-text';
 
-const CodeBlock = ({ language, code }: { language: string; code: string }) => {
-  const [copied, setCopied] = useState(false);
+const CodeBlock = ({
+  language,
+  code,
+  children,
+}: {
+  language: string;
+  code: string;
+  children?: React.ReactNode;
+}) => {
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  // clipboard 只在安全上下文可用（https / localhost）；局域网 http 访问会 reject，
+  // 那时候必须说实话，不能骗用户已经复制成功。
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopyState('copied');
+    } catch {
+      setCopyState('failed');
+    }
+    window.setTimeout(() => setCopyState('idle'), 2000);
   };
+
+  const copyLabel = copyState === 'copied' ? '已复制 ✓' : copyState === 'failed' ? '复制失败，请手动选中' : '复制';
 
   return (
     <div style={{
@@ -30,7 +53,8 @@ const CodeBlock = ({ language, code }: { language: string; code: string }) => {
       }}>
         <span>{language || 'code'}</span>
         <button
-          onClick={handleCopy}
+          type="button"
+          onClick={() => void handleCopy()}
           style={{
             background: 'transparent',
             border: 'none',
@@ -39,7 +63,8 @@ const CodeBlock = ({ language, code }: { language: string; code: string }) => {
             fontSize: '0.75rem',
           }}
         >
-          {copied ? '已复制 ✓' : '复制'}
+          {/* aria-live 让“已复制 / 复制失败”的变化会被读屏播报 */}
+          <span aria-live="polite">{copyLabel}</span>
         </button>
       </div>
       <pre style={{
@@ -53,7 +78,7 @@ const CodeBlock = ({ language, code }: { language: string; code: string }) => {
           color: 'var(--text-code)',
           fontFamily: '"Fira Code", "Consolas", monospace',
         }}>
-          {code}
+          {children ?? code}
         </code>
       </pre>
     </div>
@@ -80,12 +105,14 @@ interface MarkdownBodyProps {
 const MarkdownBody = ({ content }: MarkdownBodyProps) => (
   <>
     <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true }]]}
       components={{
-        code({ className, children }) {
-          const match = /language-(\w+)/.exec(className || '');
-          const codeString = String(children).replace(/\n$/, '');
-          const isInline = !match;
+        code({ className, children, node }) {
+          // 允许 c++ / c# / objective-c 这类带符号的语言名
+          const match = /language-([^\s]+)/.exec(className || '');
+          // 行内代码没有 className；围栏代码一定带 language-* 或 hljs
+          const isInline = !className;
 
           if (isInline) {
             return <InlineCode>{children}</InlineCode>;
@@ -93,9 +120,11 @@ const MarkdownBody = ({ content }: MarkdownBodyProps) => (
 
           return (
             <CodeBlock
-              language={match[1]}
-              code={codeString}
-            />
+              language={match ? match[1] : 'text'}
+              code={textOf(node as HastNode | undefined).replace(/\n$/, '')}
+            >
+              {children}
+            </CodeBlock>
           );
         },
         h2({ children }) {

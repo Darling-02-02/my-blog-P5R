@@ -29,6 +29,7 @@ const base = import.meta.env.BASE_URL;
 const categoryByDir: Record<string, string> = {
   'machine-learning': '机器学习',
   essays: '随笔',
+  backend: '后端',
 };
 
 const topicModules = import.meta.glob('../content/topics/**/*.md', {

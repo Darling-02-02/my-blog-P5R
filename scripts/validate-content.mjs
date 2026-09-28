@@ -7,7 +7,7 @@ const topicsRoot = path.join(root, 'src', 'content', 'topics');
 const requiredFields = ['id', 'title', 'excerpt', 'category', 'date', 'readTime', 'tags'];
 const topicFields = ['title', 'summary', 'order'];
 const sectionFields = ['title', 'order'];
-const topicDirs = new Set(['machine-learning', 'essays']);
+const topicDirs = new Set(['machine-learning', 'essays', 'backend']);
 
 const fail = (message) => {
   console.error(message);

@@ -403,6 +403,65 @@ body {
   }
 }
 
+/* 代码高亮：底色跟主题走，只保留 highlight.js 的 token 颜色。
+   用 :root 提高优先级，避免懒加载的 highlight.js 主题样式覆盖这里的底色。 */
+:root .hljs {
+  background: transparent;
+  padding: 0;
+  overflow-x: visible;
+}
+
+/* 浅色主题下 github-dark-dimmed 的配色不可读，换一套 GitHub 浅色 token */
+:root[data-theme="light"] .hljs {
+  color: #24292f;
+}
+
+:root[data-theme="light"] .hljs-comment,
+:root[data-theme="light"] .hljs-quote {
+  color: #6e7781;
+}
+
+:root[data-theme="light"] .hljs-keyword,
+:root[data-theme="light"] .hljs-selector-tag,
+:root[data-theme="light"] .hljs-literal,
+:root[data-theme="light"] .hljs-type,
+:root[data-theme="light"] .hljs-tag {
+  color: #cf222e;
+}
+
+:root[data-theme="light"] .hljs-string,
+:root[data-theme="light"] .hljs-attr,
+:root[data-theme="light"] .hljs-selector-attr,
+:root[data-theme="light"] .hljs-template-tag {
+  color: #0a3069;
+}
+
+:root[data-theme="light"] .hljs-number,
+:root[data-theme="light"] .hljs-built_in,
+:root[data-theme="light"] .hljs-symbol,
+:root[data-theme="light"] .hljs-variable {
+  color: #0550ae;
+}
+
+:root[data-theme="light"] .hljs-title,
+:root[data-theme="light"] .hljs-title.function_,
+:root[data-theme="light"] .hljs-section,
+:root[data-theme="light"] .hljs-name {
+  color: #8250df;
+}
+
+:root[data-theme="light"] .hljs-meta,
+:root[data-theme="light"] .hljs-doctag {
+  color: #953800;
+}
+
+/* 公式：KaTeX 给 .katex-display 用了 white-space: nowrap 却不带 overflow 处理，
+   窄屏上超宽公式会顶破卡片、导致整页横向滚动。让公式自己在容器内横向滚动。
+   同样用 :root 提权，防止懒加载的 KaTeX 样式反向覆盖。 */
+:root .katex-display {
+  overflow-x: auto;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
