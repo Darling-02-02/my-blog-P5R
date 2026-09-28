@@ -1,4 +1,4 @@
-import type { Article, ArticleListResponse } from './article-types';
+import type { Article, ArticleListResponse, ArticleStatus, ArticleWriteInput } from './article-types';
 
 const source = import.meta.env.VITE_ARTICLE_SOURCE ?? 'static';
 const apiBase = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
@@ -53,6 +53,19 @@ const encodeQuery = (params: Record<string, string | number | undefined>) => {
   return value ? `?${value}` : '';
 };
 
+// 管理端用后端自己的令牌鉴权；公开接口不需要。
+const adminRequest = <T>(token: string, path: string, options: RequestInit = {}): Promise<T> => {
+  const headers = new Headers(options.headers);
+  headers.set('X-Admin-Token', token);
+  return request<T>(path, { ...options, headers });
+};
+
+interface AdminArticleList {
+  items: Article[];
+  truncated: boolean;
+  maxItems: number;
+}
+
 export const articleApi = {
   listPublished: (params: { category?: string; tag?: string; page?: number; pageSize?: number } = {}) =>
     request<ArticleListResponse>(`/api/articles${encodeQuery(params)}`),
@@ -72,4 +85,26 @@ export const articleApi = {
     return { items, page: 1, pageSize: items.length, total: items.length } satisfies ArticleListResponse;
   },
   findPublishedBySlug: (slug: string) => request<Article>(`/api/articles/${encodeURIComponent(slug)}`),
+};
+
+// 写接口是后端独有的能力：GitHub 通道靠提交文件，没有草稿与发布状态。
+// payload 必须显式带 status —— 后端的 articleWriteSchema 会用默认值 draft 覆盖，
+// 少传这一项会把已发布的文章在编辑时悄悄下架。
+export const articleAdminApi = {
+  list: (token: string) => adminRequest<AdminArticleList>(token, '/api/admin/articles'),
+  create: (token: string, payload: ArticleWriteInput & { status: ArticleStatus }) =>
+    adminRequest<Article>(token, '/api/admin/articles', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  update: (token: string, id: number, payload: ArticleWriteInput & { status: ArticleStatus }) =>
+    adminRequest<Article>(token, `/api/admin/articles/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+  remove: (token: string, id: number) => adminRequest<null>(token, `/api/admin/articles/${id}`, { method: 'DELETE' }),
+  setPublished: (token: string, id: number, published: boolean) =>
+    adminRequest<Article>(token, `/api/admin/articles/${id}/${published ? 'publish' : 'unpublish'}`, {
+      method: 'POST',
+    }),
 };

@@ -9,6 +9,7 @@
     "build:check": "tsc -b && vite build --configLoader runner --outDir .vite-build-check --emptyOutDir false",
     "validate:content": "node scripts/validate-content.mjs",
     "check:markdown": "node scripts/check-markdown-render.mjs",
+    "check:admin-api": "node scripts/check-admin-api.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },
