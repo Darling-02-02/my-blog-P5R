@@ -1,0 +1,29 @@
+# 后端 API 容器。
+#
+# 令牌从同目录的 .env 读取（compose 会自动用它做变量替换），所以 .env 里
+# 只需要有 ADMIN_TOKEN；其余变量在这里显式给定，避免 .env 中为校园机写的
+# HOST=127.0.0.1 被带进容器（那样宿主端口映射会失效）。
+#
+#   cd backend && docker compose up -d --build
+#   curl http://127.0.0.1:4000/health
+services:
+  api:
+    build: .
+    image: my-blog-api
+    container_name: my-blog-api
+    restart: unless-stopped
+    ports:
+      # 只绑本机：对外一律走反向代理，4000 不直接暴露。
+      - '127.0.0.1:4000:4000'
+    environment:
+      HOST: 0.0.0.0
+      PORT: '4000'
+      DATABASE_PATH: /data/blog.db
+      NODE_ENV: production
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?ADMIN_TOKEN 缺失——请写进 backend/.env}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+    volumes:
+      - blog-data:/data
+
+volumes:
+  blog-data:
