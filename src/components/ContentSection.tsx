@@ -107,6 +107,7 @@ const GiscusComments = () => {
 
     const script = document.createElement('script');
     script.src = 'https://giscus.app/client.js';
+    script.referrerPolicy = 'no-referrer';
     script.setAttribute('data-repo', 'Darling-02-02/my-blog-P5R');
     script.setAttribute('data-repo-id', 'R_kgDORSAoMw');
     script.setAttribute('data-category', 'General');

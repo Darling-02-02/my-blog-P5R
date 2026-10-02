@@ -1,4 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import {
+  AI_API_BASE_KEY,
+  AI_API_KEY,
+  AI_MODEL_KEY,
+  clearAICompanionStorage,
+} from '../lib/studyRoomStorage';
 
 type ChatRole = 'user' | 'assistant';
 
@@ -11,10 +17,6 @@ interface AICompanionPanelProps {
   isStudying: boolean;
   sessionSeconds: number;
 }
-
-const API_BASE_KEY = 'study_ai_api_base';
-const API_KEY_KEY = 'study_ai_api_key';
-const MODEL_KEY = 'study_ai_model';
 
 const toClock = (seconds: number) => {
   const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
@@ -44,25 +46,20 @@ const AICompanionPanel = ({ isStudying, sessionSeconds }: AICompanionPanelProps)
   ]);
 
   useEffect(() => {
-    const savedBase = localStorage.getItem(API_BASE_KEY);
-    const savedKey = localStorage.getItem(API_KEY_KEY);
-    const savedModel = localStorage.getItem(MODEL_KEY);
+    const savedBase = localStorage.getItem(AI_API_BASE_KEY);
+    const savedModel = localStorage.getItem(AI_MODEL_KEY);
 
     if (savedBase) setApiBase(savedBase);
-    if (savedKey) setApiKey(savedKey);
     if (savedModel) setModel(savedModel);
+    localStorage.removeItem(AI_API_KEY);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(API_BASE_KEY, apiBase);
+    localStorage.setItem(AI_API_BASE_KEY, apiBase);
   }, [apiBase]);
 
   useEffect(() => {
-    localStorage.setItem(API_KEY_KEY, apiKey);
-  }, [apiKey]);
-
-  useEffect(() => {
-    localStorage.setItem(MODEL_KEY, model);
+    localStorage.setItem(AI_MODEL_KEY, model);
   }, [model]);
 
   const studyStatus = useMemo(
@@ -70,11 +67,33 @@ const AICompanionPanel = ({ isStudying, sessionSeconds }: AICompanionPanelProps)
     [isStudying, sessionSeconds],
   );
 
+  const clearSavedConfiguration = () => {
+    clearAICompanionStorage(localStorage);
+    setApiBase('https://api.openai.com/v1');
+    setApiKey('');
+    setModel('gpt-4o-mini');
+    setError('已清除本地 AI 配置和当前 Key。');
+  };
+
   const sendMessage = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || sending) return;
     if (!apiBase.trim() || !apiKey.trim() || !model.trim()) {
       setError('请先配置 API Base URL / API Key / Model。');
+      return;
+    }
+
+    let parsedBase: URL;
+    try {
+      parsedBase = new URL(apiBase.trim());
+    } catch {
+      setError('API Base URL 格式不正确。');
+      return;
+    }
+
+    const isLocalDevelopment = ['localhost', '127.0.0.1', '[::1]'].includes(parsedBase.hostname);
+    if (parsedBase.protocol !== 'https:' && !isLocalDevelopment) {
+      setError('API Base URL 必须使用 HTTPS；本机开发可使用 localhost。');
       return;
     }
 
@@ -86,7 +105,7 @@ const AICompanionPanel = ({ isStudying, sessionSeconds }: AICompanionPanelProps)
     setPrompt('');
 
     try {
-      const response = await fetch(`${apiBase.replace(/\/$/, '')}/chat/completions`, {
+      const response = await fetch(`${parsedBase.toString().replace(/\/$/, '')}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -193,6 +212,22 @@ const AICompanionPanel = ({ isStudying, sessionSeconds }: AICompanionPanelProps)
         />
       </div>
 
+      <button
+        type="button"
+        onClick={clearSavedConfiguration}
+        style={{
+          marginTop: '0.55rem',
+          border: '1px solid var(--border-card)',
+          background: 'transparent',
+          color: 'var(--text-muted)',
+          borderRadius: '8px',
+          padding: '0.45rem 0.7rem',
+          cursor: 'pointer',
+        }}
+      >
+        清除本地 AI 配置
+      </button>
+
       <div
         style={{
           marginTop: '0.7rem',
@@ -276,7 +311,7 @@ const AICompanionPanel = ({ isStudying, sessionSeconds }: AICompanionPanelProps)
 
       {error && <div style={{ marginTop: '0.45rem', fontSize: '0.8rem', color: '#ff7676' }}>{error}</div>}
       <div style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-        说明：这是前端直连模式，Key 会保存在本地浏览器。生产环境建议走后端代理。
+        说明：API Key 仅保存在当前页面内存中，不会写入 localStorage；退出自习室时会清理。生产环境建议走后端代理。
       </div>
     </div>
   );

@@ -3,21 +3,20 @@ import type { FormEvent } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import AICompanionPanel from './AICompanionPanel';
+import {
+  LIVE2D_ENABLED_KEY,
+  USER_KEY,
+  clearAICompanionStorage,
+  loadStoredTodos,
+  loadStoredTotalSeconds,
+  migrateLegacyStudyData,
+  saveStoredTodos,
+  saveStoredTotalSeconds,
+} from '../lib/studyRoomStorage';
 
 interface StudyUser {
   name: string;
 }
-
-interface TodoItem {
-  id: number;
-  text: string;
-  done: boolean;
-}
-
-const USER_KEY = 'study_room_user';
-const TOTAL_SECONDS_KEY = 'study_room_total_seconds';
-const TODO_KEY = 'study_room_todos';
-const LIVE2D_ENABLED_KEY = 'study_room_live2d_enabled';
 
 const readStoredUser = (): StudyUser | null => {
   if (typeof window === 'undefined') {
@@ -35,34 +34,6 @@ const readStoredUser = (): StudyUser | null => {
   } catch {
     localStorage.removeItem(USER_KEY);
     return null;
-  }
-};
-
-const readStoredTotalSeconds = () => {
-  if (typeof window === 'undefined') {
-    return 0;
-  }
-
-  const savedTotalSeconds = Number(localStorage.getItem(TOTAL_SECONDS_KEY) ?? '0');
-  return Number.isNaN(savedTotalSeconds) ? 0 : savedTotalSeconds;
-};
-
-const readStoredTodos = (): TodoItem[] => {
-  if (typeof window === 'undefined') {
-    return [];
-  }
-
-  const savedTodos = localStorage.getItem(TODO_KEY);
-
-  if (!savedTodos) {
-    return [];
-  }
-
-  try {
-    return JSON.parse(savedTodos) as TodoItem[];
-  } catch {
-    localStorage.removeItem(TODO_KEY);
-    return [];
   }
 };
 
@@ -125,6 +96,8 @@ const Live2DCompanion = memo(() => {
       <iframe
         title="Live2D 学习伙伴"
         src={frameSrc}
+        sandbox="allow-scripts"
+        referrerPolicy="no-referrer"
         onLoad={() => setLoaded(true)}
         loading="lazy"
         style={{
@@ -151,24 +124,39 @@ const Live2DCompanion = memo(() => {
 });
 
 const StudyRoom = () => {
-  const [user, setUser] = useState<StudyUser | null>(readStoredUser);
+  const initialUser = readStoredUser();
+  const [user, setUser] = useState<StudyUser | null>(initialUser);
   const [nameInput, setNameInput] = useState('');
   const [isStudying, setIsStudying] = useState(false);
   const [sessionSeconds, setSessionSeconds] = useState(0);
-  const [totalSeconds, setTotalSeconds] = useState(readStoredTotalSeconds);
+  const [totalSeconds, setTotalSeconds] = useState(() => {
+    if (!initialUser || typeof window === 'undefined') return 0;
+    migrateLegacyStudyData(localStorage, initialUser.name);
+    return loadStoredTotalSeconds(localStorage, initialUser.name);
+  });
   const [lineIndex, setLineIndex] = useState(0);
   const [todoInput, setTodoInput] = useState('');
-  const [todos, setTodos] = useState<TodoItem[]>(readStoredTodos);
+  const [todos, setTodos] = useState(() => {
+    if (!initialUser || typeof window === 'undefined') return [];
+    return loadStoredTodos(localStorage, initialUser.name);
+  });
   const [live2dEnabled, setLive2dEnabled] = useState(readStoredLive2DEnabled);
   const totalSecondsRef = useRef(0);
+  const userNameRef = useRef<string | null>(initialUser?.name ?? null);
 
   useEffect(() => {
     totalSecondsRef.current = totalSeconds;
   }, [totalSeconds]);
 
   useEffect(() => {
+    userNameRef.current = user?.name ?? null;
+  }, [user?.name]);
+
+  useEffect(() => {
     const persistTotal = () => {
-      localStorage.setItem(TOTAL_SECONDS_KEY, String(totalSecondsRef.current));
+      const name = userNameRef.current;
+      if (!name) return;
+      saveStoredTotalSeconds(localStorage, name, totalSecondsRef.current);
     };
 
     const saveInterval = window.setInterval(persistTotal, 10000);
@@ -181,8 +169,9 @@ const StudyRoom = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(TODO_KEY, JSON.stringify(todos));
-  }, [todos]);
+    if (!user) return;
+    saveStoredTodos(localStorage, user.name, todos);
+  }, [todos, user]);
 
   useEffect(() => {
     localStorage.setItem(LIVE2D_ENABLED_KEY, live2dEnabled ? '1' : '0');
@@ -212,14 +201,28 @@ const StudyRoom = () => {
     if (!name) return;
 
     const nextUser = { name };
+    migrateLegacyStudyData(localStorage, name);
+    setTotalSeconds(loadStoredTotalSeconds(localStorage, name));
+    setTodos(loadStoredTodos(localStorage, name));
+    setSessionSeconds(0);
     setUser(nextUser);
     localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
     setNameInput('');
   };
 
   const handleLogout = () => {
+    const name = user?.name;
+    if (name) {
+      saveStoredTotalSeconds(localStorage, name, totalSecondsRef.current);
+      saveStoredTodos(localStorage, name, todos);
+    }
     setIsStudying(false);
+    setSessionSeconds(0);
+    setTotalSeconds(0);
+    setTodos([]);
+    setTodoInput('');
     setUser(null);
+    clearAICompanionStorage(localStorage);
     localStorage.removeItem(USER_KEY);
   };
 
@@ -288,7 +291,7 @@ const StudyRoom = () => {
                   }}
                 >
                   <h2 style={{ color: 'var(--text-heading)', marginBottom: '0.8rem' }}>登录进入</h2>
-                  <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>输入昵称即可进入你的自习室。</p>
+                  <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>输入昵称即可进入你的自习室；数据按本机昵称隔离，不代表账号认证。</p>
                   <input
                     value={nameInput}
                     onChange={(e) => setNameInput(e.target.value)}

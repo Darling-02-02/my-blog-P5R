@@ -23,6 +23,8 @@ type ArticleRow = {
   updated_at: string;
 };
 
+type ArticleQueryRow = Omit<ArticleRow, 'content'> & { content?: string };
+
 const now = () => new Date().toISOString();
 
 export const createArticleRepository = (db: Database.Database) => {
@@ -34,18 +36,39 @@ export const createArticleRepository = (db: Database.Database) => {
     ORDER BY t.name COLLATE NOCASE
   `);
 
-  const mapRow = (row: ArticleRow): ArticleRecord => ({
+  const loadTagsByArticle = (rows: Array<{ id: number }>) => {
+    if (!rows.length) return new Map<number, string[]>();
+
+    const placeholders = rows.map(() => '?').join(', ');
+    const tagRowsForPage = db.prepare(`
+      SELECT at.article_id, t.name
+      FROM article_tags at
+      INNER JOIN tags t ON t.id = at.tag_id
+      WHERE at.article_id IN (${placeholders})
+      ORDER BY at.article_id, t.name COLLATE NOCASE
+    `).all(...rows.map((row) => row.id)) as Array<{ article_id: number; name: string }>;
+
+    const tagsByArticle = new Map<number, string[]>();
+    for (const row of tagRowsForPage) {
+      const tags = tagsByArticle.get(row.article_id) ?? [];
+      tags.push(row.name);
+      tagsByArticle.set(row.article_id, tags);
+    }
+    return tagsByArticle;
+  };
+
+  const mapRow = (row: ArticleQueryRow, tagsByArticle?: Map<number, string[]>): ArticleRecord => ({
     id: row.id,
     slug: row.slug,
     title: row.title,
     excerpt: row.excerpt,
-    content: row.content,
+    content: row.content ?? '',
     coverUrl: row.cover_url,
     category: row.category,
     subcategory: row.subcategory || undefined,
     date: row.published_at ?? row.created_at,
     readTime: row.read_time,
-    tags: (tagRows.all(row.id) as Array<{ name: string }>).map((tag) => tag.name),
+    tags: tagsByArticle?.get(row.id) ?? (tagRows.all(row.id) as Array<{ name: string }>).map((tag) => tag.name),
     status: row.status,
     publishedAt: row.published_at,
     createdAt: row.created_at,
@@ -95,11 +118,18 @@ export const createArticleRepository = (db: Database.Database) => {
 
     const where = filters.join(' AND ');
     const countRow = db.prepare(`SELECT COUNT(*) as count FROM articles a WHERE ${where}`).get(...params) as { count: number };
-    const rows = db.prepare(`SELECT a.* FROM articles a WHERE ${where} ORDER BY a.published_at DESC, a.id DESC LIMIT ? OFFSET ?`)
-      .all(...params, query.pageSize, (query.page - 1) * query.pageSize) as ArticleRow[];
+    const rows = db.prepare(`
+      SELECT a.id, a.slug, a.title, a.excerpt, a.cover_url, a.category, a.subcategory,
+             a.read_time, a.status, a.published_at, a.created_at, a.updated_at
+      FROM articles a
+      WHERE ${where}
+      ORDER BY a.published_at DESC, a.id DESC
+      LIMIT ? OFFSET ?
+    `).all(...params, query.pageSize, (query.page - 1) * query.pageSize) as ArticleQueryRow[];
+    const tagsByArticle = loadTagsByArticle(rows);
 
     return {
-      items: rows.map(mapRow).map(toSummary),
+      items: rows.map((row) => mapRow(row, tagsByArticle)).map(toSummary),
       page: query.page,
       pageSize: query.pageSize,
       total: countRow.count,
@@ -107,8 +137,8 @@ export const createArticleRepository = (db: Database.Database) => {
   };
 
   const listAll = (): ArticleRecord[] => {
-    const rows = db.prepare('SELECT * FROM articles ORDER BY updated_at DESC, id DESC').all() as ArticleRow[];
-    return rows.map(mapRow);
+    const rows = db.prepare('SELECT * FROM articles ORDER BY updated_at DESC, id DESC LIMIT ?').all(200) as ArticleRow[];
+    return rows.map((row) => mapRow(row));
   };
 
   const findPublishedBySlug = (slug: string) => {

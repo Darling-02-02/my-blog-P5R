@@ -19,7 +19,15 @@ export const publicListQuerySchema = z.object({
   category: z.string().trim().max(80).optional(),
   tag: z.string().trim().max(50).optional(),
   page: z.coerce.number().int().min(1).max(10_000).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  pageSize: z.coerce.number().int().min(1).max(50).default(20),
+}).superRefine((query, context) => {
+  if ((query.page - 1) * query.pageSize > 10_000) {
+    context.addIssue({
+      code: 'custom',
+      path: ['page'],
+      message: 'page offset is too deep',
+    });
+  }
 });
 
 export const slugParamsSchema = z.object({ slug: z.string().trim().min(1).max(120) });

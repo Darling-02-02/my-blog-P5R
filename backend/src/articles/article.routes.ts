@@ -51,7 +51,14 @@ export const registerArticleRoutes = (
 
   const requireAdmin = registerAdminGuard(adminToken);
 
-  app.get('/api/admin/articles', { preHandler: requireAdmin }, async () => ({ items: repository.listAll() }));
+  app.get('/api/admin/articles', { preHandler: requireAdmin }, async () => {
+    const items = repository.listAll();
+    return {
+      items,
+      truncated: items.length === 200,
+      maxItems: 200,
+    };
+  });
 
   app.post('/api/admin/articles', { preHandler: requireAdmin }, async (request, reply) => {
     const input = parseOrError(reply, articleWriteSchema, request.body);

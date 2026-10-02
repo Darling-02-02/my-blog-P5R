@@ -11,12 +11,27 @@ export interface BuildAppOptions {
   corsOrigin: string[];
 }
 
+export const FASTIFY_HARDENING_OPTIONS = {
+  bodyLimit: 512_000,
+  requestTimeout: 15_000,
+  connectionTimeout: 10_000,
+  keepAliveTimeout: 5_000,
+  maxRequestsPerSocket: 100,
+} as const;
+
 export const buildApp = ({ db, adminToken, corsOrigin }: BuildAppOptions) => {
   // Fastify 3 ships CommonJS type definitions, so under NodeNext these imports
   // resolve to a module namespace instead of the callable plugin factory.
-  const createFastify = Fastify as unknown as (options?: { logger?: boolean }) => FastifyInstance;
+  const createFastify = Fastify as unknown as (options?: {
+    logger?: boolean;
+    bodyLimit?: number;
+    requestTimeout?: number;
+    connectionTimeout?: number;
+    keepAliveTimeout?: number;
+    maxRequestsPerSocket?: number;
+  }) => FastifyInstance;
   const registerCors = cors as unknown as Parameters<FastifyInstance['register']>[0];
-  const app = createFastify({ logger: false });
+  const app = createFastify({ logger: false, ...FASTIFY_HARDENING_OPTIONS });
   const repository = createArticleRepository(db);
 
   app.register(registerCors, {

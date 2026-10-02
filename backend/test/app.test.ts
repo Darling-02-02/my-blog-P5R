@@ -114,6 +114,59 @@ test('admin can create, edit, publish, read, unpublish, and delete an article', 
   db.close();
 });
 
+test('public list query rejects abusive pagination bounds', async () => {
+  const { app, db } = createTestApp();
+
+  const tooDeep = await app.inject({ method: 'GET', url: '/api/articles?page=1001' });
+  assert.equal(tooDeep.statusCode, 400);
+
+  const tooWide = await app.inject({ method: 'GET', url: '/api/articles?pageSize=51' });
+  assert.equal(tooWide.statusCode, 400);
+
+  await app.close();
+  db.close();
+});
+
+test('app applies bounded HTTP request settings', () => {
+  const { app, db } = createTestApp();
+  const initialConfig = app.initialConfig as Record<string, unknown>;
+
+  assert.equal(initialConfig.bodyLimit, 512_000);
+  assert.equal(initialConfig.requestTimeout, 15_000);
+  assert.equal(initialConfig.connectionTimeout, 10_000);
+  assert.equal(initialConfig.maxRequestsPerSocket, 100);
+
+  void app.close();
+  db.close();
+});
+
+test('public article lists preserve tags after set-based loading', async () => {
+  const { app, db } = createTestApp();
+  const now = new Date().toISOString();
+
+  const first = db.prepare(`INSERT INTO articles (slug, title, excerpt, content, category, read_time, status, published_at, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+    'tagged-first', 'Tagged first', '', '# first', '随笔', '', 'published', now, now, now,
+  );
+  const second = db.prepare(`INSERT INTO articles (slug, title, excerpt, content, category, read_time, status, published_at, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+    'tagged-second', 'Tagged second', '', '# second', '随笔', '', 'published', now, now, now,
+  );
+  const insertTag = db.prepare('INSERT INTO tags (name) VALUES (?)');
+  const insertLink = db.prepare('INSERT INTO article_tags (article_id, tag_id) VALUES (?, ?)');
+  const firstTag = Number(insertTag.run('first-tag').lastInsertRowid);
+  const secondTag = Number(insertTag.run('second-tag').lastInsertRowid);
+  insertLink.run(Number(first.lastInsertRowid), firstTag);
+  insertLink.run(Number(second.lastInsertRowid), secondTag);
+
+  const response = await app.inject({ method: 'GET', url: '/api/articles?pageSize=2' });
+
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(response.json().items.map((item: { tags: string[] }) => item.tags), [['second-tag'], ['first-tag']]);
+  await app.close();
+  db.close();
+});
+
 test('malformed request errors keep their own status code', async () => {
   const { app, db } = createTestApp();
 
