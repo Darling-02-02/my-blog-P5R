@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Build and deploy to CloudBase
 
 on:
   push:
@@ -7,43 +7,41 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: cloudbase-deploy
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
           cache: npm
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build
         run: npm run build
-      
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Install CloudBase CLI
+        run: npm install -g @cloudbase/cli
+
+      # 环境级 API Key：只对该环境有效，可在控制台/CLI 单独吊销
+      # （tcb env apikey create <name> -e <envId> / tcb env apikey delete <keyId>）
+      - name: Login to CloudBase
+        run: tcb login --cloudbase-api-key "$CLOUDBASE_API_KEY" -e "$TCB_ENV_ID"
+        env:
+          CLOUDBASE_API_KEY: ${{ secrets.CLOUDBASE_API_KEY }}
+          TCB_ENV_ID: ${{ secrets.TCB_ENV_ID }}
+
+      - name: Deploy to static hosting
+        run: tcb hosting deploy ./dist / -e "$TCB_ENV_ID"
+        env:
+          TCB_ENV_ID: ${{ secrets.TCB_ENV_ID }}

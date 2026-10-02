@@ -1,12 +1,12 @@
 # 后端部署简明流程
 
-> 适用环境：Ubuntu、Node.js 16、Git、Caddy、SQLite。
+> 适用环境：Ubuntu、Node.js 22、Git、Caddy、SQLite。
 >
 > 当前项目后端目录：`backend/`。
 >
 > 示例项目路径：`/home/YOUR_USER/project/my-blog-P5R`。
 >
-> 更新日期：2026-09-24
+> 更新日期：2026-09-26
 
 ## 1. DNS
 
@@ -73,7 +73,7 @@ NODE_ENV=production
 
 ## 4. 安装和编译后端
 
-服务器使用 Node 16 时：
+服务器使用 Node 22 时：
 
 ```bash
 cd ~/project/my-blog-P5R/backend
@@ -83,7 +83,9 @@ npm ci --no-audit --no-fund
 npm run build
 ```
 
-`better-sqlite3` 会优先尝试下载匹配 Node 16/Linux 架构的预编译文件。
+`npm run build` 会先清空 `dist/`，再生成唯一的 `dist/server.js` 运行树，避免旧的 `dist/src/*` 输出被误用。生产更新建议从已审核的 commit 构建到新的 release 目录，再原子切换 systemd 指向；不要在正在运行的 checkout 上直接 `git pull && npm run build`。
+
+`better-sqlite3@13.0.3` 使用 N-API，并要求 Node.js 22 或更高版本；生产环境应在受控构建环境中记录最终 native addon 的 SHA-256，并在启用 systemd 前校验该摘要。
 
 验证 SQLite：
 
@@ -142,11 +144,13 @@ User=YOUR_USER
 Group=YOUR_USER
 WorkingDirectory=/home/YOUR_USER/project/my-blog-P5R/backend
 EnvironmentFile=/home/YOUR_USER/project/my-blog-P5R/backend/.env
-ExecStart=/home/YOUR_USER/.nvm/versions/node/v16.20.2/bin/node /home/YOUR_USER/project/my-blog-P5R/backend/dist/server.js
+ExecStart=/home/YOUR_USER/.nvm/versions/node/v22.22.3/bin/node /home/YOUR_USER/project/my-blog-P5R/backend/dist/server.js
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true
 PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/home/YOUR_USER/project/my-blog-data
 
 [Install]
 WantedBy=multi-user.target

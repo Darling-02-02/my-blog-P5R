@@ -69,7 +69,7 @@ public/
 
 The frontend can read published articles from the standalone service under `backend/`. The existing topic Markdown flow remains static and unchanged.
 
-A concise server deployment walkthrough is available in [`docs/backend-deployment-quickstart.md`](docs/backend-deployment-quickstart.md).
+A concise server deployment walkthrough is available in [`pipeline/backend-deployment-quickstart.md`](pipeline/backend-deployment-quickstart.md). All deployment and content flow docs are indexed in [`pipeline/README.md`](pipeline/README.md).
 
 ### Local development
 
@@ -97,7 +97,7 @@ If `VITE_ARTICLE_SOURCE=static`, the frontend keeps using the existing static ar
 
 ### Backend checks
 
-The backend targets Node.js 16 because the deployment server cannot upgrade, so run backend commands with a matching Node version.
+The backend targets Node.js 22. Use the pinned backend dependencies and a matching Node 22 runtime for backend commands.
 
 ```bash
 npm --prefix backend test
@@ -112,8 +112,8 @@ npm --prefix backend run build
 4. Create a DNS A record for `api.darling-02.cn` pointing to the server's public fixed IP.
 5. Install `backend/deploy/my-blog-api.service` into `/etc/systemd/system/` and replace the placeholder `blog` user/group if needed.
 6. Install Caddy and use `backend/deploy/Caddyfile` to proxy HTTPS traffic to `127.0.0.1:4000`.
-7. Open only TCP 80/443 at the host and campus edge firewall; keep port 4000 private.
+7. Open only TCP 80/443 at the host firewall; keep port 4000 private.
 8. Enable the service with `sudo systemctl enable --now my-blog-api`.
 9. Back up `/srv/my-blog-api/data/blog.db` daily and retain at least seven copies.
 
-The fixed IP must be publicly reachable for direct DNS access. If it is only a campus-network address or inbound 80/443 is blocked, public DNS alone is insufficient; use school-provided port mapping, VPN, or a tunnel.
+The fixed IP must be publicly reachable for direct DNS access. If the host or inbound 80/443 is blocked, public DNS alone is insufficient; use a VPN or a tunnel.

@@ -30,13 +30,16 @@ Follow the existing style: two-space indentation, single quotes in config files,
 
 ## Testing Guidelines
 
-There is no dedicated unit test framework configured yet. Before submitting changes, run:
+There is no full unit test framework configured. Before submitting changes, run:
 
 ```bash
 npm run lint
 npm run validate:content
 npm run build
+npx tsx --test scripts/security-hardening.test.ts
 ```
+
+`npx tsx --test ...` runs the `node:test` checks that cover the Study Room storage helpers in `src/lib/studyRoomStorage.ts`.
 
 For article changes, ensure every Markdown file under `src/content/articles/` has frontmatter fields: `id`, `title`, `excerpt`, `category`, `date`, `readTime`, and a non-empty `tags` list.
 
@@ -48,4 +51,4 @@ Pull requests should include a brief description, testing commands run, and scre
 
 ## Security & Configuration Tips
 
-The app is configured for GitHub Pages with `base: /my-blog-P5R/`. Do not commit secrets. The Study Room AI companion stores user-provided API keys in `localStorage`; prefer a server-side proxy before production use.
+The app builds for a root-path deploy (`base: '/'`) and is published to CloudBase static hosting; `.github/workflows/deploy.yml` rebuilds and deploys on every push to `main` (operational details in `pipeline/cloudbase-deployment.md`). Do not commit secrets. The Study Room AI companion keeps user-provided API keys in memory only; prefer a server-side proxy before production use.
