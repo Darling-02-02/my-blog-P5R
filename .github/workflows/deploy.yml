@@ -36,15 +36,23 @@ jobs:
 
       # 环境级 API Key：只对该环境有效，可在控制台/CLI 单独吊销
       # （tcb env apikey create <name> -e <envId> / tcb env apikey delete <keyId>）
-      # -y 不能省：登录成功后 CLI 会就「是否同意收集使用数据」弹确认框，
-      # 而该确认只认 -y/--yes 或 CLOUDBASE_CI=1，在无 TTY 的 runner 上会一直等下去
+      - name: Check required secrets
+        env:
+          CLOUDBASE_API_KEY: ${{ secrets.CLOUDBASE_API_KEY }}
+          TCB_ENV_ID: ${{ secrets.TCB_ENV_ID }}
+        run: |
+          if [ -z "$CLOUDBASE_API_KEY" ] || [ -z "$TCB_ENV_ID" ]; then
+            echo "::error::缺少 Secrets CLOUDBASE_API_KEY / TCB_ENV_ID，请在 Settings → Secrets and variables → Actions 添加（值见 pipeline/cloudbase-deployment.md）"
+            exit 1
+          fi
+
       - name: Login to CloudBase
-        run: tcb login -y --cloudbase-api-key "$CLOUDBASE_API_KEY" -e "$TCB_ENV_ID"
+        run: tcb login --cloudbase-api-key "$CLOUDBASE_API_KEY" -e "$TCB_ENV_ID"
         env:
           CLOUDBASE_API_KEY: ${{ secrets.CLOUDBASE_API_KEY }}
           TCB_ENV_ID: ${{ secrets.TCB_ENV_ID }}
 
       - name: Deploy to static hosting
-        run: tcb hosting deploy -y ./dist / -e "$TCB_ENV_ID"
+        run: tcb hosting deploy ./dist / -e "$TCB_ENV_ID"
         env:
           TCB_ENV_ID: ${{ secrets.TCB_ENV_ID }}
