@@ -24,6 +24,7 @@ jobs:
           TCB_ENV_ID: ${{ secrets.TCB_ENV_ID }}
         run: |
           exec > /tmp/dbg.log 2>&1
+          set +e
           echo "node=$(node -v)"
           echo "cli=$(npm ls -g @cloudbase/cli --depth=0 2>/dev/null | tail -1)"
           echo "cwd=$(pwd)"
@@ -49,3 +50,4 @@ jobs:
           git add -f .ci-debug/login.log
           git commit -m "ci-debug: capture tcb login behaviour"
           git push -f origin HEAD:ci-debug
+          echo "push exit=$?"
