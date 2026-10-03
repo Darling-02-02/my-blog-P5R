@@ -51,4 +51,4 @@ Pull requests should include a brief description, testing commands run, and scre
 
 ## Security & Configuration Tips
 
-The app builds for a root-path deploy (`base: '/'`) and is published to CloudBase static hosting; `.github/workflows/deploy.yml` rebuilds and deploys on every push to `main` (operational details in `pipeline/cloudbase-deployment.md`). Do not commit secrets. The Study Room AI companion keeps user-provided API keys in memory only; prefer a server-side proxy before production use.
+The app builds for a root-path deploy (`base: '/'`) and is published to Cloudflare Pages; `.github/workflows/deploy.yml` rebuilds and deploys on every push to `main` (operational details in `pipeline/cloudflare-pages-deployment.md`). Do not commit secrets. The Study Room AI companion keeps user-provided API keys in memory only; prefer a server-side proxy before production use.

@@ -29,18 +29,22 @@ tcb hosting deploy ./dist -e self-d4g5iy3gmd8f1ce36 --verify
 | SSL 证书 | `bEpYNNb0`，控制台申请 |
 | 静态托管 | 110 个文件，`/`、`/study-room`、`/assets/*` 均 200 |
 
-## 自动部署（网页写文章 → 自动上线）
+## 自动部署已迁走
 
-链路：`/admin` 页面提交 → GitHub Contents API 提交 Markdown 到 `src/content/articles/<分类>/<slug>.md` → push 到 `main` → GitHub Actions 构建并推送到 CloudBase 静态托管根目录，约 1–2 分钟上线。
+**2026-10-03 起 CI 不再推 CloudBase**，`.github/workflows/deploy.yml` 改为部署到 Cloudflare Pages（见 [`cloudflare-pages-deployment.md`](cloudflare-pages-deployment.md)）。原因见下面「已知限制」第 1 条：默认域名对浏览器访问返回「风险提醒」页，绑自定义域名又卡在备案，所以 CloudBase 这条路即使 CI 变绿也看不到页面。
 
-`.github/workflows/deploy.yml` 用 **CloudBase 环境级 API Key** 鉴权（只对本环境有效，可单独吊销），不是腾讯云 SecretId/SecretKey。
+CloudBase 现在只作为**手动**备用目标保留，需要时本机执行：
 
-仓库需要在 **Settings → Secrets and variables → Actions** 里加两个 Secret：
+```bash
+tcb login -e self-d4g5iy3gmd8f1ce36
+tcb hosting deploy ./dist / -e self-d4g5iy3gmd8f1ce36 --verify
+```
 
-| Secret | 值 |
-| --- | --- |
-| `TCB_ENV_ID` | `self-d4g5iy3gmd8f1ce36` |
-| `CLOUDBASE_API_KEY` | 用下面的命令生成 |
+`/` 是云端目标路径，必须是根目录，否则 SPA 路由与外链资源都会 404。
+
+### 如果要恢复 CI 部署到 CloudBase
+
+用 **CloudBase 环境级 API Key** 鉴权（只对本环境有效，可单独吊销），不是腾讯云 SecretId/SecretKey：
 
 ```bash
 tcb env apikey create github-actions -e self-d4g5iy3gmd8f1ce36   # 创建，返回值只显示一次
@@ -48,9 +52,9 @@ tcb env apikey list   -e self-d4g5iy3gmd8f1ce36                  # 查看 KeyId
 tcb env apikey delete <keyId> -e self-d4g5iy3gmd8f1ce36          # 吊销（泄漏时用）
 ```
 
-注意：workflow 里 `tcb hosting deploy ./dist /` 的 `/` 是云端目标路径，必须是根目录，否则 SPA 路由与外链资源都会 404。
+对应的 Secret 是 `TCB_ENV_ID`（`self-d4g5iy3gmd8f1ce36`）和 `CLOUDBASE_API_KEY`。
 
-坑：Secret 没配好时 `tcb login` **不会报错，而是退回到扫码/设备码登录**（打印一个 `https://tcb.cloud.tencent.com/dev#/cli-auth?user_code=...` 链接然后一直等），在无 TTY 的 runner 上会卡到任务超时。所以 workflow 里加了 `Check required secrets` 这一步：两个 Secret 任一为空就直接失败并报出名字，不再进 login。
+坑：Secret 没配好时 `tcb login` **不会报错，而是退回到扫码/设备码登录**（打印一个 `https://tcb.cloud.tencent.com/dev#/cli-auth?user_code=...` 链接然后一直等），在无 TTY 的 runner 上会卡到任务超时。这正是当初一直「部署卡住」的原因——不是代码问题，是两个 Secret 没配上。任何用 `tcb` 的 workflow 都要在 login 前先检查 Secret 非空。
 
 写文章用的是另一个凭据：`/admin` 页面顶部要填一个 **fine-grained GitHub Token**（仅本仓库 `Contents: Read and write`），只存在浏览器 sessionStorage 里，不落盘、不入库。
 
