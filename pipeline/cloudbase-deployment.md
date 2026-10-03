@@ -50,6 +50,8 @@ tcb env apikey delete <keyId> -e self-d4g5iy3gmd8f1ce36          # 吊销（泄�
 
 注意：workflow 里 `tcb hosting deploy ./dist /` 的 `/` 是云端目标路径，必须是根目录，否则 SPA 路由与外链资源都会 404。
 
+坑：两条 `tcb` 命令都必须带 `-y`。`tcb login` 登录成功后会就「是否同意收集使用数据」弹交互确认框，而该确认只认 `-y`/`--yes` 或 `CLOUDBASE_CI=1`（CLI 内部的 `autoConfirm` 没走它自己的 `canPrompt()`，所以 `process.env.CI` 拦不住），在无 TTY 的 runner 上会一直阻塞到任务超时。
+
 写文章用的是另一个凭据：`/admin` 页面顶部要填一个 **fine-grained GitHub Token**（仅本仓库 `Contents: Read and write`），只存在浏览器 sessionStorage 里，不落盘、不入库。
 
 ## 当前阻塞：备案接入
