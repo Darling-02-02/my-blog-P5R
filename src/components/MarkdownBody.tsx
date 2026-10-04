@@ -104,7 +104,7 @@ interface MarkdownBodyProps {
 }
 
 const MarkdownBody = ({ content }: MarkdownBodyProps) => (
-  <>
+  <div className="article-body" style={{ overflowWrap: 'anywhere' }}>
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true }]]}
@@ -129,7 +129,7 @@ const MarkdownBody = ({ content }: MarkdownBodyProps) => (
         },
         img({ src, alt, title }) {
           return <img src={src || undefined} alt={alt ?? ''} title={title} loading="lazy" decoding="async"
-            style={{ maxWidth: '100%', height: 'auto' }} />;
+            style={{ display: 'block', maxWidth: '100%', height: 'auto', margin: '1.25rem auto', borderRadius: 8 }} />;
         },
         h2({ children }) {
           const text = String(children).toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '');
@@ -339,7 +339,7 @@ const MarkdownBody = ({ content }: MarkdownBodyProps) => (
         }
       }
     `}</style>
-  </>
+  </div>
 );
 
 export default MarkdownBody;
