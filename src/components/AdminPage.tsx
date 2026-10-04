@@ -42,7 +42,7 @@ const AdminPage = () => {
   const [token, setToken] = useState(() => sessionStorage.getItem(TOKEN_KEY) ?? '');
   const [articles, setArticles] = useState<Article[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
-  const [adminMode, setAdminMode] = useState<'articles' | 'topics'>('articles');
+  const [adminMode, setAdminMode] = useState<'articles' | 'topics'>(activeArticleSource.kind === 'github' ? 'topics' : 'articles');
   const [selected, setSelected] = useState<Article | undefined>();
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -175,7 +175,7 @@ const AdminPage = () => {
       <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gap: '1rem' }}>
         <div style={{ ...panelStyle, display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <div>
-            <h1 style={{ margin: 0, color: 'var(--text-heading)' }}>文章后台</h1>
+            <h1 style={{ margin: 0, color: 'var(--text-heading)' }}>📝 内容小后台</h1>
             <p style={{ margin: '0.4rem 0 0', color: 'var(--text-muted)' }}>{activeArticleSource.panelHint}</p>
           </div>
           <button type="button" onClick={() => navigate('/')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', borderRadius: '8px', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer' }}>
@@ -196,8 +196,8 @@ const AdminPage = () => {
         {message && <p role="alert" style={{ ...panelStyle, color: message.includes('无效') || message.includes('失败') || message.includes('不足') ? '#b00020' : 'var(--text-body)', margin: 0 }}>{message}</p>}
 
         {token && <div role="tablist" aria-label="内容管理" style={{ display: 'flex', gap: '0.5rem' }}>
-          <button type="button" role="tab" aria-selected={adminMode === 'articles'} onClick={() => setAdminMode('articles')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', background: adminMode === 'articles' ? '#ff0040' : 'var(--bg-card)', color: adminMode === 'articles' ? '#fff' : 'var(--text-body)' }}>文章管理</button>
-          <button type="button" role="tab" aria-selected={adminMode === 'topics'} onClick={() => setAdminMode('topics')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', background: adminMode === 'topics' ? '#ff0040' : 'var(--bg-card)', color: adminMode === 'topics' ? '#fff' : 'var(--text-body)' }}>专题与章节</button>
+          <button type="button" role="tab" aria-selected={adminMode === 'articles'} onClick={() => setAdminMode('articles')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', background: adminMode === 'articles' ? '#ff0040' : 'var(--bg-card)', color: adminMode === 'articles' ? '#fff' : 'var(--text-body)' }}>📄 独立文章</button>
+          <button type="button" role="tab" aria-selected={adminMode === 'topics'} onClick={() => setAdminMode('topics')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', background: adminMode === 'topics' ? '#ff0040' : 'var(--bg-card)', color: adminMode === 'topics' ? '#fff' : 'var(--text-body)' }}>🌱 专题章节</button>
         </div>}
         {token && adminMode === 'topics' && <div style={panelStyle}>
           {activeArticleSource.kind === 'github' ? <TopicEditor token={token} topics={topics} refresh={() => loadTopics(token)} /> :
@@ -214,7 +214,7 @@ const AdminPage = () => {
               </div>
               <button type="button" onClick={() => clearAdminSession()} style={{ alignSelf: 'start', border: '1px solid var(--border-card)', borderRadius: '6px', padding: '0.35rem 0.6rem', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>退出后台</button>
               {loading && <p role="status" style={{ color: 'var(--text-muted)' }}>加载中…</p>}
-              {!loading && articles.length === 0 && <p style={{ color: 'var(--text-muted)' }}>暂无文章</p>}
+              {!loading && articles.length === 0 && <p style={{ color: 'var(--text-muted)' }}>这里还没有独立文章哦～专题章节请切换到上面的「🌱 专题章节」管理。</p>}
               {articles.map((article) => (
                 <div key={article.slug} style={{ borderTop: '1px solid var(--border-section)', paddingTop: '0.75rem' }}>
                   <button type="button" onClick={() => { setSelected(article); setEditorError(null); }} style={{ width: '100%', textAlign: 'left', border: 'none', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer', padding: 0 }}>

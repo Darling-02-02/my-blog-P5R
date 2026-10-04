@@ -27,6 +27,11 @@ export const topicDirectories: Record<string, string> = {
 
 export const topicSlugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+export const createContentSlug = (title: string, kind: 'topic' | 'section') => {
+  const ascii = title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return ascii || `${kind}-${Date.now().toString(36)}`;
+};
+
 export const parseTopicDocument = (source: string, label: string) => {
   const match = source.replace(/^\uFEFF/, '').match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)([\s\S]*)$/);
   if (!match) throw new Error(`Topic document is missing frontmatter: ${label}`);

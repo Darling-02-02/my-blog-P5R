@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from 'react';
 import type { Topic, TopicSection } from '../data/topics';
 import { parseMarkdownImport } from '../lib/markdown-import';
-import { topicDirectories } from '../lib/topic-content';
+import { topicDirectories, createContentSlug } from '../lib/topic-content';
 import type { TopicDraftInput, SectionDraftInput } from '../lib/topic-content';
 import { topicPublisher } from '../lib/topic-publisher';
 
@@ -72,13 +72,15 @@ export default function TopicEditor({ token, topics, refresh }: Props) {
     setMessage('');
     try {
       if (tab === 'topic') {
-        const input = { ...topic, tags: [...new Set(tagsText.split(',').map((tag) => tag.trim()).filter(Boolean))] };
+        const input = { ...topic, slug: topic.slug || createContentSlug(topic.title, 'topic'), tags: [...new Set(tagsText.split(',').map((tag) => tag.trim()).filter(Boolean))] };
+        const firstSection = { ...section, slug: section.slug || createContentSlug(section.title, 'section') };
         if (selected) await topicPublisher.saveTopic(token, input);
-        else await topicPublisher.create(token, input, section);
+        else await topicPublisher.create(token, input, firstSection);
         setSelected(input.slug);
       } else {
-        await topicPublisher.saveSection(token, category, selected, section, !sectionSlug);
-        setSectionSlug(section.slug);
+        const input = { ...section, slug: section.slug || createContentSlug(section.title, 'section') };
+        await topicPublisher.saveSection(token, category, selected, input, !sectionSlug);
+        setSectionSlug(input.slug);
       }
       await refresh();
       setMessage('已提交到 GitHub，站点重新构建后即可访问。');
@@ -119,24 +121,26 @@ export default function TopicEditor({ token, topics, refresh }: Props) {
       <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0, display: 'grid', gap: '0.85rem', minWidth: 0 }}>
         <h3 style={{ margin: 0, color: 'var(--text-heading)' }}>{tab === 'topic' ? selected ? '编辑专题' : '新建专题' : sectionSlug ? '编辑章节' : '新建章节'}</h3>
         {tab === 'topic' ? <>
-          <label style={labelStyle}>专题名称<input required value={topic.title} onChange={(event) => topicField('title', event.target.value)} style={inputStyle} /></label>
-          <label style={labelStyle}>专题 Slug<input required disabled={Boolean(selected)} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={topic.slug} onChange={(event) => topicField('slug', event.target.value)} style={inputStyle} /></label>
-          <label style={labelStyle}>简介<textarea required value={topic.summary} onChange={(event) => topicField('summary', event.target.value)} style={inputStyle} /></label>
-          <label style={labelStyle}>封面路径（可留空）<input value={topic.cover} onChange={(event) => topicField('cover', event.target.value)} style={inputStyle} placeholder="images/cover.png 或 https://..." /></label>
-          <label style={labelStyle}>排序<input required type="number" min="0" step="1" value={topic.order} onChange={(event) => topicField('order', Number(event.target.value))} style={inputStyle} /></label>
-          <label style={labelStyle}>标签（逗号分隔）<input value={tagsText} onChange={(event) => setTagsText(event.target.value)} style={inputStyle} /></label>
+          <label style={labelStyle}>专题名称<input required value={topic.title} onChange={(event) => topicField('title', event.target.value)} style={inputStyle} placeholder="例如：从零开始学机器学习" /></label>
+          <p style={{ margin: '-0.35rem 0 0', color: 'var(--text-muted)', fontSize: '0.82rem' }}>🔗 专题网址会根据名称自动生成 Slug，不需要手填；中文名称会使用短 ID。</p>
+          <label style={labelStyle}>一句话简介<textarea required value={topic.summary} onChange={(event) => topicField('summary', event.target.value)} style={inputStyle} placeholder="让读者一眼知道这个专题讲什么" /></label>
+          <details>
+            <summary style={{ cursor: 'pointer', color: 'var(--text-muted)' }}>更多设置（可选）</summary>
+            <div style={{ display: 'grid', gap: '0.7rem', marginTop: '0.7rem' }}>
+              <label style={labelStyle}>封面路径<input value={topic.cover} onChange={(event) => topicField('cover', event.target.value)} style={inputStyle} placeholder="https://... 或站点路径" /></label>
+              <label style={labelStyle}>标签（逗号分隔）<input value={tagsText} onChange={(event) => setTagsText(event.target.value)} style={inputStyle} placeholder="机器学习, 入门" /></label>
+            </div>
+          </details>
           {!selected && <div style={{ display: 'grid', gap: '0.7rem', borderTop: '1px solid var(--border-card)', paddingTop: '0.8rem' }}>
-            <strong>首个章节（新建专题必填）</strong>
-            <label style={labelStyle}>章节标题<input required value={section.title} onChange={(event) => sectionField('title', event.target.value)} style={inputStyle} /></label>
-            <label style={labelStyle}>章节 Slug<input required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={section.slug} onChange={(event) => sectionField('slug', event.target.value)} style={inputStyle} /></label>
-            <label style={labelStyle}>章节排序<input required type="number" min="0" step="1" value={section.order} onChange={(event) => sectionField('order', Number(event.target.value))} style={inputStyle} /></label>
-            <label style={labelStyle}>阅读时长<input value={section.readTime} onChange={(event) => sectionField('readTime', event.target.value)} style={inputStyle} /></label>
-            <label style={labelStyle}>首章正文<textarea required value={section.content} onChange={(event) => sectionField('content', event.target.value)} style={{ ...inputStyle, minHeight: 130, fontFamily: 'monospace' }} /></label>
-            <label style={{ ...inputStyle, width: 'fit-content', cursor: 'pointer' }}>导入首章 Markdown<input type="file" accept=".md,.markdown,text/markdown" aria-label="导入首章 Markdown" onChange={(event) => { void importMarkdown(event.target.files?.[0], 'section'); event.currentTarget.value = ''; }} /></label>
+            <strong>🌱 首个章节</strong>
+            <label style={labelStyle}>章节标题<input required value={section.title} onChange={(event) => sectionField('title', event.target.value)} style={inputStyle} placeholder="例如：认识监督学习" /></label>
+            <p style={{ margin: '-0.35rem 0 0', color: 'var(--text-muted)', fontSize: '0.82rem' }}>章节网址也会自动生成 Slug，保存后可以继续添加更多章节。</p>
+            <label style={labelStyle}>首章正文<textarea required value={section.content} onChange={(event) => sectionField('content', event.target.value)} style={{ ...inputStyle, minHeight: 130, fontFamily: 'monospace' }} placeholder="支持 Markdown、代码块、公式和 Mermaid 流程图" /></label>
+            <label style={{ ...inputStyle, width: 'fit-content', cursor: 'pointer' }}>📄 导入首章 Markdown<input type="file" accept=".md,.markdown,text/markdown" aria-label="导入首章 Markdown" onChange={(event) => { void importMarkdown(event.target.files?.[0], 'section'); event.currentTarget.value = ''; }} /></label>
           </div>}
         </> : <>
           <label style={labelStyle}>章节标题<input required value={section.title} onChange={(event) => sectionField('title', event.target.value)} style={inputStyle} /></label>
-          <label style={labelStyle}>章节 Slug<input required disabled={Boolean(sectionSlug)} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={section.slug} onChange={(event) => sectionField('slug', event.target.value)} style={inputStyle} /></label>
+          <label style={labelStyle}>           <p style={{ margin: '-0.35rem 0 0', color: 'var(--text-muted)', fontSize: '0.82rem' }}>🔗 章节网址会根据标题自动生成 Slug。</p></label>
           <label style={labelStyle}>排序<input required type="number" min="0" step="1" value={section.order} onChange={(event) => sectionField('order', Number(event.target.value))} style={inputStyle} /></label>
           <label style={labelStyle}>阅读时长<input value={section.readTime} onChange={(event) => sectionField('readTime', event.target.value)} style={inputStyle} /></label>
         </>}
