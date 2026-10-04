@@ -158,7 +158,7 @@ const TopicPage = () => {
                   fontWeight: 600,
                   borderRadius: '20px',
                 }}>
-                  {topic.category}
+                  🏷️ {topic.category}
                 </span>
                 <h1 style={{
                   fontSize: 'clamp(1.7rem, 4vw, 2.5rem)',
@@ -196,7 +196,7 @@ const TopicPage = () => {
                 fontSize: '0.85rem',
                 marginBottom: '0.6rem',
               }}>
-                {topic.category} · {topic.title}
+                🏷️ {topic.category} · {topic.title}
               </p>
               <h1 style={{
                 fontSize: 'clamp(1.8rem, 4.5vw, 2.6rem)',
@@ -293,7 +293,7 @@ const TopicPage = () => {
                     fontWeight: 700,
                     fontSize: '0.9rem',
                   }}>
-                    {index + 1}
+                    🔹 {index + 1}
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontWeight: 600, marginBottom: '0.25rem' }}>

@@ -19,6 +19,15 @@ const prettyDate = (value: string) => {
   return d.toLocaleDateString('zh-CN');
 };
 
+const categoryEmoji = (category: string) => {
+  if (category.includes('后端')) return '🛠️';
+  if (category.includes('机器')) return '🤖';
+  if (category.includes('随笔')) return '🌈';
+  if (category.includes('生物')) return '🧬';
+  if (category.includes('三维')) return '🧊';
+  return '✨';
+};
+
 const ArchivePage = ({ mode }: ArchivePageProps) => {
   const navigate = useNavigate();
   const { name, subcategory } = useParams<{ name: string; subcategory?: string }>();
@@ -172,7 +181,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                     >
                       <div
                         style={{
-                          height: '128px',
+                          height: '160px',
                           backgroundImage: `linear-gradient(180deg, rgba(12,8,12,0.1) 0%, rgba(12,8,12,0.7) 100%), url(${topic.cover})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
@@ -180,7 +189,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                       />
                       <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
                         <h3 style={{ color: 'var(--text-card-title)', fontSize: '1.05rem', margin: '0 0 0.5rem' }}>
-                          {topic.title}
+                          {categoryEmoji(topic.category)} {topic.title}
                         </h3>
                         <p style={{
                           color: 'var(--text-muted)',
@@ -192,7 +201,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                           {topic.summary}
                         </p>
                         <span style={{ color: '#ff0040', fontSize: '0.82rem', fontWeight: 600 }}>
-                          {topic.sections.length} 节 · 进入专题 →
+                          📚 {topic.sections.length} 节 · 🚀 进入专题 →
                         </span>
                       </div>
                     </motion.article>
