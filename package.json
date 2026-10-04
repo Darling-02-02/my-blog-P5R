@@ -17,6 +17,7 @@
     "framer-motion": "^12.34.0",
     "highlight.js": "^11.12.0",
     "katex": "^0.18.9",
+    "mermaid": "^12.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
@@ -24,7 +25,8 @@
     "rehype-highlight": "^7.0.2",
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
-    "remark-math": "^6.0.0"
+    "remark-math": "^6.0.0",
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
+import { parseMarkdownImport } from '../lib/markdown-import';
+const MarkdownBody = lazy(() => import('./MarkdownBody'));
 import type { Article } from '../../backend/src/articles/article.types';
 import type { ArticleWriteInput } from '../lib/article-form';
 
@@ -25,6 +27,35 @@ const toInitialState = (article?: Article) => ({
 
 const ArticleEditor = ({ initialArticle, categories, busy, error, onSave, onCancel }: ArticleEditorProps) => {
   const [form, setForm] = useState(() => toInitialState(initialArticle));
+  const [preview, setPreview] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState('');
+
+  const importFile = async (file?: File) => {
+    if (!file) return;
+    if (form.content && !window.confirm('导入将替换当前正文和文件中提供的文章信息，是否继续？')) return;
+    setImporting(true);
+    setImportMessage('');
+    try {
+      if (!/\.(md|markdown)$/i.test(file.name)) throw new Error('请选择 .md 或 .markdown 文件');
+      if (file.size > 2_000_000) throw new Error('文件不能超过 2 MB');
+      const { fields, content } = parseMarkdownImport(await file.text());
+      const { tags, ...textFields } = fields;
+      setForm((current) => ({
+        ...current,
+        ...textFields,
+        // Keep an existing article's URL stable when importing replacement content.
+        slug: initialArticle ? current.slug : textFields.slug ?? current.slug,
+        content,
+        tagsText: tags ? tags.join(', ') : current.tagsText,
+      }));
+      setImportMessage(`已导入 ${file.name}，请核对分类、标签和 Slug 后保存。图片需要使用已上线的 URL 或站点路径。`);
+    } catch (cause) {
+      setImportMessage(cause instanceof Error ? cause.message : '文件读取失败');
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const update = (key: keyof typeof form, value: string) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -32,6 +63,8 @@ const ArticleEditor = ({ initialArticle, categories, busy, error, onSave, onCanc
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (busy || importing) return;
+    if (!form.content.trim()) { setImportMessage('Markdown 正文不能为空'); return; }
     await onSave({
       slug: form.slug.trim(),
       title: form.title.trim(),
@@ -57,7 +90,8 @@ const ArticleEditor = ({ initialArticle, categories, busy, error, onSave, onCanc
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
+    <form onSubmit={handleSubmit}>
+      <fieldset disabled={busy || importing} style={{ border: 0, padding: 0, margin: 0, minWidth: 0, display: 'grid', gap: '1rem' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
         <label style={fieldStyle}>
           标题
@@ -101,10 +135,28 @@ const ArticleEditor = ({ initialArticle, categories, busy, error, onSave, onCanc
         <input value={form.tagsText} onChange={(event) => update('tagsText', event.target.value)} style={inputStyle} placeholder="React, TypeScript" />
       </label>
 
-      <label style={fieldStyle}>
-        Markdown 正文
-        <textarea required value={form.content} onChange={(event) => update('content', event.target.value)} style={{ ...inputStyle, minHeight: '360px', resize: 'vertical', fontFamily: 'monospace', lineHeight: 1.6 }} />
-      </label>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <strong>Markdown 正文</strong>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <label style={{ border: '1px solid var(--border-card)', borderRadius: '8px', padding: '0.55rem 0.8rem', cursor: importing ? 'wait' : 'pointer', color: 'var(--text-body)' }}>
+            {importing ? '读取中…' : '导入 Markdown'}
+            <input aria-label="选择 Markdown 文件" type="file" accept=".md,.markdown,text/markdown" disabled={busy || importing} onChange={(event) => { void importFile(event.target.files?.[0]); event.currentTarget.value = ''; }} />
+          </label>
+          <button type="button" onClick={() => setPreview((value) => !value)} style={{ padding: '0.55rem 0.8rem', border: '1px solid var(--border-card)', borderRadius: '8px', background: preview ? 'rgba(255,0,64,0.1)' : 'transparent', color: 'var(--text-body)', cursor: 'pointer' }}>
+            {preview ? '返回编辑' : '预览渲染'}
+          </button>
+        </div>
+      </div>
+      {importMessage && <p role="status" style={{ margin: 0, color: importMessage.includes('失败') || importMessage.includes('不能') || importMessage.includes('请选择') ? '#b00020' : 'var(--text-muted)' }}>{importMessage}</p>}
+      {preview ? (
+        <div style={{ minHeight: '360px', padding: '1rem', border: '1px solid var(--border-card)', borderRadius: '8px', overflow: 'auto' }}>
+          <Suspense fallback={<p role="status">加载预览…</p>}>
+            <MarkdownBody content={form.content} />
+          </Suspense>
+        </div>
+      ) : (
+        <textarea aria-label="Markdown 正文" required value={form.content} onChange={(event) => update('content', event.target.value)} style={{ ...inputStyle, minHeight: '360px', resize: 'vertical', fontFamily: 'monospace', lineHeight: 1.6 }} />
+      )}
 
       {error && <p role="alert" style={{ color: '#b00020', margin: 0 }}>{error}</p>}
 
@@ -116,6 +168,7 @@ const ArticleEditor = ({ initialArticle, categories, busy, error, onSave, onCanc
           {busy ? '保存中…' : '保存文章'}
         </button>
       </div>
+      </fieldset>
     </form>
   );
 };

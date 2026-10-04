@@ -3,7 +3,8 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
-import { useState } from 'react';
+import { Children, isValidElement, useState } from 'react';
+import MermaidDiagram from './MermaidDiagram';
 import 'katex/dist/katex.min.css';
 import 'highlight.js/styles/github-dark-dimmed.css';
 import { textOf } from '../lib/hast-text';
@@ -108,24 +109,27 @@ const MarkdownBody = ({ content }: MarkdownBodyProps) => (
       remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true }]]}
       components={{
-        code({ className, children, node }) {
-          // 允许 c++ / c# / objective-c 这类带符号的语言名
-          const match = /language-([^\s]+)/.exec(className || '');
-          // 行内代码没有 className；围栏代码一定带 language-* 或 hljs
-          const isInline = !className;
-
-          if (isInline) {
-            return <InlineCode>{children}</InlineCode>;
+        pre({ children, node }) {
+          const codeNode = node?.children.find((child) => child.type === 'element' && child.tagName === 'code');
+          const child = Children.only(children);
+          if (!codeNode || codeNode.type !== 'element' || !isValidElement<{ children?: React.ReactNode }>(child)) {
+            return <pre>{children}</pre>;
           }
-
-          return (
-            <CodeBlock
-              language={match ? match[1] : 'text'}
-              code={textOf(node as HastNode | undefined).replace(/\n$/, '')}
-            >
-              {children}
-            </CodeBlock>
-          );
+          // Block structure, not a language label, distinguishes fences from inline code.
+          const className = String(codeNode.properties.className ?? '');
+          const language = /language-([^\s,]+)/.exec(className)?.[1] ?? 'text';
+          const code = textOf(codeNode as HastNode).replace(/\n$/, '');
+          const block = <CodeBlock language={language} code={code}>{child.props.children}</CodeBlock>;
+          return language.toLowerCase() === 'mermaid'
+            ? <MermaidDiagram source={code}>{block}</MermaidDiagram>
+            : block;
+        },
+        code({ children }) {
+          return <InlineCode>{children}</InlineCode>;
+        },
+        img({ src, alt, title }) {
+          return <img src={src || undefined} alt={alt ?? ''} title={title} loading="lazy" decoding="async"
+            style={{ maxWidth: '100%', height: 'auto' }} />;
         },
         h2({ children }) {
           const text = String(children).toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '');

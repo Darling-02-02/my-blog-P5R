@@ -34,6 +34,19 @@ const markdown = [
   '| --- | --- | --- |',
   '| `id` | int | 主键 |',
   '| $\\alpha$ | float | 表格单元格里的行内公式 |',
+  '',
+  '```mermaid',
+  'flowchart LR',
+  '  A[Start] --> B[End]',
+  '```',
+  '',
+  ...['png', 'jpg', 'gif', 'webp', 'svg'].flatMap((ext) => [
+    `![local ${ext}](/images/example.${ext})`, '',
+    `![remote ${ext}](https://example.com/example.${ext})`, '',
+  ]),
+  '![unsafe](javascript:alert%281%29)',
+  '',
+  '<script>alert("unsafe")</script>',
 ].join('\n');
 
 // entry 必须写在仓库内，否则解析不到 node_modules 里的 react。
@@ -75,6 +88,17 @@ try {
   const indexCss = readFileSync(path.join(root, 'src', 'index.css'), 'utf8');
 
   const checks = [
+    ['围栏代码块都有复制按钮（包括未标注和 Mermaid 源码）', (html.match(/>复制</g) ?? []).length === 4],
+    ['pre 中没有嵌套块容器或另一个 pre', !/<pre\b[^>]*>\s*<(?:div|pre)\b/.test(html)],
+    ['未标注代码块不使用行内样式', /<pre\b[^>]*><code\b(?![^>]*bg-inline-code)[^>]*>plain 未标注语言的代码块/.test(html)],
+    ['Mermaid 提供 SSR 源码回退', html.includes('Mermaid 源码') && html.includes('A[Start] --&gt; B[End]')],
+    ['本地和远程图片保留格式、alt 和响应式样式', ['png', 'jpg', 'gif', 'webp', 'svg'].every((ext) =>
+      ['local', 'remote'].every((kind) => {
+        const image = (html.match(/<img\b[^>]*>/g) ?? []).find((tag) => tag.includes(`alt="${kind} ${ext}"`));
+        const src = kind === 'local' ? `/images/example.${ext}` : `https://example.com/example.${ext}`;
+        return image?.includes(`src="${src}"`) && image.includes('max-width:100%') && image.includes('height:auto');
+      }))],
+    ['危险 URL 和原始 HTML 不执行', !html.includes('src="javascript:') && !html.includes('<script>')],
     ['代码块有 highlight.js token', html.includes('hljs-keyword')],
     ['语言标注保留 c++', html.includes('>c++<')],
     ['语言标注保留 python', html.includes('>python<')],
@@ -101,7 +125,7 @@ try {
     console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}`);
   }
 
-  console.log(`\n诊断：代码块“复制”按钮出现 ${html.split('复制').length - 1} 次（示例里有 3 个围栏代码块）`);
+  console.log(`\n诊断：代码块“复制”按钮出现 ${html.split('复制').length - 1} 次（示例里有 4 个围栏代码块，含 Mermaid 源码）`);
 
   if (failed.length) {
     console.error(`\n${failed.length} 项失败。渲染片段：\n${html.slice(0, 1200)}`);
