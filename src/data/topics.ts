@@ -1,4 +1,5 @@
 import { pickCoverByKey } from '../lib/coverImage';
+import { parseTopicDocument } from '../lib/topic-content';
 
 export interface TopicSection {
   slug: string;
@@ -20,12 +21,11 @@ export interface Topic {
   sections: TopicSection[];
 }
 
-type FrontmatterValue = string | string[];
-type Frontmatter = Record<string, FrontmatterValue>;
+type Frontmatter = Record<string, unknown>;
 
 const base = import.meta.env.BASE_URL;
 
-// 英文目录名 -> 中文栏目显示名，和 /category/:name 的路由参数保持一致。
+// The directory names are also used by the admin GitHub publisher.
 const categoryByDir: Record<string, string> = {
   'machine-learning': '机器学习',
   essays: '随笔',
@@ -38,46 +38,7 @@ const topicModules = import.meta.glob('../content/topics/**/*.md', {
   query: '?raw',
 }) as Record<string, string>;
 
-const stripQuotes = (value: string) => value.trim().replace(/^['"]|['"]$/g, '');
-
-const parseFrontmatter = (source: string, path: string) => {
-  const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
-
-  if (!match) {
-    throw new Error(`Topic document is missing frontmatter: ${path}`);
-  }
-
-  const meta: Frontmatter = {};
-  const lines = match[1].split(/\r?\n/);
-
-  for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index];
-    const pair = line.match(/^([A-Za-z][A-Za-z0-9_-]*):\s*(.*)$/);
-
-    if (!pair) continue;
-
-    const [, key, rawValue] = pair;
-
-    if (rawValue) {
-      meta[key] = stripQuotes(rawValue);
-      continue;
-    }
-
-    const values: string[] = [];
-    while (lines[index + 1]?.startsWith('  - ')) {
-      index += 1;
-      values.push(stripQuotes(lines[index].slice(4)));
-    }
-    meta[key] = values;
-  }
-
-  return {
-    meta,
-    body: match[2].trim(),
-  };
-};
-
-const toOrder = (value: FrontmatterValue | undefined) => {
+const toOrder = (value: unknown) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 };
@@ -108,7 +69,7 @@ for (const [path, source] of Object.entries(topicModules)) {
     .replace(/\.md$/, '')
     .replace(/\\/g, '/');
   const parts = relative.split('/');
-  const { meta, body } = parseFrontmatter(source, relative);
+  const { meta, body } = parseTopicDocument(source, relative);
 
   // <dir>/<topic>/topic.md
   if (parts.length === 3 && parts[2] === 'topic') {
@@ -141,7 +102,7 @@ export const topics: Topic[] = [...drafts.values()]
     const meta = draft.meta as Frontmatter;
     const category = categoryByDir[draft.dir] ?? draft.dir;
     const coverFile = meta.cover ? String(meta.cover) : '';
-    const cover = coverFile ? `${base}${coverFile}` : pickCoverByKey(`${category}::${draft.slug}`);
+    const cover = coverFile ? (/^https?:\/\//i.test(coverFile) ? coverFile : `${base}${coverFile.replace(/^\//, '')}`) : pickCoverByKey(`${category}::${draft.slug}`);
 
     return {
       category,

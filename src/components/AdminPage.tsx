@@ -5,6 +5,9 @@ import { activeArticleSource } from '../lib/article-source';
 import type { Article } from '../../backend/src/articles/article.types';
 import type { ArticleWriteInput } from '../lib/article-form';
 import ArticleEditor from './ArticleEditor';
+import TopicEditor from './TopicEditor';
+import type { Topic } from '../data/topics';
+import { topicPublisher } from '../lib/topic-publisher';
 
 const TOKEN_KEY = 'blog_admin_token';
 
@@ -38,6 +41,8 @@ const AdminPage = () => {
   const [tokenInput, setTokenInput] = useState(() => sessionStorage.getItem(TOKEN_KEY) ?? '');
   const [token, setToken] = useState(() => sessionStorage.getItem(TOKEN_KEY) ?? '');
   const [articles, setArticles] = useState<Article[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [adminMode, setAdminMode] = useState<'articles' | 'topics'>('articles');
   const [selected, setSelected] = useState<Article | undefined>();
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -49,6 +54,7 @@ const AdminPage = () => {
     setTokenInput('');
     setToken('');
     setArticles([]);
+    setTopics([]);
     setSelected(undefined);
     setEditorError(null);
     setMessage(nextMessage);
@@ -71,13 +77,23 @@ const AdminPage = () => {
     }
   }, [clearAdminSession]);
 
+  const loadTopics = useCallback(async (activeToken: string) => {
+    if (activeArticleSource.kind !== 'github') return;
+    try {
+      setTopics(await topicPublisher.list(activeToken));
+    } catch (error) {
+      setMessage(toMessage(error));
+    }
+  }, []);
+
   useEffect(() => {
     if (!token) return;
     const timer = window.setTimeout(() => {
       void loadArticles(token);
+      void loadTopics(token);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [loadArticles, token]);
+  }, [loadArticles, loadTopics, token]);
 
   const handleTokenSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -179,7 +195,15 @@ const AdminPage = () => {
 
         {message && <p role="alert" style={{ ...panelStyle, color: message.includes('无效') || message.includes('失败') || message.includes('不足') ? '#b00020' : 'var(--text-body)', margin: 0 }}>{message}</p>}
 
-        {token && (
+        {token && <div role="tablist" aria-label="内容管理" style={{ display: 'flex', gap: '0.5rem' }}>
+          <button type="button" role="tab" aria-selected={adminMode === 'articles'} onClick={() => setAdminMode('articles')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', background: adminMode === 'articles' ? '#ff0040' : 'var(--bg-card)', color: adminMode === 'articles' ? '#fff' : 'var(--text-body)' }}>文章管理</button>
+          <button type="button" role="tab" aria-selected={adminMode === 'topics'} onClick={() => setAdminMode('topics')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', background: adminMode === 'topics' ? '#ff0040' : 'var(--bg-card)', color: adminMode === 'topics' ? '#fff' : 'var(--text-body)' }}>专题与章节</button>
+        </div>}
+        {token && adminMode === 'topics' && <div style={panelStyle}>
+          {activeArticleSource.kind === 'github' ? <TopicEditor token={token} topics={topics} refresh={() => loadTopics(token)} /> :
+            <p role="status" style={{ color: 'var(--text-body)' }}>当前后端数据库仅支持文章；专题仍由仓库 Markdown 构建。请使用 GitHub 模式管理专题，数据库专题接口尚未接入。</p>}
+        </div>}
+        {token && adminMode === 'articles' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 0.8fr) minmax(0, 1.6fr)', gap: '1rem', alignItems: 'start' }}>
             <div style={{ ...panelStyle, display: 'grid', gap: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>

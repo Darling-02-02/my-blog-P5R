@@ -25,14 +25,14 @@ interface ContentFile {
 const encodePath = (path: string) => path.split('/').map(encodeURIComponent).join('/');
 
 // Blobs come back base64-encoded; encode/decode through UTF-8 so Chinese text survives.
-const encodeBase64 = (text: string) => {
+export const encodeBase64 = (text: string) => {
   const bytes = new TextEncoder().encode(text);
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return btoa(binary);
 };
 
-const decodeBase64 = (value: string) => {
+export const decodeBase64 = (value: string) => {
   const binary = atob(value.replace(/\s/g, ''));
   const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
   return new TextDecoder().decode(bytes);
@@ -45,7 +45,7 @@ const errorCodeFor = (status: number) => {
   return 'GITHUB_ERROR';
 };
 
-const request = async <T>(token: string, path: string, init: RequestInit = {}): Promise<T | undefined> => {
+export const request = async <T>(token: string, path: string, init: RequestInit = {}): Promise<T | undefined> => {
   const response = await fetch(`https://api.github.com${path}`, {
     ...init,
     headers: {
@@ -71,9 +71,9 @@ const request = async <T>(token: string, path: string, init: RequestInit = {}): 
   return payload as T;
 };
 
-const contentsUrl = (path: string) => `/repos/${OWNER}/${REPO}/contents/${encodePath(path)}`;
+export const contentsUrl = (path: string) => `/repos/${OWNER}/${REPO}/contents/${encodePath(path)}`;
 
-const getFile = async (token: string, path: string): Promise<ContentFile | undefined> => {
+export const getFile = async (token: string, path: string): Promise<ContentFile | undefined> => {
   const file = await request<{ path: string; sha: string; content?: string }>(
     token,
     `${contentsUrl(path)}?ref=${BRANCH}`,

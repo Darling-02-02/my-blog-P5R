@@ -1,0 +1,157 @@
+import { lazy, Suspense, useState } from 'react';
+import type { Topic, TopicSection } from '../data/topics';
+import { parseMarkdownImport } from '../lib/markdown-import';
+import { topicDirectories } from '../lib/topic-content';
+import type { TopicDraftInput, SectionDraftInput } from '../lib/topic-content';
+import { topicPublisher } from '../lib/topic-publisher';
+
+const MarkdownBody = lazy(() => import('./MarkdownBody'));
+const categories = Object.keys(topicDirectories);
+const emptyTopic = (category: string): TopicDraftInput => ({ category, slug: '', title: '', summary: '', cover: '', order: 1, tags: [], intro: '' });
+const emptySection = (order = 1): SectionDraftInput => ({ slug: '', title: '', order, readTime: '', content: '' });
+const inputStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '0.65rem', border: '1px solid var(--border-card)', borderRadius: 6, color: 'var(--text-body)', background: 'var(--bg-card)' };
+const labelStyle = { display: 'grid', gap: '0.35rem', color: 'var(--text-body)' };
+
+interface Props {
+  token: string;
+  topics: Topic[];
+  refresh: () => Promise<void>;
+}
+
+export default function TopicEditor({ token, topics, refresh }: Props) {
+  const [category, setCategory] = useState(categories[0]);
+  const [selected, setSelected] = useState('');
+  const [sectionSlug, setSectionSlug] = useState('');
+  const [topic, setTopic] = useState<TopicDraftInput>(() => emptyTopic(categories[0]));
+  const [section, setSection] = useState<SectionDraftInput>(() => emptySection());
+  const [tab, setTab] = useState<'topic' | 'section'>('topic');
+  const [tagsText, setTagsText] = useState('');
+  const [preview, setPreview] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const matching = topics.filter((item) => item.category === category);
+  const active = matching.find((item) => item.slug === selected);
+
+  const chooseTopic = (slug: string) => {
+    const found = matching.find((item) => item.slug === slug);
+    setSelected(slug);
+    setSectionSlug('');
+    setTab('topic');
+    setPreview(false);
+    setMessage('');
+    setTopic(found ? { category, slug: found.slug, title: found.title, summary: found.summary, cover: found.cover, order: found.order, tags: found.tags, intro: found.intro } : emptyTopic(category));
+    setTagsText(found?.tags.join(', ') ?? '');
+    setSection(emptySection(found ? Math.max(0, ...found.sections.map((item) => item.order)) + 1 : 1));
+  };
+
+  const chooseSection = (slug: string) => {
+    const found = active?.sections.find((item) => item.slug === slug);
+    setSectionSlug(slug);
+    setSection(found ? { slug: found.slug, title: found.title, order: found.order, readTime: found.readTime, content: found.content } : emptySection(Math.max(0, ...(active?.sections.map((item) => item.order) ?? [])) + 1));
+    setTab('section');
+    setPreview(false);
+    setMessage('');
+  };
+
+  const importMarkdown = async (file?: File, target: 'topic' | 'section' = tab) => {
+    if (!file) return;
+    if ((target === 'topic' ? topic.intro : section.content) && !window.confirm('导入将替换当前正文，是否继续？')) return;
+    try {
+      if (!/\.(md|markdown)$/i.test(file.name) || file.size > 2_000_000) throw new Error('仅支持不超过 2 MB 的 .md 或 .markdown 文件');
+      const { fields, content } = parseMarkdownImport(await file.text());
+      if (target === 'topic') setTopic((current) => ({ ...current, title: fields.title || current.title, summary: fields.excerpt || current.summary, intro: content }));
+      else setSection((current) => ({ ...current, title: fields.title || current.title, readTime: fields.readTime || current.readTime, content }));
+      setMessage('已导入 Markdown，请核对标题和其他字段后保存。');
+    } catch (error) { setMessage(error instanceof Error ? error.message : '文件读取失败'); }
+  };
+
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setMessage('');
+    try {
+      if (tab === 'topic') {
+        const input = { ...topic, tags: [...new Set(tagsText.split(',').map((tag) => tag.trim()).filter(Boolean))] };
+        if (selected) await topicPublisher.saveTopic(token, input);
+        else await topicPublisher.create(token, input, section);
+        setSelected(input.slug);
+      } else {
+        await topicPublisher.saveSection(token, category, selected, section, !sectionSlug);
+        setSectionSlug(section.slug);
+      }
+      await refresh();
+      setMessage('已提交到 GitHub，站点重新构建后即可访问。');
+    } catch (error) { setMessage(error instanceof Error ? error.message : '保存失败'); }
+    finally { setBusy(false); }
+  };
+
+  const topicField = <K extends keyof TopicDraftInput>(key: K, value: TopicDraftInput[K]) => setTopic((current) => ({ ...current, [key]: value }));
+  const sectionField = <K extends keyof SectionDraftInput>(key: K, value: SectionDraftInput[K]) => setSection((current) => ({ ...current, [key]: value }));
+  const markdown = tab === 'topic' ? topic.intro : section.content;
+
+  return <div style={{ display: 'grid', gap: '1rem' }}>
+    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'end' }}>
+      <label style={{ ...labelStyle, flex: '1 1 130px' }}>幕后栏目
+        <select value={category} style={inputStyle} onChange={(event) => { const next = event.target.value; setCategory(next); setSelected(''); setSectionSlug(''); setTopic(emptyTopic(next)); setSection(emptySection()); setTagsText(''); setTab('topic'); setMessage(''); }}>
+          {categories.map((name) => <option key={name}>{name}</option>)}
+        </select>
+      </label>
+      <label style={{ ...labelStyle, flex: '2 1 180px' }}>专题
+        <select value={selected} style={inputStyle} onChange={(event) => chooseTopic(event.target.value)}>
+          <option value="">新建专题</option>
+          {matching.map((item) => <option key={item.slug} value={item.slug}>{item.title}</option>)}
+        </select>
+      </label>
+      <button type="button" onClick={() => chooseTopic('')} style={inputStyle}>＋ 新建专题</button>
+    </div>
+    {selected && <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'end', flexWrap: 'wrap' }}>
+      <button type="button" onClick={() => setTab('topic')} aria-pressed={tab === 'topic'} style={inputStyle}>专题信息</button>
+      <label style={labelStyle}>章节
+        <select value={sectionSlug} style={inputStyle} onChange={(event) => chooseSection(event.target.value)}>
+          <option value="">新建章节</option>
+          {active?.sections.map((item: TopicSection) => <option key={item.slug} value={item.slug}>{item.title}</option>)}
+        </select>
+      </label>
+      <button type="button" onClick={() => chooseSection('')} style={inputStyle}>＋ 新建章节</button>
+    </div>}
+    <form onSubmit={(event) => { void submit(event); }} style={{ display: 'grid', gap: '0.85rem' }}>
+      <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0, display: 'grid', gap: '0.85rem', minWidth: 0 }}>
+        <h3 style={{ margin: 0, color: 'var(--text-heading)' }}>{tab === 'topic' ? selected ? '编辑专题' : '新建专题' : sectionSlug ? '编辑章节' : '新建章节'}</h3>
+        {tab === 'topic' ? <>
+          <label style={labelStyle}>专题名称<input required value={topic.title} onChange={(event) => topicField('title', event.target.value)} style={inputStyle} /></label>
+          <label style={labelStyle}>专题 Slug<input required disabled={Boolean(selected)} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={topic.slug} onChange={(event) => topicField('slug', event.target.value)} style={inputStyle} /></label>
+          <label style={labelStyle}>简介<textarea required value={topic.summary} onChange={(event) => topicField('summary', event.target.value)} style={inputStyle} /></label>
+          <label style={labelStyle}>封面路径（可留空）<input value={topic.cover} onChange={(event) => topicField('cover', event.target.value)} style={inputStyle} placeholder="images/cover.png 或 https://..." /></label>
+          <label style={labelStyle}>排序<input required type="number" min="0" step="1" value={topic.order} onChange={(event) => topicField('order', Number(event.target.value))} style={inputStyle} /></label>
+          <label style={labelStyle}>标签（逗号分隔）<input value={tagsText} onChange={(event) => setTagsText(event.target.value)} style={inputStyle} /></label>
+          {!selected && <div style={{ display: 'grid', gap: '0.7rem', borderTop: '1px solid var(--border-card)', paddingTop: '0.8rem' }}>
+            <strong>首个章节（新建专题必填）</strong>
+            <label style={labelStyle}>章节标题<input required value={section.title} onChange={(event) => sectionField('title', event.target.value)} style={inputStyle} /></label>
+            <label style={labelStyle}>章节 Slug<input required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={section.slug} onChange={(event) => sectionField('slug', event.target.value)} style={inputStyle} /></label>
+            <label style={labelStyle}>章节排序<input required type="number" min="0" step="1" value={section.order} onChange={(event) => sectionField('order', Number(event.target.value))} style={inputStyle} /></label>
+            <label style={labelStyle}>阅读时长<input value={section.readTime} onChange={(event) => sectionField('readTime', event.target.value)} style={inputStyle} /></label>
+            <label style={labelStyle}>首章正文<textarea required value={section.content} onChange={(event) => sectionField('content', event.target.value)} style={{ ...inputStyle, minHeight: 130, fontFamily: 'monospace' }} /></label>
+            <label style={{ ...inputStyle, width: 'fit-content', cursor: 'pointer' }}>导入首章 Markdown<input type="file" accept=".md,.markdown,text/markdown" aria-label="导入首章 Markdown" onChange={(event) => { void importMarkdown(event.target.files?.[0], 'section'); event.currentTarget.value = ''; }} /></label>
+          </div>}
+        </> : <>
+          <label style={labelStyle}>章节标题<input required value={section.title} onChange={(event) => sectionField('title', event.target.value)} style={inputStyle} /></label>
+          <label style={labelStyle}>章节 Slug<input required disabled={Boolean(sectionSlug)} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={section.slug} onChange={(event) => sectionField('slug', event.target.value)} style={inputStyle} /></label>
+          <label style={labelStyle}>排序<input required type="number" min="0" step="1" value={section.order} onChange={(event) => sectionField('order', Number(event.target.value))} style={inputStyle} /></label>
+          <label style={labelStyle}>阅读时长<input value={section.readTime} onChange={(event) => sectionField('readTime', event.target.value)} style={inputStyle} /></label>
+        </>}
+        <div>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <strong>{tab === 'topic' ? '专题介绍' : '章节正文'}</strong>
+            <label style={{ ...inputStyle, width: 'auto', cursor: 'pointer' }}>导入 Markdown<input type="file" accept=".md,.markdown,text/markdown" aria-label="导入专题 Markdown" onChange={(event) => { void importMarkdown(event.target.files?.[0]); event.currentTarget.value = ''; }} /></label>
+            <button type="button" onClick={() => setPreview((value) => !value)} style={{ ...inputStyle, width: 'auto' }}>{preview ? '返回编辑' : '预览渲染'}</button>
+          </div>
+          {preview ? <div style={{ ...inputStyle, minHeight: 230, overflow: 'auto' }}><Suspense fallback="加载预览…"><MarkdownBody content={markdown} /></Suspense></div> :
+            <textarea required aria-label={tab === 'topic' ? '专题介绍' : '章节正文'} value={markdown} onChange={(event) => tab === 'topic' ? topicField('intro', event.target.value) : sectionField('content', event.target.value)} style={{ ...inputStyle, minHeight: 230, fontFamily: 'monospace' }} />}
+        </div>
+        {message && <p role="status" style={{ margin: 0, color: 'var(--text-body)' }}>{message}</p>}
+        <button type="submit" style={{ ...inputStyle, width: 'auto', justifySelf: 'end', background: '#ff0040', color: '#fff', cursor: 'pointer' }}>{busy ? '保存中…' : tab === 'topic' ? '保存专题' : '保存章节'}</button>
+      </fieldset>
+    </form>
+  </div>;
+}
