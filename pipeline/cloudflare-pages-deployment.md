@@ -17,6 +17,14 @@
 
 ## 首次配置
 
+### 0. 先建 Pages 项目
+
+`deploy.yml` 靠 `wrangler pages deploy --project-name=my-blog-p5r` 上线。**项目不存在时 wrangler 在 CI（非交互）下不会自动创建**，只会报 project not found 让这一步失败（见 `cloudflare/workers-sdk#2405`，到 wrangler 4 仍未实现）。所以项目必须先手工建出来，否则 Secret 补齐了照样红。
+
+`Workers & Pages` → `Create` → `Pages` → `Upload assets` → 名字一字不差填 `my-blog-p5r` → 创建（先传空内容也行，第一次 CI 部署会覆盖）。
+
+本地也可以走：`npx wrangler login` 之后跑一次 `npx wrangler pages deploy dist --project-name=my-blog-p5r` —— 交互模式会顺手把项目建掉并直接首发。本地不用装 wrangler，`npx` 现拉。
+
 ### 1. 建 API Token
 
 打开 https://dash.cloudflare.com/profile/api-tokens → `Create Token` → 最下面 `Create Custom Token`：
@@ -56,6 +64,8 @@
 `Workers & Pages` → `my-blog-p5r` → `Custom domains` → `Set up a custom domain` → 填 `darling-02.cn`（想要 `www` 就再加一次）。
 
 因为 DNS 就在 Cloudflare，它会自动加 CNAME。**但先要处理掉旧记录**：`darling-02.cn` 和 `www` 目前有两条指向 `172.67.179.25` / `104.21.35.199` 的 A 记录（那是已经关掉的 cloudflared 隧道留下的），必须先删，否则冲突。
+
+2026-10-04 核对：这两条 A 记录还在，两个域名都返回 Cloudflare **HTTP 530**（隧道已停），也就是域名现在完全打不开 —— 删记录 + 绑 Pages 之后才会恢复。
 
 ## 日常
 

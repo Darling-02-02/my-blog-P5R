@@ -4,7 +4,7 @@
 
 | 文档 | 讲什么 | 状态 |
 | --- | --- | --- |
-| [`cloudflare-pages-deployment.md`](cloudflare-pages-deployment.md) | 前端静态站的**线上部署**：Cloudflare Pages + `darling-02.cn` | 当前方案；差两个 Secret 与一次自定义域名绑定 |
+| [`cloudflare-pages-deployment.md`](cloudflare-pages-deployment.md) | 前端静态站的**线上部署**：Cloudflare Pages + `darling-02.cn` | 当前方案；差一个 Pages 项目、两个 Secret、一次自定义域名绑定（旧 A 记录要先删） |
 | [`cloudbase-deployment.md`](cloudbase-deployment.md) | 腾讯云 CloudBase 静态托管（含备案接入的坑） | 已弃用为 CI 目标，保留作手动备用 |
 | [`backend-deployment-quickstart.md`](backend-deployment-quickstart.md) | 后端 Fastify + SQLite 上服务器（Node 22、systemd、反向代理） | 可部署；**当前不在线上链路里** |
 | [`content-pipeline.md`](content-pipeline.md) | 专栏 / 文章 / 后端三条内容线，以及构建发布链路 | 专栏可用；文章与后端为半成品 |
