@@ -170,7 +170,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                       whileHover={{ y: -4 }}
                       onClick={() => navigate(getTopicPath(topic))}
                       style={{
-                        background: 'var(--bg-article-card)',
+                        background: 'rgba(255, 255, 255, 0.78)',
                         border: '1px solid var(--border-card)',
                         borderRadius: '14px',
                         overflow: 'hidden',
@@ -226,7 +226,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                         navigate(`/category/${encodeURIComponent(decodedName)}/${encodeURIComponent(subcategory)}`)
                       }
                       style={{
-                        background: 'var(--bg-article-card)',
+                        background: 'rgba(255, 255, 255, 0.78)',
                         border: '1px solid var(--border-card)',
                         borderRadius: '14px',
                         padding: '1.25rem',
@@ -275,7 +275,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                             display: 'grid',
                             gridTemplateColumns: '120px 1fr',
                             gap: '1rem',
-                            background: 'var(--bg-article-card)',
+                            background: 'rgba(255, 255, 255, 0.78)',
                             border: '1px solid var(--border-card)',
                             borderRadius: '12px',
                             padding: '0.8rem',

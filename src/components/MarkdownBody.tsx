@@ -131,6 +131,21 @@ const MarkdownBody = ({ content }: MarkdownBodyProps) => (
           return <img src={src || undefined} alt={alt ?? ''} title={title} loading="lazy" decoding="async"
             style={{ display: 'block', maxWidth: '100%', height: 'auto', margin: '1.25rem auto', borderRadius: 8 }} />;
         },
+        h1({ children }) {
+          return (
+            <h1 style={{
+              fontSize: 'clamp(2rem, 5vw, 3rem)',
+              lineHeight: 1.2,
+              fontWeight: 800,
+              margin: '0 0 1.5rem',
+              color: '#ff315f',
+              letterSpacing: '0.01em',
+              textShadow: '0 3px 12px rgba(255, 49, 95, 0.18)',
+            }}>
+              ✨ {children}
+            </h1>
+          );
+        },
         h2({ children }) {
           const text = String(children).toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '');
           return (
