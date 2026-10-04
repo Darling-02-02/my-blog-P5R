@@ -1,15 +1,8 @@
 import { useContext, useEffect, useState } from 'react';
-import { findArticle as findStaticArticle } from '../data/articles';
-import { articleApi, ArticleApiError, isArticleApiEnabled } from '../lib/api';
-import type { Article } from '../lib/article-types';
+import { activeArticleReader } from '../lib/article-reader';
+import type { Article } from '../../backend/src/articles/article.types';
 import { ArticleContext } from './article-context';
 import type { LoadStatus } from './article-context';
-
-const getErrorMessage = (error: unknown) => {
-  if (error instanceof ArticleApiError) return error.message;
-  if (error instanceof Error) return error.message;
-  return '文章加载失败';
-};
 
 export const useArticles = () => {
   const context = useContext(ArticleContext);
@@ -27,49 +20,21 @@ export const useArticle = (articleKey: string | undefined) => {
     let cancelled = false;
 
     const load = async () => {
-      const staticArticle = findStaticArticle(articleKey);
-
-      if (!articleKey) {
-        if (cancelled) return;
-        setArticle(undefined);
-        setStatus('ready');
-        setError(null);
-        return;
-      }
-
-      if (!isArticleApiEnabled) {
-        if (cancelled) return;
-        setArticle(staticArticle);
-        setStatus('ready');
-        setError(null);
-        return;
-      }
-
-      const decodedKey = decodeURIComponent(articleKey);
+      const decodedKey = decodeURIComponent(articleKey ?? '');
       const summary = summaries.find((item) => item.slug === decodedKey);
-      if (!cancelled) {
-        setArticle(summary ? { ...summary, content: '' } : undefined);
+      const preview = summary && activeArticleReader.preview ? activeArticleReader.preview(summary) : undefined;
+
+      if (preview) {
+        setArticle(preview);
         setStatus('loading');
         setError(null);
       }
 
-      try {
-        const nextArticle = await articleApi.findPublishedBySlug(decodedKey);
-        if (cancelled) return;
-        setArticle(nextArticle);
-        setStatus('ready');
-      } catch (requestError) {
-        if (cancelled) return;
-        if (requestError instanceof ArticleApiError && requestError.status === 404) {
-          setArticle(undefined);
-          setStatus('ready');
-          setError(null);
-          return;
-        }
-        setArticle(staticArticle);
-        setStatus('error');
-        setError(getErrorMessage(requestError));
-      }
+      const { article: nextArticle, error: readError } = await activeArticleReader.find(articleKey);
+      if (cancelled) return;
+      setArticle(nextArticle);
+      setError(readError ?? null);
+      setStatus(readError ? 'error' : 'ready');
     };
 
     void load();

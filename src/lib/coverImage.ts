@@ -1,4 +1,4 @@
-import type { Article } from '../data/articles';
+import type { Article } from '../../backend/src/articles/article.types';
 
 const base = import.meta.env.BASE_URL;
 
@@ -38,4 +38,3 @@ export const pickCoverForArticle = (article: Pick<Article, 'category' | 'tags'>)
   const tags = article.tags.length ? article.tags.join('|') : 'untagged';
   return pickCoverByKey(`${category}::${tags}`);
 };
-

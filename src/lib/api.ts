@@ -1,4 +1,4 @@
-import type { Article, ArticleListResponse, ArticleStatus, ArticleWriteInput } from './article-types';
+import type { Article, ArticleListResponse, ArticleWritePayload } from '../../backend/src/articles/article.types';
 
 const source = import.meta.env.VITE_ARTICLE_SOURCE ?? 'static';
 const apiBase = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
@@ -74,8 +74,10 @@ export const articleApi = {
     let page = 1;
     let total = 0;
 
+    // pageSize 上限由后端 zod 定死（backend/src/articles/article.schema.ts 的 .max(50)），
+    // 传更大值会被 400 挡回来，读路径也就永远只能走回退。
     while (items.length < total || page === 1) {
-      const response = await articleApi.listPublished({ page, pageSize: 100 });
+      const response = await articleApi.listPublished({ page, pageSize: 50 });
       items.push(...response.items);
       total = response.total;
       if (response.items.length === 0) break;
@@ -92,12 +94,12 @@ export const articleApi = {
 // 少传这一项会把已发布的文章在编辑时悄悄下架。
 export const articleAdminApi = {
   list: (token: string) => adminRequest<AdminArticleList>(token, '/api/admin/articles'),
-  create: (token: string, payload: ArticleWriteInput & { status: ArticleStatus }) =>
+  create: (token: string, payload: ArticleWritePayload) =>
     adminRequest<Article>(token, '/api/admin/articles', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  update: (token: string, id: number, payload: ArticleWriteInput & { status: ArticleStatus }) =>
+  update: (token: string, id: number, payload: ArticleWritePayload) =>
     adminRequest<Article>(token, `/api/admin/articles/${id}`, {
       method: 'PUT',
       body: JSON.stringify(payload),

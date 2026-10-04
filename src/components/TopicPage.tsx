@@ -4,11 +4,12 @@ import { motion } from 'framer-motion';
 import Header from './Header';
 import Footer from './Footer';
 import MarkdownBody from './MarkdownBody';
-import { findSection, findTopic, getSectionPath, getTopicPath } from '../data/topics';
+import { useContent } from '../contexts/useContent';
 
 const TopicPage = () => {
   const navigate = useNavigate();
   const params = useParams<{ category: string; topic: string; section?: string }>();
+  const { findSection, findTopic, getSectionPath, getTopicPath } = useContent();
   const topic = findTopic(params.category, params.topic);
   const section = findSection(params.category, params.topic, params.section);
   const [readingProgress, setReadingProgress] = useState(0);

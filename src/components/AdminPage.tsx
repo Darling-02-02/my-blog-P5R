@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArticleApiError } from '../lib/api';
 import { activeArticleSource } from '../lib/article-source';
-import type { Article, ArticleWriteInput } from '../lib/article-types';
+import type { Article } from '../../backend/src/articles/article.types';
+import type { ArticleWriteInput } from '../lib/article-form';
 import ArticleEditor from './ArticleEditor';
 
 const TOKEN_KEY = 'blog_admin_token';

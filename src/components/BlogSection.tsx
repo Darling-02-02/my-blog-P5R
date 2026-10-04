@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getArticlePath } from '../data/articles';
 import { useArticles } from '../contexts/useArticles';
-import type { ArticleSummary } from '../lib/article-types';
+import { useContent } from '../contexts/useContent';
+import type { ArticleSummary } from '../../backend/src/articles/article.types';
 import { PageLayout, MainContentCard } from './SidebarLayout';
 
 const base = import.meta.env.BASE_URL;
@@ -16,6 +16,7 @@ interface BlogCardProps {
 
 const BlogCard = ({ post, index }: BlogCardProps) => {
   const navigate = useNavigate();
+  const { getArticlePath } = useContent();
 
   const handleClick = () => {
     navigate(getArticlePath(post));

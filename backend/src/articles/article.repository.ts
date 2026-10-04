@@ -1,10 +1,10 @@
 import type Database from 'better-sqlite3';
 import type {
+  Article,
   ArticleListQuery,
-  ArticleListResult,
-  ArticleRecord,
+  ArticleListResponse,
   ArticleSummary,
-  ArticleWriteInput,
+  ArticleWritePayload,
 } from './article.types.js';
 
 type ArticleRow = {
@@ -57,7 +57,7 @@ export const createArticleRepository = (db: Database.Database) => {
     return tagsByArticle;
   };
 
-  const mapRow = (row: ArticleQueryRow, tagsByArticle?: Map<number, string[]>): ArticleRecord => ({
+  const mapRow = (row: ArticleQueryRow, tagsByArticle?: Map<number, string[]>): Article => ({
     id: row.id,
     slug: row.slug,
     title: row.title,
@@ -96,13 +96,13 @@ export const createArticleRepository = (db: Database.Database) => {
     }
   };
 
-  const toSummary = (article: ArticleRecord): ArticleSummary => {
-    const summary = { ...article } as Partial<ArticleRecord>;
+  const toSummary = (article: Article): ArticleSummary => {
+    const summary = { ...article } as Partial<Article>;
     delete summary.content;
     return summary as ArticleSummary;
   };
 
-  const listPublished = (query: ArticleListQuery): ArticleListResult => {
+  const listPublished = (query: ArticleListQuery): ArticleListResponse => {
     const filters = ['a.status = \'published\''];
     const params: Array<string | number> = [];
 
@@ -136,7 +136,7 @@ export const createArticleRepository = (db: Database.Database) => {
     };
   };
 
-  const listAll = (): ArticleRecord[] => {
+  const listAll = (): Article[] => {
     const rows = db.prepare('SELECT * FROM articles ORDER BY updated_at DESC, id DESC LIMIT ?').all(200) as ArticleRow[];
     return rows.map((row) => mapRow(row));
   };
@@ -146,7 +146,7 @@ export const createArticleRepository = (db: Database.Database) => {
     return row ? mapRow(row) : undefined;
   };
 
-  const create = db.transaction((input: ArticleWriteInput) => {
+  const create = db.transaction((input: ArticleWritePayload) => {
     const createdAt = now();
     const publishedAt = input.status === 'published' ? createdAt : null;
     const result = db.prepare(`
@@ -168,10 +168,10 @@ export const createArticleRepository = (db: Database.Database) => {
     );
     const id = Number(result.lastInsertRowid);
     replaceTags(id, input.tags);
-    return getById(id) as ArticleRecord;
+    return getById(id) as Article;
   });
 
-  const update = db.transaction((id: number, input: ArticleWriteInput) => {
+  const update = db.transaction((id: number, input: ArticleWritePayload) => {
     const existing = getById(id);
     if (!existing) return undefined;
 

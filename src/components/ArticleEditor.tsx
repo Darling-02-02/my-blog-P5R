@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { Article, ArticleWriteInput } from '../lib/article-types';
+import type { Article } from '../../backend/src/articles/article.types';
+import type { ArticleWriteInput } from '../lib/article-form';
 
 interface ArticleEditorProps {
   initialArticle?: Article;

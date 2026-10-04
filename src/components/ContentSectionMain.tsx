@@ -1,0 +1,284 @@
+// 首页内容区右栏：简介/幕后/关于/留言四个区块，含大类栏目卡片与 Giscus 评论。
+import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import type { CategoryData } from '../contexts/content-context';
+import { useArticles } from '../contexts/useArticles';
+import { useContent } from '../contexts/useContent';
+import { useTheme } from '../contexts/useTheme';
+
+const base = import.meta.env.BASE_URL;
+const coverImage = `${base}cover.png`;
+const articleCardBackground = 'var(--bg-article-card)';
+const aboutBoxBackground = 'var(--bg-article-card)';
+const commentBoxBackground = 'var(--bg-article-card)';
+
+const usefulResources = [
+  {
+    name: 'GitHub',
+    url: 'https://github.com',
+    desc: '代码托管、开源项目和学习资料检索',
+  },
+  {
+    name: 'Papers with Code',
+    url: 'https://paperswithcode.com',
+    desc: '论文、代码和机器学习榜单',
+  },
+  {
+    name: 'Hugging Face',
+    url: 'https://huggingface.co',
+    desc: '模型、数据集和 AI 应用社区',
+  },
+  {
+    name: 'Bioinformatics Workbook',
+    url: 'https://bioinformaticsworkbook.org',
+    desc: '生物信息学流程、脚本和实战记录',
+  },
+];
+
+const GiscusComments = () => {
+  const { isDark } = useTheme();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [shouldLoad, setShouldLoad] = useState(
+    () => typeof window !== 'undefined' && !('IntersectionObserver' in window),
+  );
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || shouldLoad) return;
+
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setShouldLoad(true);
+        observer.disconnect();
+      },
+      { rootMargin: '320px 0px' },
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [shouldLoad]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !shouldLoad) return;
+
+    const script = document.createElement('script');
+    script.src = 'https://giscus.app/client.js';
+    script.referrerPolicy = 'no-referrer';
+    script.setAttribute('data-repo', 'Darling-02-02/my-blog-P5R');
+    script.setAttribute('data-repo-id', 'R_kgDORSAoMw');
+    script.setAttribute('data-category', 'General');
+    script.setAttribute('data-category-id', 'DIC_kwDORSAoM84C25Zv');
+    script.setAttribute('data-mapping', 'pathname');
+    script.setAttribute('data-strict', '0');
+    script.setAttribute('data-reactions-enabled', '1');
+    script.setAttribute('data-emit-metadata', '0');
+    script.setAttribute('data-input-position', 'top');
+    script.setAttribute('data-theme', isDark ? 'dark_dimmed' : 'light');
+    script.setAttribute('data-lang', 'zh-CN');
+    script.setAttribute('crossorigin', 'anonymous');
+    script.async = true;
+
+    container.innerHTML = '';
+    container.appendChild(script);
+
+    return () => {
+      container.innerHTML = '';
+    };
+  }, [isDark, shouldLoad]);
+
+  return <div ref={containerRef} id="giscus-container" style={{ minHeight: '200px' }} />;
+};
+
+// 大类栏目卡片
+const CategoryLandingCard = ({ category, index }: { category: CategoryData; index: number }) => {
+  const navigate = useNavigate();
+  const hasSubcategories = Boolean(category.subcategories?.length);
+  const hasTopics = hasSubcategories || Boolean(category.usesTopics);
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
+      whileHover={{ y: -8 }}
+      onClick={() => navigate(`/category/${encodeURIComponent(category.name)}`)}
+      style={{
+        background: articleCardBackground,
+        borderRadius: '16px',
+        overflow: 'hidden',
+        border: '1px solid var(--border-card)',
+        cursor: 'pointer',
+        transition: 'box-shadow 0.3s ease',
+      }}
+    >
+      <div style={{ height: '160px', overflow: 'hidden', position: 'relative' }}>
+        <img src={coverImage} alt={category.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: category.color, color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '15px', fontSize: '0.85rem', fontWeight: '600' }}>
+          {hasTopics
+            ? `${hasSubcategories ? category.subcategories?.length ?? 0 : category.topicCount} 个专题`
+            : `${category.count} 篇文章`}
+        </span>
+      </div>
+      <div style={{ padding: '1.5rem' }}>
+        <h4 style={{ fontSize: '1.15rem', fontWeight: '600', color: 'var(--text-card-title)', marginBottom: '0.75rem', lineHeight: 1.5 }}>{category.name}</h4>
+        <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.8rem', lineHeight: 1.7 }}>
+          {category.description}
+        </p>
+        <span style={{ color: '#ff0040', fontSize: '0.85rem', background: 'var(--bg-tag)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
+          {hasTopics ? '进入专题' : '查看全部'}
+        </span>
+      </div>
+    </motion.article>
+  );
+};
+
+// 主内容
+const MainContent = () => {
+  const { articles } = useArticles();
+  const { getCategoryData } = useContent();
+  const categoryData = getCategoryData(articles);
+  // Every column that has content shows up here, including ones created from the admin page.
+  const mainCategories = categoryData.filter((category) => category.count > 0 || category.topicCount > 0);
+  const sectionCardStyle: React.CSSProperties = {
+    marginBottom: '4rem',
+    padding: 0,
+    background: 'transparent',
+    borderRadius: 0,
+    border: 'none',
+  };
+  const profilePaneStyle: React.CSSProperties = {
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border-card)',
+    borderRadius: '14px',
+    padding: '1.25rem',
+  };
+  const aboutPaneStyle: React.CSSProperties = {
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border-card)',
+    borderRadius: '14px',
+    padding: '1.25rem',
+  };
+
+  return (
+    <div className="home-main-card" style={{
+      background: 'transparent',
+      borderRadius: '20px',
+      border: 'none',
+      boxShadow: 'none',
+      padding: 0,
+    }}>
+      {/* 个人简介 */}
+      <section id="profile" className="home-content-block" style={sectionCardStyle}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
+          <span style={{ color: '#ff0040' }}>个人</span>简介
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
+          离神很近，也就是离人很远。——一个臭看番的。
+        </p>
+        
+        <div className="home-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginBottom: '3rem' }}>
+          <div className="home-profile-pane" style={profilePaneStyle}>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>📚 一些好用的资源分享</h3>
+            <div style={{ display: 'grid', gap: '0.85rem' }}>
+              {usefulResources.map((resource) => (
+                <a
+                  key={resource.name}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'block',
+                    padding: '0.9rem 1rem',
+                    background: aboutBoxBackground,
+                    border: '1px solid var(--border-card)',
+                    borderRadius: '12px',
+                    color: 'inherit',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <strong style={{ display: 'block', color: 'var(--text-heading)', marginBottom: '0.25rem' }}>{resource.name}</strong>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: 1.6 }}>{resource.desc}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+          <div className="home-profile-pane" style={profilePaneStyle}>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>💡 兴趣爱好</h3>
+            <ul style={{ color: 'var(--text-body)', fontSize: '1.1rem', lineHeight: 2.2, paddingLeft: '1.2rem', listStyle: 'none' }}>
+              <li style={{ color: '#ff0040', fontWeight: '500' }}>👤 CN：灵敏度加满，欢迎扩列</li>
+              <li style={{ marginTop: '0.5rem' }}>📸 摄影：偶尔拍拍，设备索尼zve10，镜头55mm</li>
+              <li>🏃 中长跑：纵有疾风起！！</li>
+              <li>💪 健身：卧推25kg，不中嘞</li>
+              <li>🎨 画画：反正没在签绘墙上画过</li>
+              <li>🎮 游戏：第九艺术！！3A永远滴神</li>
+              <li>✨ 梦想能手握switch2、5090和PS5</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* 幕后 - 大类栏目 */}
+      <section id="blog" className="home-content-block" style={sectionCardStyle}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
+          <span style={{ color: '#ff0040' }}>幕后</span>
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
+          一切都是为了正义
+        </p>
+        
+        <div className="home-post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: '2.5rem' }}>
+          {mainCategories.map((category, i) => (
+            <CategoryLandingCard key={category.name} category={category} index={i} />
+          ))}
+        </div>
+      </section>
+
+      {/* 关于 */}
+      <section id="about" className="home-content-block" style={sectionCardStyle}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
+          <span style={{ color: '#ff0040' }}>关于</span>本站
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
+          博客介绍
+        </p>
+
+        <div style={aboutPaneStyle}>
+          <p style={{ color: 'var(--text-body)', fontSize: '1.15rem', lineHeight: 2.4 }}>
+            垂死挣扎的双非硕，一切以实际为准。欢迎交流学习。
+          </p>
+
+          <div style={{ marginTop: '2rem', padding: '1.5rem', background: aboutBoxBackground, borderRadius: '12px', border: '1px solid rgba(255,0,64,0.1)' }}>
+            <p style={{ color: 'var(--text-body)', fontSize: '1rem', lineHeight: 1.8, margin: 0 }}>
+              📧 联系邮箱：<a href="mailto:19503862693@163.com" style={{ color: '#ff0040', textDecoration: 'none', fontWeight: '600' }}>19503862693@163.com</a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 评论区 */}
+      <section id="comments" className="home-content-block" style={{ ...sectionCardStyle, marginBottom: 0 }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
+          <span style={{ color: '#ff0040' }}>留言</span>板
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
+          欢迎留下你的足迹
+        </p>
+        
+        <div className="home-comment-box" style={{ 
+          background: commentBoxBackground, 
+          borderRadius: '12px', 
+          padding: '1.5rem',
+          border: '1px solid var(--border-card)',
+        }}>
+          <GiscusComments />
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default MainContent;

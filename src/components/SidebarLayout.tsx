@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { getCategoryData } from '../data/categories';
-import { topics } from '../data/topics';
 import { useArticles } from '../contexts/useArticles';
+import { useContent } from '../contexts/useContent';
 
 const base = import.meta.env.BASE_URL;
 
@@ -109,6 +108,7 @@ export const AnnouncementCard = () => (
 // 分类卡片
 export const CategoriesCard = () => {
   const { articles } = useArticles();
+  const { getCategoryData } = useContent();
   const categories = getCategoryData(articles).map(({ name, count, color }) => ({ name, count, color }));
   return (
     <SidebarCard title="分类" icon="📁" delay={0.2}>
@@ -142,6 +142,7 @@ export const TagsCard = () => {
 // 网站资讯卡片
 export const StatsCard = () => {
   const { articles } = useArticles();
+  const { topics } = useContent();
   const [stats, setStats] = useState(() => {
     const topicWords = topics.reduce(
       (sum, topic) =>

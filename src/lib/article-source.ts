@@ -6,7 +6,8 @@
 //   其他（默认 static）          -> 站点读构建期固化的 Markdown，后台提交到 GitHub 仓库
 import { articleAdminApi, isArticleApiEnabled } from './api';
 import { articlePublisher } from './github';
-import type { Article, ArticleStatus, ArticleWriteInput } from './article-types';
+import type { Article, ArticleStatus } from '../../backend/src/articles/article.types';
+import type { ArticleWriteInput } from './article-form';
 
 export interface ArticleSource {
   kind: 'github' | 'api';

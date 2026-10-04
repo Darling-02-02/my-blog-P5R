@@ -1,7 +1,8 @@
 // Admin publishing: commits article Markdown straight to the repository with a
 // fine-grained GitHub token. GitHub Actions then rebuilds the static site, so the
 // blog needs no server and no public API.
-import type { Article, ArticleWriteInput } from './article-types';
+import type { Article } from '../../backend/src/articles/article.types';
+import type { ArticleWriteInput } from './article-form';
 import { ArticleApiError } from './api';
 import { parseArticleSource, serializeArticle } from './frontmatter';
 

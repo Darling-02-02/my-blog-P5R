@@ -4,6 +4,7 @@ import Hero from './components/Hero'
 import { GlobalBackground } from './components/GlobalBackground'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ArticleProvider } from './contexts/ArticleContext'
+import { ContentProvider } from './contexts/ContentContext'
 import ThemeToggle from './components/ThemeToggle'
 
 const Article = lazy(() => import('./components/Article'));
@@ -32,31 +33,33 @@ function App() {
   return (
     <ThemeProvider>
       <ArticleProvider>
-        <Router basename={import.meta.env.BASE_URL}>
-          <GlobalBackground>
-            <div className="scanlines">
-              <main>
-                <ScrollToTop />
-                <Suspense fallback={null}>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/explore" element={<ExplorePage />} />
-                    <Route path="/article/*" element={<Article />} />
-                    <Route path="/about" element={<AboutMe />} />
-                    <Route path="/study-room" element={<StudyRoom />} />
-                    <Route path="/admin" element={<AdminPage />} />
-                    <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />
-                    <Route path="/category/:name/:subcategory" element={<ArchivePage mode="category" />} />
-                    <Route path="/category/:name" element={<ArchivePage mode="category" />} />
-                    <Route path="/topic/:category/:topic" element={<TopicPage />} />
-                    <Route path="/topic/:category/:topic/:section" element={<TopicPage />} />
-                  </Routes>
-                </Suspense>
-              </main>
-            </div>
-          </GlobalBackground>
-          <ThemeToggle />
-        </Router>
+        <ContentProvider>
+          <Router basename={import.meta.env.BASE_URL}>
+            <GlobalBackground>
+              <div className="scanlines">
+                <main>
+                  <ScrollToTop />
+                  <Suspense fallback={null}>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/explore" element={<ExplorePage />} />
+                      <Route path="/article/*" element={<Article />} />
+                      <Route path="/about" element={<AboutMe />} />
+                      <Route path="/study-room" element={<StudyRoom />} />
+                      <Route path="/admin" element={<AdminPage />} />
+                      <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />
+                      <Route path="/category/:name/:subcategory" element={<ArchivePage mode="category" />} />
+                      <Route path="/category/:name" element={<ArchivePage mode="category" />} />
+                      <Route path="/topic/:category/:topic" element={<TopicPage />} />
+                      <Route path="/topic/:category/:topic/:section" element={<TopicPage />} />
+                    </Routes>
+                  </Suspense>
+                </main>
+              </div>
+            </GlobalBackground>
+            <ThemeToggle />
+          </Router>
+        </ContentProvider>
       </ArticleProvider>
     </ThemeProvider>
   )

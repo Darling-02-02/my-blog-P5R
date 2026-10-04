@@ -3,11 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from './Header';
 import Footer from './Footer';
-import { getArticlePath } from '../data/articles';
 import { useArticles } from '../contexts/useArticles';
-import { getCategoryData, getTagData } from '../data/categories';
-import { getTopicsByCategory, getTopicPath, topics } from '../data/topics';
-import { pickCoverByKey, pickCoverForArticle } from './coverImage';
+import { useContent } from '../contexts/useContent';
+import { pickCoverByKey, pickCoverForArticle } from '../lib/coverImage';
 
 type ArchiveMode = 'tag' | 'category';
 
@@ -25,9 +23,10 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
   const navigate = useNavigate();
   const { name, subcategory } = useParams<{ name: string; subcategory?: string }>();
   const { articles, status, error } = useArticles();
+  const { topics, getTopicsByCategory, getArticlePath, getTopicPath, getCategoryData, getTagData } = useContent();
   const decodedName = decodeURIComponent(name ?? '');
   const decodedSubcategory = decodeURIComponent(subcategory ?? '');
-  const categories = useMemo(() => getCategoryData(articles), [articles]);
+  const categories = useMemo(() => getCategoryData(articles), [articles, getCategoryData]);
   const selectedCategory = categories.find((category) => category.name === decodedName);
   const subcategories = mode === 'category' && !decodedSubcategory ? (selectedCategory?.subcategories ?? []) : [];
   const topicsInCategory =
@@ -77,7 +76,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
 
   const tagCounts = useMemo(() => {
     return getTagData(articles);
-  }, [articles]);
+  }, [articles, getTagData]);
 
   const latestEntries = useMemo(() => {
     const topicEntries = topics.map((topic) => ({
@@ -96,7 +95,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
       }));
 
     return [...topicEntries, ...articleEntries].slice(0, 5);
-  }, [articles]);
+  }, [articles, topics, getArticlePath, getTopicPath]);
 
   return (
     <>

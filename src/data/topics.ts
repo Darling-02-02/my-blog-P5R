@@ -1,4 +1,4 @@
-import { pickCoverByKey } from '../components/coverImage';
+import { pickCoverByKey } from '../lib/coverImage';
 
 export interface TopicSection {
   slug: string;

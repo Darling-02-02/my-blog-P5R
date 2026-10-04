@@ -2,6 +2,8 @@
 //
 // 它自己拉一个真后端（临时 SQLite + 随机端口），然后让 src/lib/article-source.ts
 // 走真实 HTTP 跑完整流程：新建 → 草稿 → 发布 → 编辑 → 下架 → 删除 → 鉴权失败。
+// 顺手把读路径（src/lib/article-reader.ts）也在这份真后端上验一遍：列表、详情、404 语义、
+// 以及后端挂掉时回退到构建期内容（这里构建期内容被 stub 成空，只验证回退与 error 提示）。
 // 空腹跑，不依赖服务器上那份部署。
 //
 // 前置：cd backend && npm ci && npm run build
@@ -47,6 +49,19 @@ const waitForHealth = async (base) => {
   return false;
 };
 
+// 构建期内容靠 Vite 的 import.meta.glob 收集，Node 里跑不了；读路径的回退分支只关心"有没有回过退"，
+// 所以把那份内容整个换成空实现（define 只接受字面量，只能这样 stub）。
+const stubStaticArticles = {
+  name: 'stub-static-articles',
+  setup(build) {
+    build.onResolve({ filter: /data[\\/]articles$/ }, () => ({ path: 'static-articles-stub', namespace: 'stub' }));
+    build.onLoad({ filter: /.*/, namespace: 'stub' }, () => ({
+      contents: 'export const articles = [];\nexport const findArticle = () => undefined;\n',
+      loader: 'ts',
+    }));
+  },
+};
+
 // kill() 是异步的：不等子进程退出就删数据库，Windows 上会 EBUSY。
 const stopServer = (child) =>
   new Promise((resolve) => {
@@ -88,6 +103,7 @@ const server = spawn(process.execPath, [serverEntry], {
 });
 
 let exitCode = 0;
+let serverAlive = true;
 
 try {
   if (!(await waitForHealth(base))) throw new Error(`后端没能在 ${base} 上起来`);
@@ -97,7 +113,7 @@ try {
   const outfile = path.join(workDir, 'bundle.mjs');
   writeFileSync(
     entry,
-    "import { activeArticleSource } from '../../src/lib/article-source';\nexport { activeArticleSource };\n",
+    "import { activeArticleSource } from '../../src/lib/article-source';\nimport { activeArticleReader } from '../../src/lib/article-reader';\nexport { activeArticleSource, activeArticleReader };\n",
     'utf8',
   );
 
@@ -111,10 +127,13 @@ try {
       'import.meta.env.VITE_ARTICLE_SOURCE': '"api"',
       'import.meta.env.VITE_API_BASE_URL': JSON.stringify(base),
     },
+    plugins: [stubStaticArticles],
     logLevel: 'error',
   });
 
-  const source = (await import(pathToFileURL(outfile).href)).activeArticleSource;
+  const bundle = await import(pathToFileURL(outfile).href);
+  const source = bundle.activeArticleSource;
+  const reader = bundle.activeArticleReader;
   const publicTotal = async () => (await (await fetch(`${base}/api/articles`)).json()).total;
 
   const checks = [
@@ -149,6 +168,24 @@ try {
   items = await source.list(ADMIN_TOKEN);
   add('发布后状态为 published', items[0].status === 'published');
 
+  // 读路径：静态来源是同步数据、异步来源才该显示加载态；静态来源的首屏内容不为空。
+  add(
+    '读路径选中后端来源且首屏为加载态',
+    reader.loadsAsync === true && reader.initialStatus === 'loading' && reader.initial.length === 0,
+  );
+
+  const listed = await reader.list();
+  add(
+    '读路径从公开接口取到已发布文章',
+    listed.error === undefined && listed.items.some((item) => item.slug === input.slug),
+  );
+
+  add('读路径按 slug 取回正文', (await reader.find(input.slug)).article?.slug === input.slug);
+
+  // 关键回归：后端明确 404 = 文章不存在，不该被当成"加载失败"回退成构建期内容。
+  const missing = await reader.find('admin-api-check-missing');
+  add('后端 404 视为文章不存在（不回退、不报错）', missing.article === undefined && missing.error === undefined);
+
   // 关键回归：后端 update 的 status 有默认值 draft，客户端漏传原状态会把已发布文章静默下架。
   await source.save(ADMIN_TOKEN, { ...input, title: '改过标题' }, items[0]);
   items = await source.list(ADMIN_TOKEN);
@@ -169,6 +206,16 @@ try {
   }
   add('错误令牌被拒（401）', badStatus === 401);
 
+  // 后端挂掉时读路径必须回退并在 error 里给出原因，而不是把异常抛给界面。
+  await stopServer(server);
+  serverAlive = false;
+
+  const offlineList = await reader.list();
+  add('后端挂掉时列表回退并给出原因', offlineList.error !== undefined && offlineList.items.length === 0);
+
+  const offlineFind = await reader.find(input.slug);
+  add('后端挂掉时详情回退并给出原因', offlineFind.error !== undefined && offlineFind.article === undefined);
+
   const failed = checks.filter(([, ok]) => !ok);
 
   for (const [label, ok] of checks) {
@@ -185,7 +232,7 @@ try {
   console.error(`检查中断：${error instanceof Error ? error.message : String(error)}`);
   exitCode = 1;
 } finally {
-  await stopServer(server);
+  if (serverAlive) await stopServer(server);
   cleanup(workDir);
   cleanup(dataDir);
 }

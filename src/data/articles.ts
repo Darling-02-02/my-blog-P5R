@@ -1,7 +1,7 @@
-import type { Article } from '../lib/article-types';
+import type { Article } from '../../backend/src/articles/article.types';
 import { parseArticleSource } from '../lib/frontmatter';
 
-export type { Article } from '../lib/article-types';
+export type { Article } from '../../backend/src/articles/article.types';
 
 const articleModules = import.meta.glob('../content/articles/**/*.md', {
   eager: true,
