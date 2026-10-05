@@ -140,47 +140,6 @@ const BlogFadeText = ({
   return <span className={`blog-fade-text${visible ? '' : ' is-hidden'}`}>{lines[index]}</span>;
 };
 
-// 幕后精选轮播：参考 biojuse 的 blog-slider，栏目封面交叉淡入淡出
-const BlogSlider = ({ categories }: { categories: CategoryData[] }) => {
-  const navigate = useNavigate();
-  const [index, setIndex] = useState(0);
-  const total = categories.length;
-
-  useEffect(() => {
-    if (total < 2) return;
-    const rotate = window.setInterval(() => setIndex((prev) => (prev + 1) % total), 5000);
-    return () => window.clearInterval(rotate);
-  }, [total]);
-
-  if (!total) return null;
-
-  return (
-    <div className="blog-slider" role="group" aria-label="精选栏目">
-      {categories.map((category, i) => {
-        const active = i === index;
-        return (
-          <button
-            key={category.name}
-            type="button"
-            className={`blog-slide${active ? ' is-active' : ''}`}
-            style={{
-              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.72)), url(${pickCoverByKey(`featured:${category.name}`)})`,
-            }}
-            tabIndex={active ? 0 : -1}
-            aria-hidden={!active}
-            onClick={() => navigate(`/category/${encodeURIComponent(category.name)}`)}
-          >
-            <span className="blog-slide-title">{category.name}</span>
-            <span className="blog-slide-meta">
-              {categoryCountLabel(category)} · {category.description}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-};
-
 // 大类栏目卡片
 const CategoryLandingCard = ({ category, index }: { category: CategoryData; index: number }) => {
   const navigate = useNavigate();
@@ -324,8 +283,6 @@ const MainContent = () => {
             articleCount={mainCategories.reduce((sum, category) => sum + category.count, 0)}
           />
         </p>
-
-        <BlogSlider categories={mainCategories} />
 
         <div className="home-post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '2.5rem' }}>
           {mainCategories.map((category, i) => (
