@@ -6,7 +6,7 @@ import type { CategoryData } from '../contexts/content-context';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
 import { useTheme } from '../contexts/useTheme';
-import { pickCoverByKey } from '../lib/coverImage';
+import { useWorkMood, workMoodImage, type WorkMood } from '../lib/workMood';
 
 const articleCardBackground = 'var(--bg-article-card)';
 const aboutBoxBackground = 'var(--bg-article-card)';
@@ -141,7 +141,7 @@ const BlogFadeText = ({
 };
 
 // 大类栏目卡片
-const CategoryLandingCard = ({ category, index }: { category: CategoryData; index: number }) => {
+const CategoryLandingCard = ({ category, index, mood }: { category: CategoryData; index: number; mood: WorkMood }) => {
   const navigate = useNavigate();
   const hasTopics = categoryHasTopics(category);
   return (
@@ -165,14 +165,15 @@ const CategoryLandingCard = ({ category, index }: { category: CategoryData; inde
       <div className="blog-card-cover" style={{ height: '200px', overflow: 'hidden', position: 'relative' }}>
         <img
           className="blog-card-img"
-          src={pickCoverByKey(`category:${category.name}`)}
-          alt={category.name}
+          src={workMoodImage(mood)}
+          alt=""
           loading="lazy"
           decoding="async"
         />
         <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: category.color, color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '15px', fontSize: '0.85rem', fontWeight: '600' }}>
           {categoryCountLabel(category)}
         </span>
+        <span className="blog-card-mood" title={mood.label}>{mood.period}</span>
       </div>
       <div style={{ padding: '1.5rem' }}>
         <h4 className="blog-card-title" style={{ fontSize: '1.15rem', fontWeight: '600', color: 'var(--text-card-title)', marginBottom: '0.75rem', lineHeight: 1.5 }}>{category.name}</h4>
@@ -189,6 +190,7 @@ const CategoryLandingCard = ({ category, index }: { category: CategoryData; inde
 const MainContent = () => {
   const { articles } = useArticles();
   const { getCategoryData } = useContent();
+  const mood = useWorkMood();
   const categoryData = getCategoryData(articles);
   // Every column that has content shows up here, including ones created from the admin page.
   const mainCategories = categoryData.filter((category) => category.count > 0 || category.topicCount > 0);
@@ -286,7 +288,7 @@ const MainContent = () => {
 
         <div className="home-post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '2.5rem' }}>
           {mainCategories.map((category, i) => (
-            <CategoryLandingCard key={category.name} category={category} index={i} />
+            <CategoryLandingCard key={category.name} category={category} index={i} mood={mood} />
           ))}
         </div>
       </section>

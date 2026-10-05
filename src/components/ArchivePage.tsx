@@ -6,6 +6,7 @@ import Footer from './Footer';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
 import { pickCoverByKey, pickCoverForArticle } from '../lib/coverImage';
+import { useWorkMood, workMoodImage } from '../lib/workMood';
 
 type ArchiveMode = 'tag' | 'category';
 
@@ -33,6 +34,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
   const { name, subcategory } = useParams<{ name: string; subcategory?: string }>();
   const { articles, status, error } = useArticles();
   const { topics, getTopicsByCategory, getArticlePath, getTopicPath, getCategoryData, getTagData } = useContent();
+  const mood = useWorkMood();
   const decodedName = decodeURIComponent(name ?? '');
   const decodedSubcategory = decodeURIComponent(subcategory ?? '');
   const categories = useMemo(() => getCategoryData(articles), [articles, getCategoryData]);
@@ -182,11 +184,26 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                       <div
                         style={{
                           height: '160px',
-                          backgroundImage: `linear-gradient(180deg, rgba(12,8,12,0.1) 0%, rgba(12,8,12,0.7) 100%), url(${topic.cover})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
+                          position: 'relative',
+                          overflow: 'hidden',
+                          background: 'rgba(12, 8, 12, 0.4)',
                         }}
-                      />
+                      >
+                        <img
+                          src={workMoodImage(mood)}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        />
+                        <div
+                          style={{
+                            position: 'absolute',
+                            inset: 0,
+                            backgroundImage: 'linear-gradient(180deg, rgba(12,8,12,0.1) 0%, rgba(12,8,12,0.7) 100%)',
+                          }}
+                        />
+                      </div>
                       <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
                         <h3 style={{ color: 'var(--text-card-title)', fontSize: '1.05rem', margin: '0 0 0.5rem' }}>
                           {categoryEmoji(topic.category)} {topic.title}

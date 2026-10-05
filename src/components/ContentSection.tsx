@@ -58,6 +58,19 @@ const ContentSection = ({ standalone = false }: ContentSectionProps) => {
           transform: scale(1.1);
         }
 
+        /* 封面右下角的时间段标签，配合「幕后」卡片的全天作息动图 */
+        .blog-card-mood {
+          position: absolute;
+          right: 1rem;
+          bottom: 1rem;
+          padding: 0.2rem 0.6rem;
+          border-radius: 15px;
+          background: rgba(12, 8, 12, 0.55);
+          color: #fff;
+          font-size: 0.75rem;
+          letter-spacing: 0.04em;
+        }
+
         .blog-card-title {
           transition: color 0.2s ease-in-out;
         }

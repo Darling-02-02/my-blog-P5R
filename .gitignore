@@ -53,6 +53,9 @@ fig/
 fig-1/
 test.png
 
+# GIF 素材投放目录（569 MB，不提交；发布用的四个动图在 public/muhou/）
+deepseek-gif/
+
 # Local tool state and generated audit output (public repo: never push these)
 .codegraph/
 .dsh-vision-router/
