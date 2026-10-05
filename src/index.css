@@ -1,5 +1,5 @@
 /* Persona 5 Style Anime Blog */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+/* 字体在 index.html 里用 <link> 引入：CSS @import 要等样式表下载完才被发现，会拖慢首屏。 */
 
 :root,
 :root[data-theme="dark"] {
@@ -389,11 +389,12 @@ body {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-/* Theme transition */
+/* Theme transition —— 只过渡会被主题改变的属性。
+   box-shadow 不在这里：它作用在每张卡片上、面积大且重绘贵，主题切换时几百个元素同时动会掉帧。 */
 *,
 *::before,
 *::after {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 /* Responsive */

@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { heroSlideshowImages } from './imageConfig';
 import { useTheme } from '../contexts/useTheme';
 import { useSecondaryPageBackground } from './usePageBackground';
 
@@ -104,76 +103,6 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
         {children}
       </div>
     </>
-  );
-};
-
-// Hero 区域背景 - 图片渐变切换
-export const HeroSlideshowBackground = () => {
-  const { isDark } = useTheme();
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    heroSlideshowImages.forEach((src) => {
-      const img = new Image();
-      img.src = src;
-    });
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % heroSlideshowImages.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        zIndex: 0,
-        overflow: 'hidden',
-        backgroundColor: '#0a0a0a',
-        filter: isDark ? 'brightness(0.6)' : 'none',
-        transition: 'filter 0.4s ease',
-      }}
-    >
-      {heroSlideshowImages.map((src, index) => (
-        <div
-          key={src}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundImage: `url(${src})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            opacity: index === currentIndex ? 1 : 0,
-            transition: 'opacity 1.5s ease-in-out',
-            zIndex: index === currentIndex ? 1 : 0,
-          }}
-        />
-      ))}
-
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: 'linear-gradient(to bottom, rgba(10, 10, 10, 0.2) 0%, rgba(10, 10, 10, 0.5) 100%)',
-          zIndex: 2,
-        }}
-      />
-    </div>
   );
 };
 

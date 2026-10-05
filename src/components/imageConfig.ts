@@ -15,5 +15,3 @@ export const heroSlideshowImages = [
   `${base}slideshow/slideshow-11.png`,
   `${base}slideshow/slideshow-12.png`,
 ];
-
-export const themeBackground = `${base}主题.png`;

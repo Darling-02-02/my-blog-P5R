@@ -3,7 +3,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
-import { Children, isValidElement, useState } from 'react';
+import { Children, isValidElement, memo, useState } from 'react';
 import MermaidDiagram from './MermaidDiagram';
 import 'katex/dist/katex.min.css';
 import 'highlight.js/styles/github-dark-dimmed.css';
@@ -357,4 +357,6 @@ const MarkdownBody = ({ content }: MarkdownBodyProps) => (
   </div>
 );
 
-export default MarkdownBody;
+// ReactMarkdown 每次重渲染都会把整篇 Markdown 重新解析、高亮、跑一遍 KaTeX。
+// 内容没变就不该重做这件事（阅读进度、主题切换等父级更新都会触发重渲染）。
+export default memo(MarkdownBody);

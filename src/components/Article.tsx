@@ -39,16 +39,21 @@ const Article = () => {
   }, [article]);
 
   useEffect(() => {
+    let frame = 0;
+
     const updateReadingProgress = () => {
-      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (frame) return;
 
-      if (scrollableHeight <= 0) {
-        setReadingProgress(0);
-        return;
-      }
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const nextProgress = scrollableHeight <= 0
+          ? 0
+          : Math.min(100, Math.max(0, (window.scrollY / scrollableHeight) * 100));
 
-      const nextProgress = (window.scrollY / scrollableHeight) * 100;
-      setReadingProgress(Math.min(100, Math.max(0, nextProgress)));
+        // scroll 事件比帧还密；进度没动就不要再触发一次整篇重渲染。
+        setReadingProgress((prev) => (Math.abs(prev - nextProgress) < 0.1 ? prev : nextProgress));
+      });
     };
 
     updateReadingProgress();
@@ -56,6 +61,9 @@ const Article = () => {
     window.addEventListener('resize', updateReadingProgress);
 
     return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
       window.removeEventListener('scroll', updateReadingProgress);
       window.removeEventListener('resize', updateReadingProgress);
     };

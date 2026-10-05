@@ -17,13 +17,33 @@ const AdminPage = lazy(() => import('./components/AdminPage'));
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
-  
+
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // 全局 CSS 开了 scroll-behavior: smooth，普通 scrollTo 会带着旧滚动位置"滑"到顶部，
+    // 路由切换必须瞬时归零。
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [pathname]);
-  
+
   return null;
 };
+
+// 路由组件是懒加载的：没有 fallback 时会先白屏一段时间，看起来像卡死。
+const RouteFallback = () => (
+  <div
+    role="status"
+    aria-live="polite"
+    style={{
+      minHeight: '60vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'var(--text-muted)',
+      fontSize: '0.95rem',
+    }}
+  >
+    正在加载页面…
+  </div>
+);
 
 function Home() {
   return <Hero />;
@@ -39,7 +59,7 @@ function App() {
               <div className="scanlines">
                 <main>
                   <ScrollToTop />
-                  <Suspense fallback={null}>
+                  <Suspense fallback={<RouteFallback />}>
                     <Routes>
                       <Route path="/" element={<Home />} />
                       <Route path="/explore" element={<ExplorePage />} />
