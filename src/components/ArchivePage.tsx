@@ -183,7 +183,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                     >
                       <div
                         style={{
-                          height: '160px',
+                          aspectRatio: '1 / 1',
                           position: 'relative',
                           overflow: 'hidden',
                           background: 'rgba(12, 8, 12, 0.4)',

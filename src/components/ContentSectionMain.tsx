@@ -162,7 +162,8 @@ const CategoryLandingCard = ({ category, index, mood }: { category: CategoryData
         transition: 'box-shadow 0.3s ease',
       }}
     >
-      <div className="blog-card-cover" style={{ height: '200px', overflow: 'hidden', position: 'relative' }}>
+      {/* 正方形封面：作息动图是 1:1，用 aspectRatio 让整张图完整显示且不裁切 */}
+      <div className="blog-card-cover" style={{ aspectRatio: '1 / 1', overflow: 'hidden', position: 'relative' }}>
         <img
           className="blog-card-img"
           src={workMoodImage(mood)}
