@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { parseCategoryDocument, topicDirectoriesFrom } from '../src/lib/category-content.ts';
 
 const root = process.cwd();
 const articlesRoot = path.join(root, 'src', 'content', 'articles');
@@ -7,12 +8,22 @@ const topicsRoot = path.join(root, 'src', 'content', 'topics');
 const requiredFields = ['id', 'title', 'excerpt', 'category', 'date', 'readTime', 'tags'];
 const topicFields = ['title', 'summary', 'order'];
 const sectionFields = ['title', 'order'];
-const topicDirs = new Set(['machine-learning', 'essays', 'backend']);
+const categoriesFile = path.join(root, 'src', 'content', 'categories.json');
 
 const fail = (message) => {
   console.error(message);
   process.exitCode = 1;
 };
+
+// 栏目表是数据（后台 /admin 可以增删），专题目录集合由它派生，不能再硬编码。
+let categoryTable;
+try {
+  categoryTable = parseCategoryDocument(readFileSync(categoriesFile, 'utf8'));
+} catch (error) {
+  fail(`src/content/categories.json: ${error instanceof Error ? error.message : String(error)}`);
+  process.exit(1);
+}
+const topicDirs = new Set(Object.values(topicDirectoriesFrom(categoryTable)));
 
 const walkMarkdown = (dir) => {
   const entries = readdirSync(dir, { withFileTypes: true });

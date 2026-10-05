@@ -1,3 +1,4 @@
+import { categoryByDirectory as categoryByDir } from './category-source';
 import { pickCoverByKey } from '../lib/coverImage';
 import { parseTopicDocument } from '../lib/topic-content';
 
@@ -24,13 +25,6 @@ export interface Topic {
 type Frontmatter = Record<string, unknown>;
 
 const base = import.meta.env.BASE_URL;
-
-// The directory names are also used by the admin GitHub publisher.
-const categoryByDir: Record<string, string> = {
-  'machine-learning': '机器学习',
-  essays: '随笔',
-  backend: '后端',
-};
 
 const topicModules = import.meta.glob('../content/topics/**/*.md', {
   eager: true,

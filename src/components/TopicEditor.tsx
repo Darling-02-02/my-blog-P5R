@@ -1,12 +1,12 @@
 import { lazy, Suspense, useState } from 'react';
 import type { Topic, TopicSection } from '../data/topics';
 import { parseMarkdownImport } from '../lib/markdown-import';
-import { topicDirectories, createContentSlug } from '../lib/topic-content';
+import { topicDirectories } from '../data/category-source';
+import { createContentSlug } from '../lib/topic-content';
 import type { TopicDraftInput, SectionDraftInput } from '../lib/topic-content';
 import { topicPublisher } from '../lib/topic-publisher';
 
 const MarkdownBody = lazy(() => import('./MarkdownBody'));
-const categories = Object.keys(topicDirectories);
 const emptyTopic = (category: string): TopicDraftInput => ({ category, slug: '', title: '', summary: '', cover: '', order: 1, tags: [], intro: '' });
 const emptySection = (order = 1): SectionDraftInput => ({ slug: '', title: '', order, readTime: '', content: '' });
 const inputStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '0.65rem', border: '1px solid var(--border-card)', borderRadius: 6, color: 'var(--text-body)', background: 'var(--bg-card)' };
@@ -16,10 +16,19 @@ interface Props {
   token: string;
   topics: Topic[];
   refresh: () => Promise<void>;
+  /**
+   * 仓库里正在生效的「栏目名 -> 专题目录」。不传就用构建期那份（见 src/data/category-source.ts）。
+   * 传了空对象表示实时栏目表里一个"用专题组织"的栏目都没有，此时不该拿构建期的旧栏目来发内容。
+   */
+  directories?: Record<string, string>;
 }
 
-export default function TopicEditor({ token, topics, refresh }: Props) {
-  const [category, setCategory] = useState(categories[0]);
+export default function TopicEditor({ token, topics, refresh, directories }: Props) {
+  const table = directories ?? topicDirectories;
+  const categories = Object.keys(table);
+  const [category, setCategory] = useState(() => categories[0]);
+  // 实时栏目表可能删掉了当前选中的栏目，这时回落到第一个，避免下拉框变成空值。
+  const activeCategory = categories.includes(category) ? category : categories[0];
   const [selected, setSelected] = useState('');
   const [sectionSlug, setSectionSlug] = useState('');
   const [topic, setTopic] = useState<TopicDraftInput>(() => emptyTopic(categories[0]));
@@ -29,7 +38,7 @@ export default function TopicEditor({ token, topics, refresh }: Props) {
   const [preview, setPreview] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
-  const matching = topics.filter((item) => item.category === category);
+  const matching = topics.filter((item) => item.category === activeCategory);
   const active = matching.find((item) => item.slug === selected);
 
   const chooseTopic = (slug: string) => {
@@ -39,7 +48,7 @@ export default function TopicEditor({ token, topics, refresh }: Props) {
     setTab('topic');
     setPreview(false);
     setMessage('');
-    setTopic(found ? { category, slug: found.slug, title: found.title, summary: found.summary, cover: found.cover, order: found.order, tags: found.tags, intro: found.intro } : emptyTopic(category));
+    setTopic(found ? { category: activeCategory, slug: found.slug, title: found.title, summary: found.summary, cover: found.cover, order: found.order, tags: found.tags, intro: found.intro } : emptyTopic(activeCategory));
     setTagsText(found?.tags.join(', ') ?? '');
     setSection(emptySection(found ? Math.max(0, ...found.sections.map((item) => item.order)) + 1 : 1));
   };
@@ -74,12 +83,12 @@ export default function TopicEditor({ token, topics, refresh }: Props) {
       if (tab === 'topic') {
         const input = { ...topic, slug: topic.slug || createContentSlug(topic.title, 'topic'), tags: [...new Set(tagsText.split(',').map((tag) => tag.trim()).filter(Boolean))] };
         const firstSection = { ...section, slug: section.slug || createContentSlug(section.title, 'section') };
-        if (selected) await topicPublisher.saveTopic(token, input);
-        else await topicPublisher.create(token, input, firstSection);
+        if (selected) await topicPublisher.saveTopic(token, input, table);
+        else await topicPublisher.create(token, input, firstSection, table);
         setSelected(input.slug);
       } else {
         const input = { ...section, slug: section.slug || createContentSlug(section.title, 'section') };
-        await topicPublisher.saveSection(token, category, selected, input, !sectionSlug);
+        await topicPublisher.saveSection(token, activeCategory, selected, input, !sectionSlug, table);
         setSectionSlug(input.slug);
       }
       await refresh();
@@ -92,10 +101,14 @@ export default function TopicEditor({ token, topics, refresh }: Props) {
   const sectionField = <K extends keyof SectionDraftInput>(key: K, value: SectionDraftInput[K]) => setSection((current) => ({ ...current, [key]: value }));
   const markdown = tab === 'topic' ? topic.intro : section.content;
 
+  if (!categories.length) return <p role="status" style={{ margin: 0, color: 'var(--text-body)' }}>
+    仓库里还没有「用专题组织」的栏目，所以这里没法发专题。请先到「🗂 幕后栏目」新建一个（模式选「用专题组织」并填目录名），再回来。
+  </p>;
+
   return <div style={{ display: 'grid', gap: '1rem' }}>
     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'end' }}>
       <label style={{ ...labelStyle, flex: '1 1 130px' }}>幕后栏目
-        <select value={category} style={inputStyle} onChange={(event) => { const next = event.target.value; setCategory(next); setSelected(''); setSectionSlug(''); setTopic(emptyTopic(next)); setSection(emptySection()); setTagsText(''); setTab('topic'); setMessage(''); }}>
+        <select value={activeCategory} style={inputStyle} onChange={(event) => { const next = event.target.value; setCategory(next); setSelected(''); setSectionSlug(''); setTopic(emptyTopic(next)); setSection(emptySection()); setTagsText(''); setTab('topic'); setMessage(''); }}>
           {categories.map((name) => <option key={name}>{name}</option>)}
         </select>
       </label>

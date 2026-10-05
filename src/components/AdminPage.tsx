@@ -1,12 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArticleApiError } from '../lib/api';
 import { activeArticleSource } from '../lib/article-source';
 import type { Article } from '../../backend/src/articles/article.types';
 import type { ArticleWriteInput } from '../lib/article-form';
 import ArticleEditor from './ArticleEditor';
+import CategoryManager from './CategoryManager';
 import TopicEditor from './TopicEditor';
 import type { Topic } from '../data/topics';
+import { topicDirectoriesFrom } from '../lib/category-content';
+import type { CategoryInput } from '../lib/category-content';
+import { categoryPublisher } from '../lib/category-publisher';
 import { topicPublisher } from '../lib/topic-publisher';
 
 const TOKEN_KEY = 'blog_admin_token';
@@ -42,12 +46,20 @@ const AdminPage = () => {
   const [token, setToken] = useState(() => sessionStorage.getItem(TOKEN_KEY) ?? '');
   const [articles, setArticles] = useState<Article[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
-  const [adminMode, setAdminMode] = useState<'articles' | 'topics'>(activeArticleSource.kind === 'github' ? 'topics' : 'articles');
+  const [categoryList, setCategoryList] = useState<CategoryInput[] | null>(null);
+  const [categorySha, setCategorySha] = useState('');
+  const [categoryError, setCategoryError] = useState<string | null>(null);
+  const [topicsLoaded, setTopicsLoaded] = useState(false);
+  const [adminMode, setAdminMode] = useState<'articles' | 'topics' | 'categories'>(activeArticleSource.kind === 'github' ? 'topics' : 'articles');
   const [selected, setSelected] = useState<Article | undefined>();
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [editorError, setEditorError] = useState<string | null>(null);
+  // 专题列表和发布都按"仓库里正在生效"的栏目表解析目录（见 topic-publisher 的 directories 参数），
+  // 否则刚新建的栏目要等一次站点重建才能发专题。用 ref 是为了让 loadTopics 的依赖保持为空，
+  // 不然 loadCategories 每次写入新数组都会让本 effect 重跑，形成"读完再读"的循环。
+  const liveDirs = useRef<Record<string, string> | undefined>(undefined);
 
   const clearAdminSession = useCallback((nextMessage = '已退出后台，当前会话 Token 已清除') => {
     sessionStorage.removeItem(TOKEN_KEY);
@@ -55,6 +67,11 @@ const AdminPage = () => {
     setToken('');
     setArticles([]);
     setTopics([]);
+    setTopicsLoaded(false);
+    liveDirs.current = undefined;
+    setCategoryList(null);
+    setCategorySha('');
+    setCategoryError(null);
     setSelected(undefined);
     setEditorError(null);
     setMessage(nextMessage);
@@ -80,9 +97,32 @@ const AdminPage = () => {
   const loadTopics = useCallback(async (activeToken: string) => {
     if (activeArticleSource.kind !== 'github') return;
     try {
-      setTopics(await topicPublisher.list(activeToken));
+      setTopics(await topicPublisher.list(activeToken, liveDirs.current));
+      setTopicsLoaded(true);
     } catch (error) {
+      setTopicsLoaded(false);
       setMessage(toMessage(error));
+    }
+  }, []);
+
+  // 读仓库里"正在生效"的栏目表：后台列表和专题下拉都以它为准，构建期那份只是站点渲染用的快照。
+  const loadCategories = useCallback(async (activeToken: string) => {
+    if (activeArticleSource.kind !== 'github') return;
+    try {
+      const snapshot = await categoryPublisher.load(activeToken);
+      liveDirs.current = topicDirectoriesFrom(snapshot.categories);
+      setCategoryList(snapshot.categories);
+      setCategorySha(snapshot.sha);
+      setCategoryError(null);
+    } catch (error) {
+      liveDirs.current = undefined;
+      setCategoryList(null);
+      setCategorySha('');
+      setCategoryError(
+        error instanceof ArticleApiError && (error.status === 401 || error.status === 403)
+          ? toMessage(error)
+          : error instanceof Error ? error.message : '栏目表读取失败',
+      );
     }
   }, []);
 
@@ -91,9 +131,10 @@ const AdminPage = () => {
     const timer = window.setTimeout(() => {
       void loadArticles(token);
       void loadTopics(token);
+      void loadCategories(token);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [loadArticles, loadTopics, token]);
+  }, [loadArticles, loadCategories, loadTopics, token]);
 
   const handleTokenSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -198,9 +239,32 @@ const AdminPage = () => {
         {token && <div role="tablist" aria-label="内容管理" style={{ display: 'flex', gap: '0.5rem' }}>
           <button type="button" role="tab" aria-selected={adminMode === 'articles'} onClick={() => setAdminMode('articles')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', background: adminMode === 'articles' ? '#ff0040' : 'var(--bg-card)', color: adminMode === 'articles' ? '#fff' : 'var(--text-body)' }}>📄 独立文章</button>
           <button type="button" role="tab" aria-selected={adminMode === 'topics'} onClick={() => setAdminMode('topics')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', background: adminMode === 'topics' ? '#ff0040' : 'var(--bg-card)', color: adminMode === 'topics' ? '#fff' : 'var(--text-body)' }}>🌱 专题章节</button>
+          <button type="button" role="tab" aria-selected={adminMode === 'categories'} onClick={() => setAdminMode('categories')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', background: adminMode === 'categories' ? '#ff0040' : 'var(--bg-card)', color: adminMode === 'categories' ? '#fff' : 'var(--text-body)' }}>🗂 幕后栏目</button>
+        </div>}
+        {token && adminMode === 'categories' && <div style={panelStyle}>
+          {activeArticleSource.kind === 'github' ? (
+            categoryList ? (
+              <CategoryManager
+                token={token}
+                categories={categoryList}
+                sha={categorySha}
+                topics={topics}
+                topicsLoaded={topicsLoaded}
+                articles={articles}
+                onChanged={() => loadCategories(token)}
+              />
+            ) : (
+              <div style={{ display: 'grid', gap: '0.6rem', justifyItems: 'start' }}>
+                <p role="status" style={{ margin: 0, color: 'var(--text-body)' }}>{categoryError ?? '正在读取仓库里的栏目表…'}</p>
+                {categoryError && <button type="button" onClick={() => void loadCategories(token)} style={{ border: '1px solid var(--border-card)', borderRadius: 6, padding: '0.35rem 0.7rem', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer' }}>重新读取</button>}
+              </div>
+            )
+          ) : (
+            <p role="status" style={{ margin: 0, color: 'var(--text-body)' }}>当前后端数据库只存文章；幕后栏目表放在仓库里，请用 GitHub 模式管理。</p>
+          )}
         </div>}
         {token && adminMode === 'topics' && <div style={panelStyle}>
-          {activeArticleSource.kind === 'github' ? <TopicEditor token={token} topics={topics} refresh={() => loadTopics(token)} /> :
+          {activeArticleSource.kind === 'github' ? <TopicEditor token={token} topics={topics} refresh={() => loadTopics(token)} directories={categoryList ? topicDirectoriesFrom(categoryList) : undefined} /> :
             <p role="status" style={{ color: 'var(--text-body)' }}>当前后端数据库仅支持文章；专题仍由仓库 Markdown 构建。请使用 GitHub 模式管理专题，数据库专题接口尚未接入。</p>}
         </div>}
         {token && adminMode === 'articles' && (

@@ -19,12 +19,6 @@ export interface SectionDraftInput {
   content: string;
 }
 
-export const topicDirectories: Record<string, string> = {
-  '机器学习': 'machine-learning',
-  '后端': 'backend',
-  '随笔': 'essays',
-};
-
 export const topicSlugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const createContentSlug = (title: string, kind: 'topic' | 'section') => {
@@ -54,7 +48,9 @@ const requireBody = (value: string, label: string) => {
 };
 
 export const serializeTopic = (input: TopicDraftInput) => {
-  if (!topicDirectories[input.category]) throw new Error('请选择幕后栏目');
+  // 栏目表现在是数据（src/content/categories.json），本模块要保持无 Vite 依赖（node 测试直接 import），
+  // 所以这里只挡空值；「栏目存在且有专题目录」由 topic-publisher 的 pathFor 用实时栏目表判断。
+  requireText(input.category, '幕后栏目');
   if (!topicSlugPattern.test(input.slug)) throw new Error('专题 Slug 只能包含小写字母、数字和连字符');
   if (!Number.isSafeInteger(input.order) || input.order < 0) throw new Error('专题排序必须是非负整数');
   return `---\n${stringify({

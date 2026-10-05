@@ -1,3 +1,4 @@
+import { categoryInputs } from './category-source';
 import { getTopicCountByCategory } from './topics';
 
 export interface CategoryDefinition {
@@ -18,56 +19,19 @@ export interface TagData {
   count: number;
 }
 
-export const bioinformaticsSubcategories = [
-  '转录组',
-  '代谢组',
-  '蛋白组',
-  '网络药理学',
-  'lncRNA',
-  'ScRNA-seq',
-  '线粒体',
-  '比较基因组',
-  'meta分析',
-];
-
-export const reconstructionSubcategories = [
-  '单帧作物点云数据处理流程',
-  'MVS(多视角重建)',
-  '开源算法总结和使用',
-];
-
-export const categoryDefinitions: CategoryDefinition[] = [
-  {
-    name: '生物信息',
-    description: '转录组、代谢组、蛋白组等生信专题整理',
-    color: '#ff6b6b',
-    subcategories: bioinformaticsSubcategories,
-  },
-  {
-    name: '三维重建',
-    description: '点云处理、多视角重建和开源算法学习记录',
-    color: '#4ecdc4',
-    subcategories: reconstructionSubcategories,
-  },
-  {
-    name: '机器学习',
-    description: '模型训练、数据处理、工程实践和实验复盘',
-    color: '#45b7d1',
-    usesTopics: true,
-  },
-  {
-    name: '后端',
-    description: '后端学习路线、服务端工程实践和踩坑记录',
-    color: '#7c5cff',
-    usesTopics: true,
-  },
-  {
-    name: '随笔',
-    description: '学习复盘、生活记录和一些不太正经的想法',
-    color: '#96ceb4',
-    usesTopics: true,
-  },
-];
+// 栏目表来自 src/content/categories.json（后台「幕后栏目」页可以增删改），构建期固化在这里：
+//   dir            -> 用专题目录组织（src/content/topics/<dir>），首页卡片显示"N 个专题"
+//   subcategories  -> 纯分类栏目，首页/栏目页显示子专题清单
+//   usesTopics 是给组件用的派生字段，不写进 JSON。
+export const categoryDefinitions: CategoryDefinition[] = categoryInputs.map(
+  ({ name, description, color, dir, subcategories }) => ({
+    name,
+    description,
+    color,
+    ...(subcategories ? { subcategories } : {}),
+    ...(dir ? { usesTopics: true } : {}),
+  }),
+);
 
 const fallbackColors = ['#f39c12', '#8e44ad', '#2ecc71', '#e67e22'];
 

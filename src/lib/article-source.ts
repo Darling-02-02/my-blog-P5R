@@ -24,7 +24,7 @@ export interface ArticleSource {
 
 const githubSource: ArticleSource = {
   kind: 'github',
-  panelHint: '保存即提交到 GitHub 仓库，约 1 分钟后自动上线；分类直接填，新栏目会自动出现在首页',
+  panelHint: '保存即提交到 GitHub 仓库，约 1 分钟后自动上线；分类直接填，新栏目会自动出现在首页（要正经管理栏目请用「🗂 幕后栏目」）',
   tokenLabel: 'GitHub Token（Fine-grained，仅本仓库 Contents 读写；只保存在当前浏览器会话）',
   supportsDraft: false,
   list: (token) => articlePublisher.list(token),
