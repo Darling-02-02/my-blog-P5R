@@ -38,6 +38,118 @@ const ContentSection = ({ standalone = false }: ContentSectionProps) => {
         </div>
       </div>
       <style>{`
+        /* 幕后区块：参考 biojuse.com 的卡片/轮播交互，配色沿用本站红色 */
+        .blog-card {
+          box-shadow: var(--shadow-card);
+        }
+
+        .blog-card:hover {
+          box-shadow: var(--shadow-hover);
+        }
+
+        .blog-card-cover img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: filter 375ms ease-in 0.2s, transform 0.6s;
+        }
+
+        .blog-card:hover .blog-card-cover img {
+          transform: scale(1.1);
+        }
+
+        .blog-card-title {
+          transition: color 0.2s ease-in-out;
+        }
+
+        .blog-card-title::before {
+          content: '🔗';
+          margin-right: 8px;
+          font-size: 0.9em;
+        }
+
+        .blog-card:hover .blog-card-title {
+          color: #ff0040;
+        }
+
+        .blog-card-desc {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .blog-card-meta {
+          color: #858585;
+          font-size: 90%;
+          transition: color 0.2s ease-in-out;
+        }
+
+        .blog-card:hover .blog-card-meta {
+          color: #ff0040;
+        }
+
+        .blog-slider {
+          position: relative;
+          height: 240px;
+          border-radius: 16px;
+          overflow: hidden;
+          margin-bottom: 2.5rem;
+          border: 1px solid var(--border-card);
+        }
+
+        .blog-slide {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          gap: 0.35rem;
+          padding: 1.75rem;
+          border: 0;
+          text-align: left;
+          cursor: pointer;
+          color: #fff;
+          background-size: cover;
+          background-position: center;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 1.2s ease;
+        }
+
+        .blog-slide.is-active {
+          opacity: 1;
+          pointer-events: auto;
+        }
+
+        .blog-slide-title {
+          font-size: 1.9rem;
+          font-weight: 700;
+          text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .blog-slide-meta {
+          display: -webkit-box;
+          max-width: 46ch;
+          color: rgba(255, 255, 255, 0.82);
+          font-size: 90%;
+          line-height: 1.6;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .blog-fade-text {
+          display: inline-block;
+          transition: opacity 0.6s ease, transform 0.6s ease, filter 0.6s ease;
+        }
+
+        .blog-fade-text.is-hidden {
+          opacity: 0;
+          transform: scale(0.95) translateY(-10px);
+          filter: blur(5px);
+        }
+
         @media (max-width: 1100px) {
           .home-main-card {
             padding: 0 !important;
@@ -97,6 +209,18 @@ const ContentSection = ({ standalone = false }: ContentSectionProps) => {
 
           .home-post-grid {
             grid-template-columns: 1fr !important;
+          }
+
+          .blog-slider {
+            height: 200px;
+          }
+
+          .blog-slide {
+            padding: 1.25rem;
+          }
+
+          .blog-slide-title {
+            font-size: 1.4rem;
           }
 
           .home-comment-box {

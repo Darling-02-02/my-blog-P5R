@@ -1,14 +1,13 @@
 // 首页内容区右栏：简介/幕后/关于/留言四个区块，含大类栏目卡片与 Giscus 评论。
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { CategoryData } from '../contexts/content-context';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
 import { useTheme } from '../contexts/useTheme';
+import { pickCoverByKey } from '../lib/coverImage';
 
-const base = import.meta.env.BASE_URL;
-const coverImage = `${base}cover.png`;
 const articleCardBackground = 'var(--bg-article-card)';
 const aboutBoxBackground = 'var(--bg-article-card)';
 const commentBoxBackground = 'var(--bg-article-card)';
@@ -93,13 +92,102 @@ const GiscusComments = () => {
   return <div ref={containerRef} id="giscus-container" style={{ minHeight: '200px' }} />;
 };
 
+// 大类栏目：卡片角标与轮播共用的计数/文案
+const categoryHasTopics = (category: CategoryData) =>
+  Boolean(category.subcategories?.length) || Boolean(category.usesTopics);
+
+const categoryCountLabel = (category: CategoryData) => {
+  const subcategories = category.subcategories?.length ?? 0;
+  if (subcategories) return `${subcategories} 个专题`;
+  if (category.usesTopics) return `${category.topicCount} 个专题`;
+  return `${category.count} 篇文章`;
+};
+
+// 幕后副标题：参考 biojuse 的淡入淡出（透明度 + 缩放 + 模糊），文案取自真实数据
+const BlogFadeText = ({
+  lead,
+  columnCount,
+  topicCount,
+  articleCount,
+}: {
+  lead: string;
+  columnCount: number;
+  topicCount: number;
+  articleCount: number;
+}) => {
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+  const lines = useMemo(
+    () => [lead, `目前收录 ${columnCount} 个栏目`, `共 ${topicCount} 个专题 / ${articleCount} 篇文章`],
+    [lead, columnCount, topicCount, articleCount],
+  );
+
+  useEffect(() => {
+    let swap = 0;
+    const rotate = window.setInterval(() => {
+      setVisible(false);
+      swap = window.setTimeout(() => {
+        setIndex((prev) => (prev + 1) % lines.length);
+        setVisible(true);
+      }, 600);
+    }, 5000);
+    return () => {
+      window.clearInterval(rotate);
+      window.clearTimeout(swap);
+    };
+  }, [lines]);
+
+  return <span className={`blog-fade-text${visible ? '' : ' is-hidden'}`}>{lines[index]}</span>;
+};
+
+// 幕后精选轮播：参考 biojuse 的 blog-slider，栏目封面交叉淡入淡出
+const BlogSlider = ({ categories }: { categories: CategoryData[] }) => {
+  const navigate = useNavigate();
+  const [index, setIndex] = useState(0);
+  const total = categories.length;
+
+  useEffect(() => {
+    if (total < 2) return;
+    const rotate = window.setInterval(() => setIndex((prev) => (prev + 1) % total), 5000);
+    return () => window.clearInterval(rotate);
+  }, [total]);
+
+  if (!total) return null;
+
+  return (
+    <div className="blog-slider" role="group" aria-label="精选栏目">
+      {categories.map((category, i) => {
+        const active = i === index;
+        return (
+          <button
+            key={category.name}
+            type="button"
+            className={`blog-slide${active ? ' is-active' : ''}`}
+            style={{
+              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.72)), url(${pickCoverByKey(`featured:${category.name}`)})`,
+            }}
+            tabIndex={active ? 0 : -1}
+            aria-hidden={!active}
+            onClick={() => navigate(`/category/${encodeURIComponent(category.name)}`)}
+          >
+            <span className="blog-slide-title">{category.name}</span>
+            <span className="blog-slide-meta">
+              {categoryCountLabel(category)} · {category.description}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
 // 大类栏目卡片
 const CategoryLandingCard = ({ category, index }: { category: CategoryData; index: number }) => {
   const navigate = useNavigate();
-  const hasSubcategories = Boolean(category.subcategories?.length);
-  const hasTopics = hasSubcategories || Boolean(category.usesTopics);
+  const hasTopics = categoryHasTopics(category);
   return (
     <motion.article
+      className="blog-card"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -115,22 +203,24 @@ const CategoryLandingCard = ({ category, index }: { category: CategoryData; inde
         transition: 'box-shadow 0.3s ease',
       }}
     >
-      <div style={{ height: '160px', overflow: 'hidden', position: 'relative' }}>
-        <img src={coverImage} alt={category.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      <div className="blog-card-cover" style={{ height: '200px', overflow: 'hidden', position: 'relative' }}>
+        <img
+          className="blog-card-img"
+          src={pickCoverByKey(`category:${category.name}`)}
+          alt={category.name}
+          loading="lazy"
+          decoding="async"
+        />
         <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: category.color, color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '15px', fontSize: '0.85rem', fontWeight: '600' }}>
-          {hasTopics
-            ? `${hasSubcategories ? category.subcategories?.length ?? 0 : category.topicCount} 个专题`
-            : `${category.count} 篇文章`}
+          {categoryCountLabel(category)}
         </span>
       </div>
       <div style={{ padding: '1.5rem' }}>
-        <h4 style={{ fontSize: '1.15rem', fontWeight: '600', color: 'var(--text-card-title)', marginBottom: '0.75rem', lineHeight: 1.5 }}>{category.name}</h4>
-        <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.8rem', lineHeight: 1.7 }}>
+        <h4 className="blog-card-title" style={{ fontSize: '1.15rem', fontWeight: '600', color: 'var(--text-card-title)', marginBottom: '0.75rem', lineHeight: 1.5 }}>{category.name}</h4>
+        <p className="blog-card-desc" style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.8rem', lineHeight: 1.7 }}>
           {category.description}
         </p>
-        <span style={{ color: '#ff0040', fontSize: '0.85rem', background: 'var(--bg-tag)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
-          {hasTopics ? '进入专题' : '查看全部'}
-        </span>
+        <span className="blog-card-meta">{hasTopics ? '进入专题 →' : '查看全部 →'}</span>
       </div>
     </motion.article>
   );
@@ -226,11 +316,18 @@ const MainContent = () => {
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
           <span style={{ color: '#ff0040' }}>幕后</span>
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
-          一切都是为了正义
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', minHeight: '3.6rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
+          <BlogFadeText
+            lead="一切都是为了正义"
+            columnCount={mainCategories.length}
+            topicCount={mainCategories.reduce((sum, category) => sum + category.topicCount, 0)}
+            articleCount={mainCategories.reduce((sum, category) => sum + category.count, 0)}
+          />
         </p>
-        
-        <div className="home-post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: '2.5rem' }}>
+
+        <BlogSlider categories={mainCategories} />
+
+        <div className="home-post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '2.5rem' }}>
           {mainCategories.map((category, i) => (
             <CategoryLandingCard key={category.name} category={category} index={i} />
           ))}
