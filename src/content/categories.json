@@ -1,21 +1,5 @@
 [
   {
-    "name": "生物信息",
-    "description": "转录组、代谢组、蛋白组等生信专题整理",
-    "color": "#ff6b6b",
-    "subcategories": [
-      "转录组",
-      "代谢组",
-      "蛋白组",
-      "网络药理学",
-      "lncRNA",
-      "ScRNA-seq",
-      "线粒体",
-      "比较基因组",
-      "meta分析"
-    ]
-  },
-  {
     "name": "三维重建",
     "description": "点云处理、多视角重建和开源算法学习记录",
     "color": "#4ecdc4",
