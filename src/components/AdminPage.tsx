@@ -219,12 +219,16 @@ const AdminPage = () => {
             <h1 style={{ margin: 0, color: 'var(--text-heading)' }}>📝 内容小后台</h1>
             <p style={{ margin: '0.4rem 0 0', color: 'var(--text-muted)' }}>{activeArticleSource.panelHint}</p>
           </div>
-          <button type="button" onClick={() => navigate('/')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', borderRadius: '8px', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer' }}>
-            返回网站
-          </button>
+          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            {token && <span style={{ fontSize: '0.8rem', padding: '0.3rem 0.7rem', borderRadius: '999px', border: '1px solid var(--border-card)', color: '#1a7f37' }}>已连接</span>}
+            {token && <button type="button" onClick={() => clearAdminSession()} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', borderRadius: '8px', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>退出后台</button>}
+            <button type="button" onClick={() => navigate('/')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', borderRadius: '8px', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer' }}>
+              返回网站
+            </button>
+          </div>
         </div>
 
-        <form onSubmit={handleTokenSubmit} style={{ ...panelStyle, display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        {!token && <form onSubmit={handleTokenSubmit} style={{ ...panelStyle, display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <label htmlFor="admin-token" style={{ flex: '1 1 280px', display: 'grid', gap: '0.35rem', color: 'var(--text-body)' }}>
             {activeArticleSource.tokenLabel}
             <input id="admin-token" type="password" value={tokenInput} onChange={(event) => setTokenInput(event.target.value)} style={{ padding: '0.7rem 0.8rem', border: '1px solid var(--border-card)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-body)' }} />
@@ -232,14 +236,23 @@ const AdminPage = () => {
           <button type="submit" style={{ alignSelf: 'end', padding: '0.7rem 1.2rem', border: 'none', borderRadius: '8px', background: '#ff0040', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>
             连接后台
           </button>
-        </form>
+        </form>}
 
         {message && <p role="alert" style={{ ...panelStyle, color: message.includes('无效') || message.includes('失败') || message.includes('不足') ? '#b00020' : 'var(--text-body)', margin: 0 }}>{message}</p>}
 
-        {token && <div role="tablist" aria-label="内容管理" style={{ display: 'flex', gap: '0.5rem' }}>
-          <button type="button" role="tab" aria-selected={adminMode === 'articles'} onClick={() => setAdminMode('articles')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', background: adminMode === 'articles' ? '#ff0040' : 'var(--bg-card)', color: adminMode === 'articles' ? '#fff' : 'var(--text-body)' }}>📄 独立文章</button>
-          <button type="button" role="tab" aria-selected={adminMode === 'topics'} onClick={() => setAdminMode('topics')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', background: adminMode === 'topics' ? '#ff0040' : 'var(--bg-card)', color: adminMode === 'topics' ? '#fff' : 'var(--text-body)' }}>🌱 专题章节</button>
-          <button type="button" role="tab" aria-selected={adminMode === 'categories'} onClick={() => setAdminMode('categories')} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', background: adminMode === 'categories' ? '#ff0040' : 'var(--bg-card)', color: adminMode === 'categories' ? '#fff' : 'var(--text-body)' }}>🗂 幕后栏目</button>
+        <style>{`
+          .admin-tabs{display:flex;gap:.5rem;flex-wrap:wrap}
+          .admin-tab{padding:.6rem 1.1rem;border:1px solid var(--border-card);border-radius:10px;background:var(--bg-card);color:var(--text-body);cursor:pointer;font:inherit}
+          .admin-tab[data-active]{background:#ff0040;border-color:#ff0040;color:#fff;font-weight:700}
+          .admin-grid{display:grid;grid-template-columns:minmax(220px,.8fr) minmax(0,1.6fr);gap:1rem;align-items:flex-start}
+          .admin-cols{display:grid;grid-template-columns:minmax(260px,1fr) minmax(0,1.2fr);gap:1.25rem;align-items:flex-start}
+          @media (max-width:900px){.admin-grid,.admin-cols{grid-template-columns:minmax(0,1fr)}}
+        `}</style>
+
+        {token && <div role="tablist" aria-label="内容管理" className="admin-tabs">
+          {([['articles', `📄 独立文章（${articles.length}）`], ['topics', `🌱 专题章节（${topics.length}）`], ['categories', `🗂 幕后栏目（${categoryList?.length ?? 0}）`]] as const).map(([id, label]) => (
+            <button key={id} type="button" role="tab" aria-selected={adminMode === id} onClick={() => setAdminMode(id)} className="admin-tab" data-active={adminMode === id ? 'true' : undefined}>{label}</button>
+          ))}
         </div>}
         {token && adminMode === 'categories' && <div style={panelStyle}>
           {activeArticleSource.kind === 'github' ? (
@@ -268,19 +281,18 @@ const AdminPage = () => {
             <p role="status" style={{ color: 'var(--text-body)' }}>当前后端数据库仅支持文章；专题仍由仓库 Markdown 构建。请使用 GitHub 模式管理专题，数据库专题接口尚未接入。</p>}
         </div>}
         {token && adminMode === 'articles' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 0.8fr) minmax(0, 1.6fr)', gap: '1rem', alignItems: 'start' }}>
+          <div className="admin-grid">
             <div style={{ ...panelStyle, display: 'grid', gap: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
                 <h2 style={{ margin: 0, color: 'var(--text-heading)', fontSize: '1.1rem' }}>文章列表</h2>
-                <button type="button" onClick={() => { setSelected(undefined); setEditorError(null); }} style={{ border: 'none', borderRadius: '6px', padding: '0.35rem 0.6rem', background: 'rgba(255,0,64,0.1)', color: '#ff0040', cursor: 'pointer' }}>
-                  新建
+                <button type="button" onClick={() => { setSelected(undefined); setEditorError(null); }} style={{ border: 'none', borderRadius: '8px', padding: '0.5rem 0.9rem', background: '#ff0040', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
+                  ＋ 新建文章
                 </button>
               </div>
-              <button type="button" onClick={() => clearAdminSession()} style={{ alignSelf: 'start', border: '1px solid var(--border-card)', borderRadius: '6px', padding: '0.35rem 0.6rem', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>退出后台</button>
               {loading && <p role="status" style={{ color: 'var(--text-muted)' }}>加载中…</p>}
               {!loading && articles.length === 0 && <p style={{ color: 'var(--text-muted)' }}>这里还没有独立文章哦～专题章节请切换到上面的「🌱 专题章节」管理。</p>}
               {articles.map((article) => (
-                <div key={article.slug} style={{ borderTop: '1px solid var(--border-section)', paddingTop: '0.75rem' }}>
+                <div key={article.slug} style={{ borderTop: '1px solid var(--border-section)', padding: '0.7rem', borderRadius: 10, background: selected?.slug === article.slug ? 'rgba(255,0,64,0.07)' : 'transparent' }}>
                   <button type="button" onClick={() => { setSelected(article); setEditorError(null); }} style={{ width: '100%', textAlign: 'left', border: 'none', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer', padding: 0 }}>
                     <strong style={{ display: 'block', color: 'var(--text-heading)' }}>{article.title}</strong>
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{article.category} · {article.date}</span>
@@ -292,11 +304,11 @@ const AdminPage = () => {
                       </span>
                     )}
                     {activeArticleSource.setPublished && (
-                      <button type="button" disabled={busy} onClick={() => void handleSetPublished(article, article.status !== 'published')} style={{ border: '1px solid #1a7f37', borderRadius: '6px', padding: '0.3rem 0.55rem', background: 'transparent', color: '#1a7f37', cursor: 'pointer' }}>
+                      <button type="button" disabled={busy} onClick={() => void handleSetPublished(article, article.status !== 'published')} style={{ border: '1px solid #1a7f37', borderRadius: '8px', padding: '0.4rem 0.7rem', background: 'transparent', color: '#1a7f37', cursor: 'pointer' }}>
                         {article.status === 'published' ? '下架' : '发布'}
                       </button>
                     )}
-                    <button type="button" disabled={busy} onClick={() => void handleDelete(article)} style={{ border: '1px solid #b00020', borderRadius: '6px', padding: '0.3rem 0.55rem', background: 'transparent', color: '#b00020', cursor: 'pointer' }}>删除</button>
+                    <button type="button" disabled={busy} onClick={() => void handleDelete(article)} style={{ border: '1px solid #b00020', borderRadius: '8px', padding: '0.4rem 0.7rem', background: 'transparent', color: '#b00020', cursor: 'pointer' }}>🗑 删除</button>
                   </div>
                 </div>
               ))}

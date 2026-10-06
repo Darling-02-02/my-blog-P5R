@@ -20,6 +20,16 @@ const read = async (token: string, path: string) => {
   return parseTopicDocument(decodeBase64(file.content), path);
 };
 
+// 删一个仓库文件。sha 必须先读出来：Contents API 的删除是「带着 sha 的写」，
+// 对不上的话说明别的窗口刚改过这个文件，宁可报错也不要覆盖。
+const removeFile = async (token: string, path: string, message: string) => {
+  const file = await getFile(token, path);
+  if (!file) throw new ArticleApiError(404, 'NOT_FOUND', `文件未找到：${path}`);
+  await request(token, contentsUrl(path), {
+    method: 'DELETE', body: JSON.stringify({ message, sha: file.sha, branch }),
+  });
+};
+
 // directories: 栏目名 -> 专题目录。默认用构建期那份（src/data/category-source.ts）；
 // 后台会把"仓库里正在生效"的实时栏目表传进来，否则刚建的栏目要等一次站点重建才能发专题。
 export const topicPublisher = {
@@ -109,5 +119,24 @@ export const topicPublisher = {
     await request(token, contentsUrl(path), {
       method: 'PUT', body: JSON.stringify({ message: `${creating ? '新增' : '更新'}章节：${input.title}`, content: encodeBase64(text), ...(old ? { sha: old.sha } : {}), branch }),
     });
+  },
+
+  removeSection: async (token: string, category: string, topicSlug: string, sectionSlug: string, directories: Record<string, string> = topicDirectories) => {
+    const base = pathFor(directories, category, topicSlug);
+    await removeFile(token, `${base}/sections/${sectionSlug}.md`, `删除章节：${sectionSlug}`);
+  },
+
+  removeTopic: async (token: string, category: string, topicSlug: string, directories: Record<string, string> = topicDirectories) => {
+    const base = pathFor(directories, category, topicSlug);
+    const tree = await request<{ tree?: Array<{ path: string; type: string }> }>(token, `${repo}/git/trees/${branch}?recursive=1`);
+    const paths = (tree?.tree ?? [])
+      .filter((entry) => entry.type === 'blob' && entry.path.startsWith(`${base}/`))
+      .map((entry) => entry.path);
+    if (!paths.length) throw new ArticleApiError(404, 'NOT_FOUND', '专题未找到，请刷新列表');
+    // 先删章节、最后删 topic.md：中途哪一步失败，仓库里剩下的要么还是完整专题，要么已经什么都不剩。
+    // 反过来先删 topic.md 的话，中间的提交里 sections/ 就成了没有专题的孤儿，
+    // validate:content 的「必须有 sections/ 且至少一节」会在这段时间里把构建卡红。
+    const ordered = paths.sort((a, b) => Number(a.endsWith('/topic.md')) - Number(b.endsWith('/topic.md')));
+    for (const path of ordered) await removeFile(token, path, `删除专题：${topicSlug}（${path.slice(base.length + 1)}）`);
   },
 };

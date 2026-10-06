@@ -10,7 +10,7 @@ const inputStyle: React.CSSProperties = { width: '100%', boxSizing: 'border-box'
 const labelStyle: React.CSSProperties = { display: 'grid', gap: '0.35rem', color: 'var(--text-body)' };
 const hintStyle: React.CSSProperties = { margin: '-0.35rem 0 0', color: 'var(--text-muted)', fontSize: '0.82rem' };
 const warnStyle: React.CSSProperties = { margin: '-0.35rem 0 0', color: '#b26a00', fontSize: '0.82rem' };
-const smallButtonStyle: React.CSSProperties = { border: '1px solid var(--border-card)', borderRadius: 6, padding: '0.3rem 0.55rem', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer' };
+const smallButtonStyle: React.CSSProperties = { border: '1px solid var(--border-card)', borderRadius: 8, padding: '0.4rem 0.7rem', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer' };
 
 interface Draft {
   name: string;
@@ -49,8 +49,17 @@ interface Props {
 export default function CategoryManager({ token, categories, sha, topics, topicsLoaded, articles, onChanged }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
+  // 表单默认收起来：右边先给一句"怎么改"，别让"新建栏目"和"编辑栏目"看起来像同一件事。
+  const [formOpen, setFormOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+
+  const openForm = (category: CategoryInput | null) => {
+    setEditing(category?.name ?? null);
+    setDraft(category ? toDraft(category) : emptyDraft());
+    setMessage('');
+    setFormOpen(true);
+  };
 
   const topicCount = (name: string) => topics.filter((topic) => topic.category === name).length;
   const articleCount = (name: string) => articles.filter((article) => article.category === name).length;
@@ -129,6 +138,7 @@ export default function CategoryManager({ token, categories, sha, topics, topics
     if (saved && editing === category.name) {
       setEditing(null);
       setDraft(emptyDraft());
+      setFormOpen(false);
     }
   };
 
@@ -139,11 +149,11 @@ export default function CategoryManager({ token, categories, sha, topics, topics
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 1fr) minmax(0, 1.2fr)', gap: '1.25rem', alignItems: 'start' }}>
+    <div className="admin-cols">
       <div style={{ display: 'grid', gap: '0.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
           <h2 style={{ margin: 0, color: 'var(--text-heading)', fontSize: '1.1rem' }}>幕后栏目（{categories.length}）</h2>
-          <button type="button" onClick={() => { setEditing(null); setDraft(emptyDraft()); setMessage(''); }} style={{ border: 'none', borderRadius: 6, padding: '0.35rem 0.6rem', background: 'rgba(255,0,64,0.1)', color: '#ff0040', cursor: 'pointer' }}>新建</button>
+          <button type="button" onClick={() => openForm(null)} style={{ border: 'none', borderRadius: 8, padding: '0.5rem 0.9rem', background: '#ff0040', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>＋ 新建栏目</button>
         </div>
         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.82rem' }}>
           首页只显示有文章或专题的栏目；顺序就是首页卡片顺序。改动提交到仓库的 src/content/categories.json，约 1 分钟后重建生效。
@@ -154,7 +164,7 @@ export default function CategoryManager({ token, categories, sha, topics, topics
           const articleTotal = articleCount(category.name);
           const isEmpty = topicTotal === 0 && articleTotal === 0;
           return (
-            <div key={category.name} style={{ borderTop: '1px solid var(--border-section)', paddingTop: '0.75rem', display: 'grid', gap: '0.4rem' }}>
+            <div key={category.name} style={{ borderTop: '1px solid var(--border-section)', padding: '0.7rem', borderRadius: 10, display: 'grid', gap: '0.4rem', background: editing === category.name ? 'rgba(255,0,64,0.07)' : 'transparent' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <span aria-hidden style={{ width: 12, height: 12, borderRadius: '50%', background: category.color, display: 'inline-block' }} />
                 <strong style={{ color: 'var(--text-heading)' }}>{category.name}</strong>
@@ -165,17 +175,22 @@ export default function CategoryManager({ token, categories, sha, topics, topics
               <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>{category.description || '（还没有简介）'}</p>
               {isEmpty && <p style={warnStyle}>空栏目：先给它加一个专题或文章，首页才会显示。</p>}
               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                <button type="button" onClick={() => { setEditing(category.name); setDraft(toDraft(category)); setMessage(''); }} style={smallButtonStyle}>编辑</button>
-                <button type="button" disabled={busy || index === 0} onClick={() => void move(index, -1)} style={smallButtonStyle} aria-label={`把「${category.name}」上移`}>↑</button>
-                <button type="button" disabled={busy || index === categories.length - 1} onClick={() => void move(index, 1)} style={smallButtonStyle} aria-label={`把「${category.name}」下移`}>↓</button>
-                <button type="button" disabled={busy} onClick={() => void remove(category)} style={{ ...smallButtonStyle, borderColor: '#b00020', color: '#b00020' }}>删除</button>
+                <button type="button" onClick={() => openForm(category)} style={smallButtonStyle}>✏️ 编辑</button>
+                <button type="button" disabled={busy || index === 0} onClick={() => void move(index, -1)} style={smallButtonStyle} aria-label={`把「${category.name}」上移`}>↑ 上移</button>
+                <button type="button" disabled={busy || index === categories.length - 1} onClick={() => void move(index, 1)} style={smallButtonStyle} aria-label={`把「${category.name}」下移`}>↓ 下移</button>
+                <button type="button" disabled={busy} onClick={() => void remove(category)} style={{ ...smallButtonStyle, borderColor: 'rgba(176,0,32,0.5)', color: '#b00020' }}>🗑 删除</button>
               </div>
             </div>
           );
         })}
       </div>
 
-      <form onSubmit={(event) => { void submit(event); }} style={{ display: 'grid', gap: '0.85rem' }}>
+      <div style={{ display: 'grid', gap: '0.75rem', alignContent: 'start' }}>
+      {!formOpen ? <div style={{ border: '1px dashed var(--border-card)', borderRadius: 14, padding: '1.4rem', color: 'var(--text-muted)', lineHeight: 1.9 }}>
+        <strong style={{ color: 'var(--text-body)' }}>这里改哪个栏目？</strong>
+        <p style={{ margin: '0.5rem 0 0' }}>左边点「＋ 新建栏目」加一个；点某个栏目的「✏️ 编辑」改它；「↑ 上移 / ↓ 下移」调首页顺序；「🗑 删除」从栏目表里删掉它。</p>
+        <p style={{ margin: '0.5rem 0 0' }}>新栏目要等里面有文章或专题，首页才会出现。</p>
+      </div> : <form onSubmit={(event) => { void submit(event); }} style={{ display: 'grid', gap: '0.85rem' }}>
         <h3 style={{ margin: 0, color: 'var(--text-heading)' }}>{editing === null ? '新建栏目' : `编辑栏目：${editing}`}</h3>
         <label style={labelStyle}>栏目名称
           <input required value={draft.name} onChange={(event) => field('name', event.target.value)} style={inputStyle} placeholder="例如：前端" />
@@ -229,10 +244,11 @@ export default function CategoryManager({ token, categories, sha, topics, topics
         </fieldset>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button type="submit" disabled={busy} style={{ ...inputStyle, width: 'auto', border: 0, background: '#ff0040', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>{busy ? '提交中…' : editing === null ? '新建栏目' : '保存修改'}</button>
-          {(editing !== null || draft.name) && <button type="button" disabled={busy} onClick={() => { setEditing(null); setDraft(emptyDraft()); setMessage(''); }} style={{ ...inputStyle, width: 'auto', cursor: 'pointer' }}>清空</button>}
+          <button type="button" disabled={busy} onClick={() => { setEditing(null); setDraft(emptyDraft()); setFormOpen(false); }} style={{ ...inputStyle, width: 'auto', cursor: 'pointer' }}>取消</button>
         </div>
-        {message && <p role="status" style={{ margin: 0, color: 'var(--text-body)' }}>{message}</p>}
-      </form>
+      </form>}
+      {message && <p role="status" style={{ margin: 0, color: 'var(--text-body)' }}>{message}</p>}
+      </div>
     </div>
   );
 }

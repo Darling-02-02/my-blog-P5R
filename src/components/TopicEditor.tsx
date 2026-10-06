@@ -11,6 +11,10 @@ const emptyTopic = (category: string): TopicDraftInput => ({ category, slug: '',
 const emptySection = (order = 1): SectionDraftInput => ({ slug: '', title: '', order, readTime: '', content: '' });
 const inputStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '0.65rem', border: '1px solid var(--border-card)', borderRadius: 6, color: 'var(--text-body)', background: 'var(--bg-card)' };
 const labelStyle = { display: 'grid', gap: '0.35rem', color: 'var(--text-body)' };
+const hintStyle = { margin: '-0.35rem 0 0', color: 'var(--text-muted)', fontSize: '0.82rem' };
+const navButtonStyle = { border: '1px solid var(--border-card)', borderRadius: 6, padding: '0.65rem 1rem', background: 'rgba(255,0,64,0.1)', color: 'var(--text-body)', fontWeight: 600, cursor: 'pointer' };
+const dangerButtonStyle = { border: '1px solid rgba(255,0,64,0.45)', borderRadius: 6, padding: '0.65rem 1rem', background: 'transparent', color: '#ff0040', fontWeight: 600, cursor: 'pointer' };
+const segmentStyle = (active: boolean) => ({ border: '1px solid var(--border-card)', borderRadius: 6, padding: '0.6rem 0.9rem', background: active ? 'rgba(255,0,64,0.12)' : 'transparent', color: active ? '#ff0040' : 'var(--text-body)', fontWeight: active ? 700 : 500, cursor: 'pointer' });
 
 interface Props {
   token: string;
@@ -97,6 +101,44 @@ export default function TopicEditor({ token, topics, refresh, directories }: Pro
     finally { setBusy(false); }
   };
 
+  const removeTopic = async () => {
+    if (busy || !selected) return;
+    const sections = active?.sections.length ?? 0;
+    if (!window.confirm(`删除专题「${topic.title || selected}」？\n它和它的 ${sections} 个章节会一起从仓库删掉，站点重建后前台就不显示了。`)) return;
+    setBusy(true);
+    setMessage('');
+    try {
+      await topicPublisher.removeTopic(token, activeCategory, selected, table);
+      setSelected('');
+      setSectionSlug('');
+      setTopic(emptyTopic(activeCategory));
+      setSection(emptySection());
+      setTab('topic');
+      await refresh();
+      setMessage('已删除，站点重新构建后生效。');
+    } catch (error) { setMessage(error instanceof Error ? error.message : '删除失败'); }
+    finally { setBusy(false); }
+  };
+
+  const removeSection = async () => {
+    if (busy || !selected || !sectionSlug) return;
+    // validate:content 要求每个专题至少留一节（scripts/validate-content.mjs:175），
+    // 删最后一节会让构建失败，所以这里直接拦住，让用户改删整个专题。
+    if ((active?.sections.length ?? 0) <= 1) { setMessage('这是这个专题唯一的章节，删掉专题就没内容了；要清空请删整个专题。'); return; }
+    if (!window.confirm(`删除章节「${section.title || sectionSlug}」？`)) return;
+    setBusy(true);
+    setMessage('');
+    try {
+      await topicPublisher.removeSection(token, activeCategory, selected, sectionSlug, table);
+      setSectionSlug('');
+      setSection(emptySection(Math.max(0, ...(active?.sections.filter((item) => item.slug !== sectionSlug).map((item) => item.order) ?? [])) + 1));
+      setTab('section');
+      await refresh();
+      setMessage('已删除，站点重新构建后生效。');
+    } catch (error) { setMessage(error instanceof Error ? error.message : '删除失败'); }
+    finally { setBusy(false); }
+  };
+
   const topicField = <K extends keyof TopicDraftInput>(key: K, value: TopicDraftInput[K]) => setTopic((current) => ({ ...current, [key]: value }));
   const sectionField = <K extends keyof SectionDraftInput>(key: K, value: SectionDraftInput[K]) => setSection((current) => ({ ...current, [key]: value }));
   const markdown = tab === 'topic' ? topic.intro : section.content;
@@ -118,24 +160,28 @@ export default function TopicEditor({ token, topics, refresh, directories }: Pro
           {matching.map((item) => <option key={item.slug} value={item.slug}>{item.title}</option>)}
         </select>
       </label>
-      <button type="button" onClick={() => chooseTopic('')} style={inputStyle}>＋ 新建专题</button>
+      <button type="button" onClick={() => chooseTopic('')} style={navButtonStyle}>＋ 新建专题</button>
+      {selected && <button type="button" disabled={busy} onClick={() => { void removeTopic(); }} style={dangerButtonStyle}>🗑 删除专题</button>}
     </div>
     {selected && <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'end', flexWrap: 'wrap' }}>
-      <button type="button" onClick={() => setTab('topic')} aria-pressed={tab === 'topic'} style={inputStyle}>专题信息</button>
-      <label style={labelStyle}>章节
+      <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+        {(['topic', 'section'] as const).map((id) => <button key={id} type="button" onClick={() => setTab(id)} aria-pressed={tab === id} style={segmentStyle(tab === id)}>{id === 'topic' ? '专题信息' : '章节内容'}</button>)}
+      </div>
+      <label style={{ ...labelStyle, flex: '1 1 150px' }}>章节
         <select value={sectionSlug} style={inputStyle} onChange={(event) => chooseSection(event.target.value)}>
           <option value="">新建章节</option>
           {active?.sections.map((item: TopicSection) => <option key={item.slug} value={item.slug}>{item.title}</option>)}
         </select>
       </label>
-      <button type="button" onClick={() => chooseSection('')} style={inputStyle}>＋ 新建章节</button>
+      <button type="button" onClick={() => chooseSection('')} style={navButtonStyle}>＋ 新建章节</button>
+      {sectionSlug && <button type="button" disabled={busy} onClick={() => { void removeSection(); }} style={dangerButtonStyle}>🗑 删除章节</button>}
     </div>}
     <form onSubmit={(event) => { void submit(event); }} style={{ display: 'grid', gap: '0.85rem' }}>
       <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0, display: 'grid', gap: '0.85rem', minWidth: 0 }}>
         <h3 style={{ margin: 0, color: 'var(--text-heading)' }}>{tab === 'topic' ? selected ? '编辑专题' : '新建专题' : sectionSlug ? '编辑章节' : '新建章节'}</h3>
         {tab === 'topic' ? <>
           <label style={labelStyle}>专题名称<input required value={topic.title} onChange={(event) => topicField('title', event.target.value)} style={inputStyle} placeholder="例如：从零开始学机器学习" /></label>
-          <p style={{ margin: '-0.35rem 0 0', color: 'var(--text-muted)', fontSize: '0.82rem' }}>🔗 专题网址会根据名称自动生成 Slug，不需要手填；中文名称会使用短 ID。</p>
+          <p style={hintStyle}>🔗 专题网址会根据名称自动生成 Slug，不需要手填；中文名称会使用短 ID。</p>
           <label style={labelStyle}>一句话简介<textarea required value={topic.summary} onChange={(event) => topicField('summary', event.target.value)} style={inputStyle} placeholder="让读者一眼知道这个专题讲什么" /></label>
           <details>
             <summary style={{ cursor: 'pointer', color: 'var(--text-muted)' }}>更多设置（可选）</summary>
@@ -147,13 +193,13 @@ export default function TopicEditor({ token, topics, refresh, directories }: Pro
           {!selected && <div style={{ display: 'grid', gap: '0.7rem', borderTop: '1px solid var(--border-card)', paddingTop: '0.8rem' }}>
             <strong>🌱 首个章节</strong>
             <label style={labelStyle}>章节标题<input required value={section.title} onChange={(event) => sectionField('title', event.target.value)} style={inputStyle} placeholder="例如：认识监督学习" /></label>
-            <p style={{ margin: '-0.35rem 0 0', color: 'var(--text-muted)', fontSize: '0.82rem' }}>章节网址也会自动生成 Slug，保存后可以继续添加更多章节。</p>
+            <p style={hintStyle}>章节网址也会自动生成 Slug，保存后可以继续添加更多章节。</p>
             <label style={labelStyle}>首章正文<textarea required value={section.content} onChange={(event) => sectionField('content', event.target.value)} style={{ ...inputStyle, minHeight: 130, fontFamily: 'monospace' }} placeholder="支持 Markdown、代码块、公式和 Mermaid 流程图" /></label>
             <label style={{ ...inputStyle, width: 'fit-content', cursor: 'pointer' }}>📄 导入首章 Markdown<input type="file" accept=".md,.markdown,text/markdown" aria-label="导入首章 Markdown" onChange={(event) => { void importMarkdown(event.target.files?.[0], 'section'); event.currentTarget.value = ''; }} /></label>
           </div>}
         </> : <>
           <label style={labelStyle}>章节标题<input required value={section.title} onChange={(event) => sectionField('title', event.target.value)} style={inputStyle} /></label>
-          <label style={labelStyle}>           <p style={{ margin: '-0.35rem 0 0', color: 'var(--text-muted)', fontSize: '0.82rem' }}>🔗 章节网址会根据标题自动生成 Slug。</p></label>
+          <p style={hintStyle}>🔗 章节网址会根据标题自动生成 Slug，不需要手填。</p>
           <label style={labelStyle}>排序<input required type="number" min="0" step="1" value={section.order} onChange={(event) => sectionField('order', Number(event.target.value))} style={inputStyle} /></label>
           <label style={labelStyle}>阅读时长<input value={section.readTime} onChange={(event) => sectionField('readTime', event.target.value)} style={inputStyle} /></label>
         </>}
