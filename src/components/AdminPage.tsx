@@ -203,7 +203,10 @@ const AdminPage = () => {
   };
 
   const panelStyle = {
-    background: 'var(--bg-card)',
+    // 后台要读文字、要长时间打字：用不透明的卡片底色 + 和文章卡一样的背景模糊，
+    // 别让墙纸插画透上来干扰（--bg-card 在半透明主题下只有 0.48）。
+    background: 'var(--bg-article-content)',
+    backdropFilter: 'blur(10px)',
     border: '1px solid var(--border-card)',
     borderRadius: '14px',
     padding: '1.25rem',
@@ -241,7 +244,7 @@ const AdminPage = () => {
         {message && <p role="alert" style={{ ...panelStyle, color: message.includes('无效') || message.includes('失败') || message.includes('不足') ? '#b00020' : 'var(--text-body)', margin: 0 }}>{message}</p>}
 
         <style>{`
-          .admin-tabs{display:flex;gap:.5rem;flex-wrap:wrap}
+          .admin-tabs{display:flex;gap:.5rem;flex-wrap:wrap;background:var(--bg-article-content);border:1px solid var(--border-card);border-radius:14px;padding:.6rem;backdrop-filter:blur(10px)}
           .admin-tab{padding:.6rem 1.1rem;border:1px solid var(--border-card);border-radius:10px;background:var(--bg-card);color:var(--text-body);cursor:pointer;font:inherit}
           .admin-tab[data-active]{background:#ff0040;border-color:#ff0040;color:#fff;font-weight:700}
           .admin-grid{display:grid;grid-template-columns:minmax(220px,.8fr) minmax(0,1.6fr);gap:1rem;align-items:flex-start}

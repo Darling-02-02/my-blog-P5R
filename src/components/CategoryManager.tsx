@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Topic } from '../data/topics';
 import { categoryDirPattern, moveCategory, parseCategoryDocument, removeCategory, serializeCategoryDocument, upsertCategory } from '../lib/category-content';
 import type { CategoryInput } from '../lib/category-content';
-import { categoryPublisher } from '../lib/category-publisher';
+import { categoryPublisher, isCategoryConflict } from '../lib/category-publisher';
 
 const presetColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#7c5cff', '#96ceb4', '#f39c12', '#8e44ad', '#2ecc71', '#e67e22'];
 
@@ -94,8 +94,19 @@ export default function CategoryManager({ token, categories, sha, topics, topics
       // 用发布器同一套解析校验候选表，后台不再重复实现一份规则。
       await categoryPublisher.save(token, parseCategoryDocument(serializeCategoryDocument(list)), sha, note);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '保存失败');
       setBusy(false);
+      // 并发冲突：仓库里的表比手里这份新。读回最新表（sha 随之更新），再让用户点一次，
+      // 不然这句"已经被改过"就是个死胡同——用户会一遍遍点，一遍遍失败。
+      if (isCategoryConflict(error)) {
+        try {
+          await onChanged();
+          setMessage('仓库里的栏目表刚被别的窗口改过，已经读回最新内容，请再点一次刚才的操作。');
+        } catch {
+          setMessage('仓库里的栏目表刚被别的窗口改过，重新读取也失败了，按 F5 刷新页面后再试。');
+        }
+        return false;
+      }
+      setMessage(error instanceof Error ? error.message : '保存失败');
       return false;
     }
     // 提交已经落地了，后面刷列表失败不能再报成"保存失败"。
@@ -149,16 +160,16 @@ export default function CategoryManager({ token, categories, sha, topics, topics
   };
 
   return (
-    <div className="admin-cols">
+    <div className={formOpen ? 'admin-cols' : undefined}>
       <div style={{ display: 'grid', gap: '0.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
           <h2 style={{ margin: 0, color: 'var(--text-heading)', fontSize: '1.1rem' }}>幕后栏目（{categories.length}）</h2>
           <button type="button" onClick={() => openForm(null)} style={{ border: 'none', borderRadius: 8, padding: '0.5rem 0.9rem', background: '#ff0040', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>＋ 新建栏目</button>
         </div>
         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-          首页只显示有文章或专题的栏目；顺序就是首页卡片顺序。改动提交到仓库的 src/content/categories.json，约 1 分钟后重建生效。
+          首页只显示有文章或专题的栏目，这里的顺序就是首页卡片顺序。
         </p>
-        {categories.length === 0 && <p style={{ margin: 0, color: 'var(--text-muted)' }}>仓库里的栏目表是空的，右侧新建一个吧。</p>}
+        {categories.length === 0 && <p style={{ margin: 0, color: 'var(--text-muted)' }}>仓库里的栏目表是空的，先点「＋ 新建栏目」加一个。</p>}
         {categories.map((category, index) => {
           const topicTotal = topicCount(category.name);
           const articleTotal = articleCount(category.name);
@@ -171,26 +182,22 @@ export default function CategoryManager({ token, categories, sha, topics, topics
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
                   {category.dir ? `专题目录 ${category.dir}` : category.subcategories ? `${category.subcategories.length} 个子专题` : '按文章分类'} · {topicTotal} 专题 · {articleTotal} 文章
                 </span>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  <button type="button" onClick={() => openForm(category)} style={smallButtonStyle}>✏️ 编辑</button>
+                  <button type="button" disabled={busy || index === 0} onClick={() => void move(index, -1)} style={smallButtonStyle} aria-label={`把「${category.name}」上移`}>↑ 上移</button>
+                  <button type="button" disabled={busy || index === categories.length - 1} onClick={() => void move(index, 1)} style={smallButtonStyle} aria-label={`把「${category.name}」下移`}>↓ 下移</button>
+                  <button type="button" disabled={busy} onClick={() => void remove(category)} style={{ ...smallButtonStyle, borderColor: 'rgba(176,0,32,0.5)', color: '#b00020' }}>🗑 删除</button>
+                </div>
               </div>
               <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>{category.description || '（还没有简介）'}</p>
               {isEmpty && <p style={warnStyle}>空栏目：先给它加一个专题或文章，首页才会显示。</p>}
-              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                <button type="button" onClick={() => openForm(category)} style={smallButtonStyle}>✏️ 编辑</button>
-                <button type="button" disabled={busy || index === 0} onClick={() => void move(index, -1)} style={smallButtonStyle} aria-label={`把「${category.name}」上移`}>↑ 上移</button>
-                <button type="button" disabled={busy || index === categories.length - 1} onClick={() => void move(index, 1)} style={smallButtonStyle} aria-label={`把「${category.name}」下移`}>↓ 下移</button>
-                <button type="button" disabled={busy} onClick={() => void remove(category)} style={{ ...smallButtonStyle, borderColor: 'rgba(176,0,32,0.5)', color: '#b00020' }}>🗑 删除</button>
-              </div>
             </div>
           );
         })}
       </div>
 
       <div style={{ display: 'grid', gap: '0.75rem', alignContent: 'start' }}>
-      {!formOpen ? <div style={{ border: '1px dashed var(--border-card)', borderRadius: 14, padding: '1.4rem', color: 'var(--text-muted)', lineHeight: 1.9 }}>
-        <strong style={{ color: 'var(--text-body)' }}>这里改哪个栏目？</strong>
-        <p style={{ margin: '0.5rem 0 0' }}>左边点「＋ 新建栏目」加一个；点某个栏目的「✏️ 编辑」改它；「↑ 上移 / ↓ 下移」调首页顺序；「🗑 删除」从栏目表里删掉它。</p>
-        <p style={{ margin: '0.5rem 0 0' }}>新栏目要等里面有文章或专题，首页才会出现。</p>
-      </div> : <form onSubmit={(event) => { void submit(event); }} style={{ display: 'grid', gap: '0.85rem' }}>
+      {formOpen && <form onSubmit={(event) => { void submit(event); }} style={{ display: 'grid', gap: '0.85rem' }}>
         <h3 style={{ margin: 0, color: 'var(--text-heading)' }}>{editing === null ? '新建栏目' : `编辑栏目：${editing}`}</h3>
         <label style={labelStyle}>栏目名称
           <input required value={draft.name} onChange={(event) => field('name', event.target.value)} style={inputStyle} placeholder="例如：前端" />

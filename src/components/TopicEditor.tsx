@@ -149,12 +149,12 @@ export default function TopicEditor({ token, topics, refresh, directories }: Pro
 
   return <div style={{ display: 'grid', gap: '1rem' }}>
     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'end' }}>
-      <label style={{ ...labelStyle, flex: '1 1 130px' }}>幕后栏目
+      <label style={{ ...labelStyle, flex: '1 1 130px', maxWidth: '240px' }}>幕后栏目
         <select value={activeCategory} style={inputStyle} onChange={(event) => { const next = event.target.value; setCategory(next); setSelected(''); setSectionSlug(''); setTopic(emptyTopic(next)); setSection(emptySection()); setTagsText(''); setTab('topic'); setMessage(''); }}>
           {categories.map((name) => <option key={name}>{name}</option>)}
         </select>
       </label>
-      <label style={{ ...labelStyle, flex: '2 1 180px' }}>专题
+      <label style={{ ...labelStyle, flex: '2 1 180px', maxWidth: '380px' }}>专题
         <select value={selected} style={inputStyle} onChange={(event) => chooseTopic(event.target.value)}>
           <option value="">新建专题</option>
           {matching.map((item) => <option key={item.slug} value={item.slug}>{item.title}</option>)}
@@ -163,16 +163,14 @@ export default function TopicEditor({ token, topics, refresh, directories }: Pro
       <button type="button" onClick={() => chooseTopic('')} style={navButtonStyle}>＋ 新建专题</button>
       {selected && <button type="button" disabled={busy} onClick={() => { void removeTopic(); }} style={dangerButtonStyle}>🗑 删除专题</button>}
     </div>
-    {selected && <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'end', flexWrap: 'wrap' }}>
+    {selected && <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
       <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
         {(['topic', 'section'] as const).map((id) => <button key={id} type="button" onClick={() => setTab(id)} aria-pressed={tab === id} style={segmentStyle(tab === id)}>{id === 'topic' ? '专题信息' : '章节内容'}</button>)}
       </div>
-      <label style={{ ...labelStyle, flex: '1 1 150px' }}>章节
-        <select value={sectionSlug} style={inputStyle} onChange={(event) => chooseSection(event.target.value)}>
-          <option value="">新建章节</option>
-          {active?.sections.map((item: TopicSection) => <option key={item.slug} value={item.slug}>{item.title}</option>)}
-        </select>
-      </label>
+      <select aria-label="选择章节" value={sectionSlug} style={{ ...inputStyle, flex: '1 1 150px' }} onChange={(event) => chooseSection(event.target.value)}>
+        <option value="">新建章节</option>
+        {active?.sections.map((item: TopicSection) => <option key={item.slug} value={item.slug}>{item.title}</option>)}
+      </select>
       <button type="button" onClick={() => chooseSection('')} style={navButtonStyle}>＋ 新建章节</button>
       {sectionSlug && <button type="button" disabled={busy} onClick={() => { void removeSection(); }} style={dangerButtonStyle}>🗑 删除章节</button>}
     </div>}

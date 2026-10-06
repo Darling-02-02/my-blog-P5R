@@ -40,9 +40,15 @@ export const categoryPublisher = {
     } catch (error) {
       // 409/422 是 sha 对不上（或文件被删了）；后台默认文案把它当成"slug 已存在"，在栏目这里会看不懂。
       if (error instanceof ArticleApiError && (error.status === 409 || error.status === 422)) {
-        throw new Error(`仓库里的 ${path} 已经被改过（可能是另一个窗口或标签页），请刷新页面重新读取后再提交`);
+        // 保留 status/code：调用方要靠它认出这是并发冲突，读回最新表让用户重试，
+        // 而不是把错误拍成一句"请刷新页面"就断了（用户真的会一直点、一直失败）。
+        throw new ArticleApiError(error.status, 'CATEGORY_CONFLICT', `仓库里的 ${path} 已经被改过（可能是另一个窗口或标签页）`);
       }
       throw error;
     }
   },
 };
+
+/** 并发冲突（仓库里的栏目表比手里这份新）：界面据此重新读表再让用户重试。 */
+export const isCategoryConflict = (error: unknown): boolean =>
+  error instanceof ArticleApiError && error.code === 'CATEGORY_CONFLICT';
