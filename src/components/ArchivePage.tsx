@@ -3,10 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from './Header';
 import Footer from './Footer';
+import TopicReader from './TopicReader';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
 import { pickCoverByKey, pickCoverForArticle } from '../lib/coverImage';
-import { useWorkMood, workMoodImage } from '../lib/workMood';
 
 type ArchiveMode = 'tag' | 'category';
 
@@ -34,7 +34,6 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
   const { name, subcategory } = useParams<{ name: string; subcategory?: string }>();
   const { articles, status, error } = useArticles();
   const { topics, getTopicsByCategory, getArticlePath, getTopicPath, getCategoryData, getTagData } = useContent();
-  const mood = useWorkMood();
   const decodedName = decodeURIComponent(name ?? '');
   const decodedSubcategory = decodeURIComponent(subcategory ?? '');
   const categories = useMemo(() => getCategoryData(articles), [articles, getCategoryData]);
@@ -78,12 +77,6 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
     });
     return [...grouped.entries()].sort((a, b) => Number(b[0]) - Number(a[0]));
   }, [filteredArticles]);
-
-  const categoryCounts = useMemo(() => {
-    return categories.map(
-      (category) => [category.name, category.usesTopics ? category.topicCount : category.count] as const,
-    );
-  }, [categories]);
 
   const tagCounts = useMemo(() => {
     return getTagData(articles);
@@ -153,75 +146,22 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
             </div>
           </motion.div>
 
-          <div className="archive-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
+          <div className="archive-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '1.5rem' }}>
             <div>
               {topicsInCategory.length > 0 ? (
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 240px), 1fr))',
-                    gap: '1rem',
-                  }}
-                >
-                  {topicsInCategory.map((topic, index) => (
-                    <motion.article
-                      key={topic.slug}
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.25, delay: index * 0.05 }}
-                      whileHover={{ y: -4 }}
-                      onClick={() => navigate(getTopicPath(topic))}
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.78)',
-                        border: '1px solid var(--border-card)',
-                        borderRadius: '14px',
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                      }}
-                    >
-                      <div
-                        style={{
-                          aspectRatio: '1 / 1',
-                          position: 'relative',
-                          overflow: 'hidden',
-                          background: 'rgba(12, 8, 12, 0.4)',
-                        }}
-                      >
-                        <img
-                          src={workMoodImage(mood)}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                        />
-                        <div
-                          style={{
-                            position: 'absolute',
-                            inset: 0,
-                            backgroundImage: 'linear-gradient(180deg, rgba(12,8,12,0.1) 0%, rgba(12,8,12,0.7) 100%)',
-                          }}
-                        />
-                      </div>
-                      <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                        <h3 style={{ color: 'var(--text-card-title)', fontSize: '1.05rem', margin: '0 0 0.5rem' }}>
-                          {categoryEmoji(topic.category)} {topic.title}
-                        </h3>
-                        <p style={{
-                          color: 'var(--text-muted)',
-                          fontSize: '0.88rem',
-                          lineHeight: 1.6,
-                          margin: '0 0 1rem',
-                          flex: 1,
-                        }}>
-                          {topic.summary}
+                <div className="topic-reader-card">
+                  {topicsInCategory.map((topic) => (
+                    <article key={topic.slug} className="reader-topic">
+                      <header className="reader-topic-header">
+                        <p className="reader-topic-kicker">
+                          {categoryEmoji(topic.category)} {topic.category}
+                          {topic.sections.length > 0 ? ` · ${topic.sections.length} 节` : ''}
                         </p>
-                        <span style={{ color: '#ff0040', fontSize: '0.82rem', fontWeight: 600 }}>
-                          📚 {topic.sections.length} 节 · 🚀 进入专题 →
-                        </span>
-                      </div>
-                    </motion.article>
+                        <h2 className="reader-topic-title">{topic.title}</h2>
+                        {topic.summary && <p className="reader-topic-summary">{topic.summary}</p>}
+                      </header>
+                      <TopicReader topic={topic} />
+                    </article>
                   ))}
                 </div>
               ) : subcategories.length > 0 ? (
@@ -339,38 +279,6 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                   marginBottom: '1rem',
                 }}
               >
-                <h3 style={{ color: 'var(--text-heading)', marginBottom: '0.8rem', fontSize: '1rem' }}>分类</h3>
-                {categoryCounts.map(([category, count]) => (
-                  <button
-                    key={category}
-                    onClick={() => navigate(`/category/${encodeURIComponent(category)}`)}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      border: 'none',
-                      background: 'transparent',
-                      color: 'var(--text-body)',
-                      padding: '0.35rem 0',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <span>{category}</span>
-                    <span style={{ color: '#ff0040', fontWeight: 600 }}>{count}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div
-                style={{
-                  background: 'var(--bg-sidebar-card)',
-                  border: '1px solid var(--border-card)',
-                  borderRadius: '14px',
-                  padding: '1rem',
-                  marginBottom: '1rem',
-                }}
-              >
                 <h3 style={{ color: 'var(--text-heading)', marginBottom: '0.8rem', fontSize: '1rem' }}>标签</h3>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
                   {tagCounts.map((tag) => (
@@ -440,7 +348,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
           }
 
           .archive-grid {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: minmax(0, 1fr) !important;
           }
         }
 

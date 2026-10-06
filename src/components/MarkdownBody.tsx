@@ -3,13 +3,15 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
-import { Children, isValidElement, memo, useState } from 'react';
+import { Children, isValidElement, memo, useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import MermaidDiagram from './MermaidDiagram';
 import 'katex/dist/katex.min.css';
 import 'highlight.js/styles/github-dark-dimmed.css';
 import { textOf } from '../lib/hast-text';
 import type { HastNode } from '../lib/hast-text';
 
+// 代码块只负责结构和复制行为，外观交给 index.css 里的 .markdown-body .md-code。
 const CodeBlock = ({
   language,
   code,
@@ -36,326 +38,163 @@ const CodeBlock = ({
   const copyLabel = copyState === 'copied' ? '已复制 ✓' : copyState === 'failed' ? '复制失败，请手动选中' : '复制';
 
   return (
-    <div style={{
-      position: 'relative',
-      margin: '1.5rem 0',
-      borderRadius: '10px',
-      overflow: 'hidden',
-      background: 'var(--bg-code)',
-    }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '0.5rem 1rem',
-        background: 'var(--bg-code-header)',
-        color: 'var(--text-muted)',
-        fontSize: '0.8rem',
-      }}>
-        <span>{language || 'code'}</span>
-        <button
-          type="button"
-          onClick={() => void handleCopy()}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--text-muted)',
-            cursor: 'pointer',
-            fontSize: '0.75rem',
-          }}
-        >
+    <div className="md-code">
+      <div className="md-code-header">
+        <span className="md-code-lang">{language || 'code'}</span>
+        <button type="button" className="md-copy" onClick={() => void handleCopy()}>
           {/* aria-live 让“已复制 / 复制失败”的变化会被读屏播报 */}
           <span aria-live="polite">{copyLabel}</span>
         </button>
       </div>
-      <pre style={{
-        padding: '1rem',
-        overflow: 'auto',
-        margin: 0,
-        fontSize: '0.9rem',
-        lineHeight: 1.6,
-      }}>
-        <code style={{
-          color: 'var(--text-code)',
-          fontFamily: '"Fira Code", "Consolas", monospace',
-        }}>
-          {children ?? code}
-        </code>
-      </pre>
+      <pre><code>{children ?? code}</code></pre>
     </div>
   );
 };
 
-const InlineCode = ({ children }: { children: React.ReactNode }) => (
-  <code style={{
-    background: 'var(--bg-inline-code)',
-    padding: '0.2rem 0.5rem',
-    borderRadius: '4px',
-    fontSize: '0.9em',
-    fontFamily: '"Fira Code", "Consolas", monospace',
-    color: 'var(--text-inline-code)',
-  }}>
-    {children}
-  </code>
-);
+type ZoomTarget = { src: string; alt: string };
+
+// alt 经常就是文件名或一个 "image"，那种别当图注显示，免得比图还抢眼。
+const captionFromAlt = (alt: string) => {
+  const text = alt.trim();
+  if (!text || /^(image|img|图片|screenshot)$/i.test(text)) return '';
+  return /^[\w./\\-]+\.(png|jpe?g|gif|webp|svg|avif)$/i.test(text) ? '' : text;
+};
+
+// 图片是一等公民：figure + 图注 + 加载失败兜底 + 点击看大图。
+const MarkdownImage = ({
+  src,
+  alt,
+  title,
+  onZoom,
+}: {
+  src?: string;
+  alt?: string;
+  title?: string;
+  onZoom: (target: ZoomTarget) => void;
+}) => {
+  const [failed, setFailed] = useState(false);
+  const caption = captionFromAlt(alt ?? '');
+
+  if (failed || !src) {
+    return (
+      <figure className="md-figure">
+        <div className="md-image-fallback">
+          <span className="md-image-fallback-title">{caption || alt || '图片'}</span>
+          <span className="md-image-fallback-hint">图片没能加载，检查一下路径或网络</span>
+          {src ? <code>{src}</code> : null}
+        </div>
+        {caption ? <figcaption>{caption}</figcaption> : null}
+      </figure>
+    );
+  }
+
+  return (
+    <figure className="md-figure">
+      <img
+        src={src}
+        alt={alt ?? ''}
+        title={title}
+        loading="lazy"
+        decoding="async"
+        onClick={() => onZoom({ src, alt: caption })}
+        onError={() => setFailed(true)}
+      />
+      {caption ? <figcaption>{caption}</figcaption> : null}
+    </figure>
+  );
+};
+
+// 灯箱挂在 body 上：文章卡片的 backdrop-filter 会变成 fixed 的包含块，留在卡片里会被裁掉。
+const ImageLightbox = ({ target, onClose }: { target: ZoomTarget; onClose: () => void }) => {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="md-lightbox"
+      role="dialog"
+      aria-modal="true"
+      aria-label={target.alt || '查看大图'}
+      onClick={onClose}
+    >
+      <img src={target.src} alt={target.alt} />
+      <button type="button" className="md-lightbox-close" autoFocus aria-label="关闭大图" onClick={onClose}>
+        ✕
+      </button>
+    </div>
+  );
+};
 
 interface MarkdownBodyProps {
   content: string;
 }
 
-const MarkdownBody = ({ content }: MarkdownBodyProps) => (
-  <div className="article-body" style={{ overflowWrap: 'anywhere' }}>
-    <ReactMarkdown
-      remarkPlugins={[remarkGfm, remarkMath]}
-      rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true }]]}
-      components={{
-        pre({ children, node }) {
-          const codeNode = node?.children.find((child) => child.type === 'element' && child.tagName === 'code');
-          const child = Children.only(children);
-          if (!codeNode || codeNode.type !== 'element' || !isValidElement<{ children?: React.ReactNode }>(child)) {
-            return <pre>{children}</pre>;
-          }
-          // Block structure, not a language label, distinguishes fences from inline code.
-          const className = String(codeNode.properties.className ?? '');
-          const language = /language-([^\s,]+)/.exec(className)?.[1] ?? 'text';
-          const code = textOf(codeNode as HastNode).replace(/\n$/, '');
-          const block = <CodeBlock language={language} code={code}>{child.props.children}</CodeBlock>;
-          return language.toLowerCase() === 'mermaid'
-            ? <MermaidDiagram source={code}>{block}</MermaidDiagram>
-            : block;
-        },
-        code({ children }) {
-          return <InlineCode>{children}</InlineCode>;
-        },
-        img({ src, alt, title }) {
-          return <img src={src || undefined} alt={alt ?? ''} title={title} loading="lazy" decoding="async"
-            style={{ display: 'block', maxWidth: '100%', height: 'auto', margin: '1.25rem auto', borderRadius: 8 }} />;
-        },
-        h1({ children }) {
-          return (
-            <h1 style={{
-              fontSize: 'clamp(2rem, 5vw, 3rem)',
-              lineHeight: 1.2,
-              fontWeight: 800,
-              margin: '0 0 1.5rem',
-              color: '#ff315f',
-              letterSpacing: '0.01em',
-              textShadow: '0 3px 12px rgba(255, 49, 95, 0.18)',
-            }}>
-              ✨ {children}
-            </h1>
-          );
-        },
-        h2({ children }) {
-          const text = String(children).toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '');
-          return (
-            <h2 id={text} style={{
-              fontSize: '1.8rem',
-              fontWeight: '700',
-              marginTop: '2.5rem',
-              marginBottom: '1.2rem',
-              color: 'var(--text-heading)',
-              paddingBottom: '0.5rem',
-              borderBottom: '2px solid #ff0040',
-            }}>
-              {children}
-            </h2>
-          );
-        },
-        h3({ children }) {
-          return (
-            <h3 style={{
-              fontSize: '1.4rem',
-              fontWeight: '600',
-              marginTop: '2rem',
-              marginBottom: '1rem',
-              color: 'var(--text-secondary)',
-            }}>
-              {children}
-            </h3>
-          );
-        },
-        h4({ children }) {
-          return (
-            <h4 style={{
-              fontSize: '1.2rem',
-              fontWeight: '600',
-              marginTop: '1.5rem',
-              marginBottom: '0.8rem',
-              color: 'var(--text-secondary)',
-            }}>
-              {children}
-            </h4>
-          );
-        },
-        p({ children }) {
-          return (
-            <p style={{
-              marginBottom: '1.2rem',
-              color: 'var(--text-body)',
-              lineHeight: 1.8,
-            }}>
-              {children}
-            </p>
-          );
-        },
-        ul({ children }) {
-          return (
-            <ul style={{
-              marginBottom: '1.2rem',
-              paddingLeft: '1.5rem',
-            }}>
-              {children}
-            </ul>
-          );
-        },
-        ol({ children }) {
-          return (
-            <ol style={{
-              marginBottom: '1.2rem',
-              paddingLeft: '1.5rem',
-            }}>
-              {children}
-            </ol>
-          );
-        },
-        li({ children }) {
-          return (
-            <li style={{
-              marginBottom: '0.5rem',
-              color: 'var(--text-body)',
-              lineHeight: 1.7,
-            }}>
-              {children}
-            </li>
-          );
-        },
-        blockquote({ children }) {
-          return (
-            <blockquote style={{
-              borderLeft: '4px solid #ff0040',
-              paddingLeft: '1.5rem',
-              margin: '1.5rem 0',
-              fontStyle: 'italic',
-              color: 'var(--text-muted)',
-              background: 'var(--bg-blockquote)',
-              padding: '1rem 1.5rem',
-              borderRadius: '0 8px 8px 0',
-            }}>
-              {children}
-            </blockquote>
-          );
-        },
-        strong({ children }) {
-          return (
-            <strong style={{
-              fontWeight: '600',
-              color: 'var(--text-strong)',
-            }}>
-              {children}
-            </strong>
-          );
-        },
-        em({ children }) {
-          return (
-            <em style={{
-              color: 'var(--text-muted)',
-            }}>
-              {children}
-            </em>
-          );
-        },
-        hr() {
-          return (
-            <hr style={{
-              border: 'none',
-              height: '1px',
-              background: 'var(--border-section)',
-              margin: '2rem 0',
-            }} />
-          );
-        },
-        a({ href, children }) {
-          return (
-            <a
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: '#ff0040',
-                textDecoration: 'none',
-              }}
-            >
-              {children}
-            </a>
-          );
-        },
-        table({ children }) {
-          return (
-            <div style={{ overflowX: 'auto', margin: '1.5rem 0' }}>
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                fontSize: '0.95rem',
-              }}>
+const MarkdownBody = ({ content }: MarkdownBodyProps) => {
+  const [zoom, setZoom] = useState<ZoomTarget | null>(null);
+  const closeZoom = useCallback(() => setZoom(null), []);
+
+  return (
+    <div className="markdown-body article-body">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true }]]}
+        components={{
+          pre({ children, node }) {
+            const codeNode = node?.children.find((child) => child.type === 'element' && child.tagName === 'code');
+            const child = Children.only(children);
+            if (!codeNode || codeNode.type !== 'element' || !isValidElement<{ children?: React.ReactNode }>(child)) {
+              return <pre>{children}</pre>;
+            }
+            // Block structure, not a language label, distinguishes fences from inline code.
+            const className = String(codeNode.properties.className ?? '');
+            const language = /language-([^\s,]+)/.exec(className)?.[1] ?? 'text';
+            const code = textOf(codeNode as HastNode).replace(/\n$/, '');
+            const block = <CodeBlock language={language} code={code}>{child.props.children}</CodeBlock>;
+            return language.toLowerCase() === 'mermaid'
+              ? <MermaidDiagram source={code}>{block}</MermaidDiagram>
+              : block;
+          },
+          img({ src, alt, title }) {
+            return <MarkdownImage src={src} alt={alt} title={title} onZoom={setZoom} />;
+          },
+          h2({ children }) {
+            const text = String(children).toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '');
+            return <h2 id={text}>{children}</h2>;
+          },
+          a({ href, children }) {
+            return (
+              <a href={href} target="_blank" rel="noopener noreferrer">
                 {children}
-              </table>
-            </div>
-          );
-        },
-        thead({ children }) {
-          return <thead style={{ background: 'var(--table-header-bg)' }}>{children}</thead>;
-        },
-        th({ children }) {
-          return (
-            <th style={{
-              padding: '0.8rem 1rem',
-              textAlign: 'left',
-              borderBottom: '2px solid #ff0040',
-              fontWeight: '600',
-              color: 'var(--text-secondary)',
-            }}>
-              {children}
-            </th>
-          );
-        },
-        td({ children }) {
-          return (
-            <td style={{
-              padding: '0.8rem 1rem',
-              borderBottom: '1px solid var(--table-border)',
-              color: 'var(--text-body)',
-            }}>
-              {children}
-            </td>
-          );
-        },
-      }}
-    >
-      {content}
-    </ReactMarkdown>
+              </a>
+            );
+          },
+          table({ children }) {
+            // 宽表格自己横向滚动，别把整篇文章顶宽。
+            return (
+              <div className="md-table-wrap">
+                <table>{children}</table>
+              </div>
+            );
+          },
+        }}
+      >
+        {content}
+      </ReactMarkdown>
 
-    <style>{`
-      @media (max-width: 768px) {
-        .article-body h2 {
-          font-size: 1.45rem !important;
-        }
-
-        .article-body h3 {
-          font-size: 1.18rem !important;
-        }
-
-        .article-body h4 {
-          font-size: 1.02rem !important;
-        }
-
-        .article-body blockquote {
-          padding: 0.9rem 1rem !important;
-        }
-      }
-    `}</style>
-  </div>
-);
+      {zoom ? createPortal(<ImageLightbox target={zoom} onClose={closeZoom} />, document.body) : null}
+    </div>
+  );
+};
 
 // ReactMarkdown 每次重渲染都会把整篇 Markdown 重新解析、高亮、跑一遍 KaTeX。
 // 内容没变就不该重做这件事（阅读进度、主题切换等父级更新都会触发重渲染）。

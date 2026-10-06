@@ -44,6 +44,8 @@ const markdown = [
     `![local ${ext}](/images/example.${ext})`, '',
     `![remote ${ext}](https://example.com/example.${ext})`, '',
   ]),
+  '![example.png](/images/example.png)',
+  '',
   '![unsafe](javascript:alert%281%29)',
   '',
   '<script>alert("unsafe")</script>',
@@ -92,19 +94,25 @@ try {
     ['pre 中没有嵌套块容器或另一个 pre', !/<pre\b[^>]*>\s*<(?:div|pre)\b/.test(html)],
     ['未标注代码块不使用行内样式', /<pre\b[^>]*><code\b(?![^>]*bg-inline-code)[^>]*>plain 未标注语言的代码块/.test(html)],
     ['Mermaid 提供 SSR 源码回退', html.includes('Mermaid 源码') && html.includes('A[Start] --&gt; B[End]')],
-    ['本地和远程图片保留格式、alt 和响应式样式', ['png', 'jpg', 'gif', 'webp', 'svg'].every((ext) =>
+    ['本地和远程图片保留格式、alt 和懒加载', ['png', 'jpg', 'gif', 'webp', 'svg'].every((ext) =>
       ['local', 'remote'].every((kind) => {
         const image = (html.match(/<img\b[^>]*>/g) ?? []).find((tag) => tag.includes(`alt="${kind} ${ext}"`));
         const src = kind === 'local' ? `/images/example.${ext}` : `https://example.com/example.${ext}`;
-        return image?.includes(`src="${src}"`) && image.includes('max-width:100%') && image.includes('height:auto');
+        return image?.includes(`src="${src}"`) && image.includes('loading="lazy"');
       }))],
+    ['图片包在 figure 里，宽度由样式表约束', html.includes('class="md-figure"') &&
+      /\.md-figure img\s*\{[^}]*max-width: 100%[^}]*height: auto/.test(indexCss)],
+    ['alt 是文件名时不渲染图注', html.includes('<figcaption>local png</figcaption>') &&
+      !html.includes('<figcaption>example.png</figcaption>')],
+    ['默认不渲染灯箱（SSR 不碰 document）', !html.includes('md-lightbox')],
     ['危险 URL 和原始 HTML 不执行', !html.includes('src="javascript:') && !html.includes('<script>')],
     ['代码块有 highlight.js token', html.includes('hljs-keyword')],
     ['语言标注保留 c++', html.includes('>c++<')],
     ['语言标注保留 python', html.includes('>python<')],
     ['行内公式渲染成 KaTeX', html.includes('class="katex')],
     ['块级公式渲染成 KaTeX display', html.includes('katex-display')],
-    ['行内代码仍是行内', html.includes('bg-inline-code')],
+    ['行内代码保持行内，样式由样式表提供', html.includes('<code>code</code>') &&
+      /\.markdown-body :not\(pre\) > code\s*\{[^}]*background: var\(--bg-inline-code\)/.test(indexCss)],
     // KaTeX 会把原始 LaTeX 放进 <annotation>，所以不能断言"没有 \alpha"，
     // 而要断言它被解析成了公式节点（转义写法的 \$ 不会产生 annotation）。
     ['表格单元格里的行内公式也渲染', html.includes('application/x-tex">\\alpha')],

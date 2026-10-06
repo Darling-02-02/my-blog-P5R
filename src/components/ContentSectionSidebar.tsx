@@ -1,4 +1,4 @@
-// 首页内容区左侧栏：个人资料、公告、分类、标签、网站资讯五张卡片及它们的取数与常量。
+// 首页内容区左侧栏：个人资料、公告、标签、网站资讯四张卡片及它们的取数与常量。
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useArticles } from '../contexts/useArticles';
@@ -174,46 +174,6 @@ const AnnouncementCard = () => {
   );
 };
 
-// 分类
-const CategoriesCard = () => {
-  const navigate = useNavigate();
-  const { articles } = useArticles();
-  const { getCategoryData } = useContent();
-  const categoryData = getCategoryData(articles);
-  return (
-    <SidebarCard title="分类" icon="📁">
-      {categoryData.map(cat => (
-        <div 
-          key={cat.name} 
-          onClick={() => navigate(`/category/${encodeURIComponent(cat.name)}`)}
-          style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            padding: '0.6rem 0.8rem', 
-            background: 'var(--bg-category-item)', 
-            borderRadius: '6px', 
-            marginBottom: '0.5rem', 
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'var(--bg-hover)';
-            e.currentTarget.style.transform = 'translateX(4px)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'var(--bg-category-item)';
-            e.currentTarget.style.transform = 'translateX(0)';
-          }}
-        >
-          <span style={{ color: '#ff0040', fontWeight: '600', fontSize: '0.9rem' }}>{cat.name}</span>
-          <span style={{ color: '#fff', fontSize: '0.75rem', background: cat.color, padding: '0.15rem 0.5rem', borderRadius: '10px', fontWeight: '600' }}>{cat.count}</span>
-        </div>
-      ))}
-    </SidebarCard>
-  );
-};
-
 // 标签
 const TagsCard = () => {
   const navigate = useNavigate();
@@ -311,7 +271,6 @@ const Sidebar = () => (
   }}>
     <ProfileCard />
     <AnnouncementCard />
-    <CategoriesCard />
     <TagsCard />
     <StatsCard />
   </aside>

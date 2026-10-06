@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import Header from './Header';
 import Footer from './Footer';
 import MarkdownBody from './MarkdownBody';
+import TopicReader from './TopicReader';
+import Sidebar from './ContentSectionSidebar';
 import { useContent } from '../contexts/useContent';
 
 const TopicPage = () => {
@@ -107,7 +109,20 @@ const TopicPage = () => {
         className="article-shell"
         style={{ minHeight: '100vh', padding: '5rem 2rem 4rem', position: 'relative', zIndex: 1 }}
       >
-        <div className="article-container" style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div
+          className="article-container topic-layout"
+          style={{
+            maxWidth: '1200px',
+            margin: '0 auto',
+            display: 'flex',
+            gap: '2rem',
+            alignItems: 'flex-start',
+          }}
+        >
+          {/* 和幕后/首页同一套左栏：个人资料、公告、分类、标签、网站资讯 */}
+          <Sidebar />
+
+          <div className="topic-main" style={{ flex: 1, minWidth: 0 }}>
           <button
             onClick={() =>
               section ? navigate(getTopicPath(topic)) : navigate(`/category/${encodeURIComponent(topic.category)}`)
@@ -129,60 +144,6 @@ const TopicPage = () => {
           >
             ← {section ? '返回专题' : topic.category}
           </button>
-
-          {!section && (
-            <div
-              style={{
-                position: 'relative',
-                borderRadius: '18px',
-                overflow: 'hidden',
-                border: '1px solid var(--border-card)',
-                marginBottom: '2rem',
-                minHeight: '220px',
-                display: 'flex',
-                alignItems: 'flex-end',
-                backgroundImage: `linear-gradient(180deg, rgba(12,8,12,0.15) 0%, rgba(12,8,12,0.88) 100%), url(${topic.cover})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                boxShadow: 'var(--shadow-card)',
-              }}
-            >
-              <div style={{ padding: '1.75rem', width: '100%' }}>
-                <span style={{
-                  display: 'inline-block',
-                  background: '#ff0040',
-                  color: '#fff',
-                  padding: '0.35rem 0.9rem',
-                  marginBottom: '0.9rem',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  borderRadius: '20px',
-                }}>
-                  🏷️ {topic.category}
-                </span>
-                <h1 style={{
-                  fontSize: 'clamp(1.7rem, 4vw, 2.5rem)',
-                  fontWeight: 700,
-                  lineHeight: 1.3,
-                  marginBottom: '0.75rem',
-                  color: '#fff',
-                  textShadow: '0 2px 12px rgba(0,0,0,0.65)',
-                }}>
-                  {topic.title}
-                </h1>
-                {topic.summary && (
-                  <p style={{
-                    color: 'rgba(255,255,255,0.86)',
-                    fontSize: '1rem',
-                    lineHeight: 1.7,
-                    margin: 0,
-                  }}>
-                    {topic.summary}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
 
           {section ? (
             <motion.header
@@ -225,7 +186,7 @@ const TopicPage = () => {
                   width: '100%',
                   height: '6px',
                   borderRadius: '999px',
-                  background: 'rgba(255,255,255,0.08)',
+                  background: 'rgba(128, 128, 128, 0.22)',
                   overflow: 'hidden',
                 }}
               >
@@ -243,75 +204,44 @@ const TopicPage = () => {
             </motion.header>
           ) : null}
 
-          <div
-            className="article-content-card article-body"
-            style={{
-              background: 'var(--bg-article-content)',
-              borderRadius: '16px',
-              padding: '3rem',
-              color: 'var(--text-body)',
-              border: '1px solid var(--border-card)',
-              backdropFilter: 'blur(10px)',
-            }}
-          >
-            <MarkdownBody content={section ? section.content : topic.intro} />
-          </div>
-
-          {!section && (
-            <div style={{ marginTop: '2rem', display: 'grid', gap: '0.9rem' }}>
-              {topic.sections.map((item, index) => (
-                <motion.button
-                  key={item.slug}
-                  initial={{ y: 16, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.05 * index }}
-                  whileHover={{ x: 4 }}
-                  onClick={() => navigate(getSectionPath(topic, item))}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '1.1rem 1.25rem',
-                    background: 'var(--bg-article-card)',
-                    border: '1px solid var(--border-card)',
-                    borderRadius: '14px',
-                    cursor: 'pointer',
-                    color: 'var(--text-body)',
-                  }}
-                >
-                  <span style={{
-                    flex: '0 0 auto',
-                    width: '34px',
-                    height: '34px',
-                    borderRadius: '10px',
-                    display: 'grid',
-                    placeItems: 'center',
-                    background: 'rgba(255,0,64,0.12)',
-                    color: '#ff0040',
-                    fontWeight: 700,
-                    fontSize: '0.9rem',
+          <div className="topic-reader-card article-body">
+            {!section && (
+              <header className="topic-intro-header">
+                <p style={{
+                  color: 'var(--text-muted)',
+                  fontSize: '0.85rem',
+                  marginBottom: '0.6rem',
+                }}>
+                  🏷️ {topic.category}
+                </p>
+                <h1 style={{
+                  fontSize: 'clamp(1.8rem, 4.5vw, 2.6rem)',
+                  fontWeight: 700,
+                  lineHeight: 1.3,
+                  marginBottom: topic.summary ? '1rem' : 0,
+                  color: 'var(--text-primary)',
+                }}>
+                  {topic.title}
+                </h1>
+                {topic.summary && (
+                  <p style={{
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.95rem',
+                    lineHeight: 1.7,
+                    margin: 0,
                   }}>
-                    🔹 {index + 1}
-                  </span>
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontWeight: 600, marginBottom: '0.25rem' }}>
-                      {item.title}
-                    </span>
-                    {item.readTime && (
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                        ⏱️ {item.readTime}
-                      </span>
-                    )}
-                  </span>
-                  <span style={{ color: '#ff0040', fontSize: '0.85rem', fontWeight: 600 }}>
-                    阅读 →
-                  </span>
-                </motion.button>
-              ))}
-            </div>
-          )}
+                    {topic.summary}
+                  </p>
+                )}
+              </header>
+            )}
+
+            {section ? (
+              <MarkdownBody content={section.content} />
+            ) : (
+              <TopicReader topic={topic} />
+            )}
+          </div>
 
           {section && (previousSection || nextSection) && (
             <div style={{
@@ -386,9 +316,42 @@ const TopicPage = () => {
               ))}
             </div>
           )}
+          </div>
         </div>
 
         <style>{`
+          /* 专题页：标题/简介/正文共用一张卡（.topic-reader-card），靠分隔线分区，不再一层套一层 */
+          .topic-intro-header {
+            margin-bottom: 1.8rem;
+            padding-bottom: 1.6rem;
+            border-bottom: 1px solid var(--border-card);
+          }
+
+          /* 小节页的标题区也托一层底色，免得标题和分类压在背景插画上看不清 */
+          .article-header {
+            background: var(--bg-article-card);
+            border: 1px solid var(--border-card);
+            border-radius: 18px;
+            padding: 1.5rem 1.6rem;
+            backdrop-filter: blur(10px);
+          }
+
+          @media (max-width: 900px) {
+            /* 和幕后一致：窄屏收成单栏（侧栏在上）。align-items 必须回 stretch，
+               否则列方向下 flex-start 会让正文列按 min-content 撑宽、右侧被裁掉 */
+            .topic-layout {
+              flex-direction: column !important;
+              align-items: stretch !important;
+              gap: 1.5rem !important;
+            }
+
+            .home-sidebar {
+              position: static !important;
+              width: 100% !important;
+              top: auto !important;
+            }
+          }
+
           @media (max-width: 768px) {
             .article-shell {
               padding: 4.6rem 1rem 2.4rem !important;
@@ -396,26 +359,19 @@ const TopicPage = () => {
 
             .article-header {
               margin-bottom: 1.6rem !important;
+              padding: 1.15rem 1.25rem !important;
+              border-radius: 14px !important;
             }
 
             .article-meta {
               gap: 0.8rem !important;
               font-size: 0.82rem !important;
             }
-
-            .article-content-card {
-              padding: 1.35rem !important;
-              border-radius: 14px !important;
-            }
           }
 
           @media (max-width: 560px) {
             .article-shell {
               padding: 4.5rem 0.75rem 2rem !important;
-            }
-
-            .article-content-card {
-              padding: 1rem !important;
             }
 
             .article-tags {
