@@ -221,6 +221,9 @@ const AdminPage = () => {
           <div>
             <h1 style={{ margin: 0, color: 'var(--text-heading)' }}>📝 内容小后台</h1>
             <p style={{ margin: '0.4rem 0 0', color: 'var(--text-muted)' }}>{activeArticleSource.panelHint}</p>
+            {/* 本地 dev 读的是磁盘上的 Markdown，后台写的是 GitHub 仓库：不同步这件事必须说出来，
+                否则在后台删掉专题后本机页面照旧显示，看起来就像"删不掉"。 */}
+            {import.meta.env.DEV && activeArticleSource.kind === 'github' && <p style={{ margin: '0.4rem 0 0', color: 'var(--text-muted)', fontSize: '0.85rem' }}>本机 dev 页面读的是本地 Markdown，后台写的是仓库：在这里新建或删除内容后，本地要 git pull 才会跟着变（线上约 1 分钟后自动上线）。</p>}
           </div>
           <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
             {token && <span style={{ fontSize: '0.8rem', padding: '0.3rem 0.7rem', borderRadius: '999px', border: '1px solid var(--border-card)', color: '#1a7f37' }}>已连接</span>}

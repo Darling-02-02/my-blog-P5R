@@ -5,6 +5,7 @@ import { topicDirectories } from '../data/category-source';
 import { createContentSlug } from '../lib/topic-content';
 import type { TopicDraftInput, SectionDraftInput } from '../lib/topic-content';
 import { topicPublisher } from '../lib/topic-publisher';
+import { ArticleApiError } from '../lib/api';
 
 const MarkdownBody = lazy(() => import('./MarkdownBody'));
 const emptyTopic = (category: string): TopicDraftInput => ({ category, slug: '', title: '', summary: '', cover: '', order: 1, tags: [], intro: '' });
@@ -116,7 +117,15 @@ export default function TopicEditor({ token, topics, refresh, directories }: Pro
       setTab('topic');
       await refresh();
       setMessage('已删除，站点重新构建后生效。');
-    } catch (error) { setMessage(error instanceof Error ? error.message : '删除失败'); }
+    } catch (error) {
+      // 走到这里基本只有两种情况：中途某个文件没删成，或者仓库里本来就没有这个专题（可能刚删过）。
+      // 都不该再说「请刷新列表」——下面马上按仓库重读，列表就是准的。
+      setMessage(error instanceof ArticleApiError && error.status === 404
+        ? '仓库里已经没有这个专题了，列表已按仓库重新读取。'
+        : error instanceof Error ? error.message : '删除失败');
+      // 失败也要重读列表：否则列表继续显示仓库里已经没有的专题，看起来就是「删不掉」，用户只会反复点。
+      await refresh();
+    }
     finally { setBusy(false); }
   };
 

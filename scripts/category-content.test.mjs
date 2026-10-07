@@ -45,12 +45,12 @@ test('the admin edit helpers never lose or duplicate a category', () => {
   assert.equal(parseCategoryDocument(serializeCategoryDocument(moveCategory(renamed, 1, -1))).length, 3);
 });
 
-test('the shipped categories.json still describes the same five home categories', () => {
+test('the shipped categories.json still describes the same home categories', () => {
   const categories = parseCategoryDocument(readFileSync(path.join(process.cwd(), 'src', 'content', 'categories.json'), 'utf8'));
-  assert.deepEqual(categories.map((category) => category.name), ['生物信息', '三维重建', '机器学习', '后端', '随笔']);
+  // 这张快照是有意的哨兵：栏目表被误改（比如后台保存时丢了栏目）就会红。
+  // 真的在后台增删/改名栏目之后，把这里和 src/content/categories.json 一起改。
+  assert.deepEqual(categories.map((category) => category.name), ['机器学习', '后端', '随笔']);
   assert.deepEqual(topicDirectoriesFrom(categories), { '机器学习': 'machine-learning', '后端': 'backend', '随笔': 'essays' });
-  assert.equal(categories[0].subcategories.length, 9);
-  assert.equal(categories[1].subcategories.length, 3);
   // 后台把这张表实时传给专题编辑器：没有"用专题组织"的栏目时必须是空表，而不是回落到构建期的旧栏目。
   assert.deepEqual(topicDirectoriesFrom([]), {});
   assert.deepEqual(topicDirectoriesFrom([{ name: '前端', description: '', color: '#ffffff' }]), {});
