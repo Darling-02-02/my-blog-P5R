@@ -87,6 +87,9 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
     return [...topicEntries, ...articleEntries].slice(0, 5);
   }, [articles, topics, getArticlePath, getTopicPath]);
 
+  // 空卡片只是视觉噪音（比如后台刚建的空栏目）：右边没东西可放时整列都不出现，正文直接占满。
+  const hasSidebar = tagCounts.length > 0 || latestEntries.length > 0;
+
   return (
     <>
       <Header />
@@ -118,7 +121,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
             )}
           </header>
 
-          <div className="archive-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '1.5rem' }}>
+          <div className="archive-grid" style={{ display: 'grid', gridTemplateColumns: hasSidebar ? 'minmax(0, 2fr) minmax(0, 1fr)' : 'minmax(0, 1fr)', gap: '1.5rem' }}>
             <div>
               {topicsInCategory.length > 0 ? (
                 <div className="topic-reader-card">
@@ -204,8 +207,8 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
               )}
             </div>
 
-            <aside className="archive-sidebar" style={{ position: 'sticky', top: '6.25rem', alignSelf: 'start' }}>
-              <div
+            {hasSidebar && <aside className="archive-sidebar" style={{ position: 'sticky', top: '6.25rem', alignSelf: 'start' }}>
+              {tagCounts.length > 0 && <div
                 style={{
                   background: 'var(--bg-sidebar-card)',
                   border: '1px solid var(--border-card)',
@@ -234,9 +237,9 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                     </button>
                   ))}
                 </div>
-              </div>
+              </div>}
 
-              <div
+              {latestEntries.length > 0 && <div
                 style={{
                   background: 'var(--bg-sidebar-card)',
                   border: '1px solid var(--border-card)',
@@ -264,8 +267,8 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                     <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{entry.meta}</div>
                   </button>
                 ))}
-              </div>
-            </aside>
+              </div>}
+            </aside>}
           </div>
         </div>
       </section>

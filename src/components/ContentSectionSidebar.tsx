@@ -180,6 +180,12 @@ const TagsCard = () => {
   const { articles } = useArticles();
   const { getTagData, topics } = useContent();
   const tagData = getTagData([...articles, ...topics]);
+
+  // 一篇文章都没有的时候这张卡只剩一个空盒子（后台新建的空栏目就是这样），直接不出。
+  if (!tagData.length) {
+    return null;
+  }
+
   const getTagSize = (count: number) => {
     if (count >= 3) return { fontSize: '1rem', padding: '0.4rem 0.8rem' };
     if (count >= 2) return { fontSize: '0.85rem', padding: '0.3rem 0.65rem' };
