@@ -95,8 +95,12 @@ const GiscusComments = () => {
 // 大类栏目：卡片角标与轮播共用的计数/文案
 const categoryHasTopics = (category: CategoryData) => Boolean(category.usesTopics);
 
-const categoryCountLabel = (category: CategoryData) =>
-  category.usesTopics ? `${category.topicCount} 个专题` : `${category.count} 篇文章`;
+const categoryIsEmpty = (category: CategoryData) => category.count === 0 && category.topicCount === 0;
+
+const categoryCountLabel = (category: CategoryData) => {
+  if (categoryIsEmpty(category)) return '还没有内容';
+  return category.usesTopics ? `${category.topicCount} 个专题` : `${category.count} 篇文章`;
+};
 
 // 幕后副标题：参考 biojuse 的淡入淡出（透明度 + 缩放 + 模糊），文案取自真实数据
 const BlogFadeText = ({
@@ -188,8 +192,8 @@ const MainContent = () => {
   const { getCategoryData } = useContent();
   const mood = useWorkMood();
   const categoryData = getCategoryData(articles);
-  // Every column that has content shows up here, including ones created from the admin page.
-  const mainCategories = categoryData.filter((category) => category.count > 0 || category.topicCount > 0);
+  // 栏目表现在是后台的数据：后台刚新建的栏目哪怕一篇内容都还没有，也必须出现在这里，
+  // 否则加完栏目、前端看着像"没生效"（文章里冒出来的野栏目必然 count>0，不用额外过滤）。
   const sectionCardStyle: React.CSSProperties = {
     marginBottom: '4rem',
     padding: 0,
@@ -276,14 +280,14 @@ const MainContent = () => {
         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', minHeight: '3.6rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
           <BlogFadeText
             lead="一切都是为了正义"
-            columnCount={mainCategories.length}
-            topicCount={mainCategories.reduce((sum, category) => sum + category.topicCount, 0)}
-            articleCount={mainCategories.reduce((sum, category) => sum + category.count, 0)}
+            columnCount={categoryData.length}
+            topicCount={categoryData.reduce((sum, category) => sum + category.topicCount, 0)}
+            articleCount={categoryData.reduce((sum, category) => sum + category.count, 0)}
           />
         </p>
 
         <div className="home-post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '2.5rem' }}>
-          {mainCategories.map((category, i) => (
+          {categoryData.map((category, i) => (
             <CategoryLandingCard key={category.name} category={category} index={i} mood={mood} />
           ))}
         </div>

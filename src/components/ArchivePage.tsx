@@ -160,7 +160,9 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                     color: 'var(--text-muted)',
                   }}
                 >
-                  暂无内容，尝试切换其他标签或分类。
+                  {mode === 'category'
+                    ? `「${decodedName}」还没有内容，加完内容之后就会出现在这里。`
+                    : '暂无内容，尝试切换其他标签。'}
                 </div>
               ) : (
                 groupedByYear.map(([year, yearArticles]) => (

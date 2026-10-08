@@ -107,9 +107,9 @@ export default function CategoryManager({ token, categories, sha, topics, topics
     // 提交已经落地了，后面刷列表失败不能再报成"保存失败"。
     try {
       await onChanged();
-      setMessage(`${note}：已提交到 GitHub，约 1 分钟后站点重建生效。`);
+      setMessage(`${note}：已提交到 GitHub，约 1 分钟后站点重建生效（连着改很多次时，以最后一次为准）。`);
     } catch {
-      setMessage(`${note}：已提交到 GitHub，约 1 分钟后站点重建生效（列表刷新失败了，刷新页面就能看到最新栏目表）。`);
+      setMessage(`${note}：已提交到 GitHub，约 1 分钟后站点重建生效（连着改很多次时，以最后一次为准。列表刷新失败了，刷新页面就能看到最新栏目表）。`);
     }
     setBusy(false);
     return true;
@@ -137,7 +137,7 @@ export default function CategoryManager({ token, categories, sha, topics, topics
       `确认删除栏目「${category.name}」吗？`,
       articleTotal ? `· ${articleTotal} 篇文章会退回"按分类自动生成"的同名栏目（颜色和简介会变成默认值）。` : '',
       category.dir ? `· src/content/topics/${category.dir}/ 目录保留不动（现在里面没有专题）。` : '',
-      '提交后约 1 分钟站点重建生效。',
+      '提交后约 1 分钟站点重建生效（连续提交以最后一次为准）。',
     ].filter(Boolean).join('\n');
     if (!window.confirm(confirmText)) return;
     const saved = await commit(removeCategory(categories, category.name), `删除栏目：${category.name}`);
