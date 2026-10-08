@@ -12,13 +12,10 @@ export interface CategoryInput {
   description: string;
   /** #rrggbb */
   color: string;
-  /** 专题目录：src/content/topics/<dir>。有目录 = 该栏目用专题组织（机器学习/后端/随笔那种） */
-  dir?: string;
-  /** 子专题清单：纯分类栏目用（生物信息/三维重建那种） */
+  /** 历史字段：旧栏目表用它列子分类，前台与后台都不再使用，只为兼容旧文件保留读写 */
   subcategories?: string[];
 }
 
-export const categoryDirPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const colorPattern = /^#[0-9a-fA-F]{6}$/;
 
 const requireText = (value: unknown, label: string) => {
@@ -41,7 +38,6 @@ export const parseCategoryDocument = (raw: string): CategoryInput[] => {
   if (!Array.isArray(parsed)) throw new Error('栏目配置必须是一个数组');
 
   const names = new Set<string>();
-  const dirs = new Set<string>();
 
   return parsed.map((entry, index) => {
     const label = `第 ${index + 1} 个栏目的`;
@@ -55,23 +51,15 @@ export const parseCategoryDocument = (raw: string): CategoryInput[] => {
     const color = requireText(record.color, `栏目「${name}」的颜色`);
     if (!colorPattern.test(color)) throw new Error(`栏目「${name}」的颜色必须是 #rrggbb 形式`);
 
-    const dir = optionalText(record.dir);
-    if (dir) {
-      if (!categoryDirPattern.test(dir)) throw new Error(`栏目「${name}」的专题目录只能包含小写字母、数字和连字符`);
-      if (dirs.has(dir)) throw new Error(`专题目录重复：${dir}`);
-      dirs.add(dir);
-    }
-
     const rawSubcategories = record.subcategories ?? [];
-    if (!Array.isArray(rawSubcategories)) throw new Error(`栏目「${name}」的子专题清单必须是数组`);
-    const subcategories = rawSubcategories.map((item, subIndex) => requireText(item, `栏目「${name}」第 ${subIndex + 1} 个子专题的`));
-    if (new Set(subcategories).size !== subcategories.length) throw new Error(`栏目「${name}」的子专题清单有重复项`);
+    if (!Array.isArray(rawSubcategories)) throw new Error(`栏目「${name}」的子分类清单必须是数组`);
+    const subcategories = rawSubcategories.map((item, subIndex) => requireText(item, `栏目「${name}」第 ${subIndex + 1} 个子分类的`));
+    if (new Set(subcategories).size !== subcategories.length) throw new Error(`栏目「${name}」的子分类清单有重复项`);
 
     return {
       name,
       description: optionalText(record.description),
       color,
-      ...(dir ? { dir } : {}),
       ...(subcategories.length ? { subcategories } : {}),
     };
   });
@@ -80,20 +68,15 @@ export const parseCategoryDocument = (raw: string): CategoryInput[] => {
 /** 按键顺序固定，让后台每次提交的 diff 只反映真实改动。 */
 export const serializeCategoryDocument = (categories: CategoryInput[]) =>
   `${JSON.stringify(
-    categories.map(({ name, description, color, dir, subcategories }) => ({
+    categories.map(({ name, description, color, subcategories }) => ({
       name,
       description,
       color,
-      ...(dir ? { dir } : {}),
       ...(subcategories?.length ? { subcategories } : {}),
     })),
     null,
     2,
   )}\n`;
-
-/** 栏目名 -> 专题目录：站点用它把 src/content/topics/<dir> 还原成中文栏目名，后台用它拼发布路径。 */
-export const topicDirectoriesFrom = (categories: CategoryInput[]): Record<string, string> =>
-  Object.fromEntries(categories.flatMap((category) => (category.dir ? [[category.name, category.dir] as const] : [])));
 
 // 后台表单改的是"整张表"，下面三个是纯函数，改完再交给 parseCategoryDocument 校验，
 // 这样"插入/替换/删除/排序"这些容易出错的地方可以单独跑测试。

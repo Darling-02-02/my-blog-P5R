@@ -73,7 +73,7 @@ push 到 `main` 就自动部署，不用管。手动重跑在 Actions 页面点 
 
 ## 需要注意的
 
-- **SPA 深链接能用**：`public/404.html` 会把 `/topic/xxx` 之类改写成 `/?/topic/xxx`，`index.html` 里的脚本再还原成真实路径交给前端路由。前提是整站部署在域名根目录（`vite.config.ts` 里 `base: '/'`）。
+- **SPA 深链接能用**：`public/404.html` 会把 `/article/xxx` 之类改写成 `/?/article/xxx`，`index.html` 里的脚本再还原成真实路径交给前端路由。前提是整站部署在域名根目录（`vite.config.ts` 里 `base: '/'`）。
 - **体积限制**：单文件 25 MB、总数 20000 个。当前 `dist` 是 106 个文件 / 9.21 MB / 最大 1.16 MB，离限制很远。
 - **本地不需要装 wrangler**：workflow 用 `npx --yes wrangler@4 pages deploy ...`，每次现拉。
 - **`--branch=main`**：Pages 项目的 production 分支默认是 `main`，带上它保证 push 到 main 的部署算生产发布而不是预览。

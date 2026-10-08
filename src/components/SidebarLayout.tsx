@@ -142,24 +142,13 @@ export const TagsCard = () => {
 // 网站资讯卡片
 export const StatsCard = () => {
   const { articles } = useArticles();
-  const { topics } = useContent();
-  const [stats, setStats] = useState(() => {
-    const topicWords = topics.reduce(
-      (sum, topic) =>
-        sum + topic.intro.length + topic.sections.reduce((inner, section) => inner + section.content.length, 0),
-      0,
-    );
-    const totalWords = topicWords;
-
-    return {
-      articles: articles.length,
-      topics: topics.length,
-      words: totalWords,
-      visitors: Math.floor(Math.random() * 1000) + 500,
-      views: Math.floor(Math.random() * 5000) + 2000,
-      lastUpdate: new Date().toLocaleString('zh-CN'),
-    };
-  });
+  const [stats, setStats] = useState(() => ({
+    articles: articles.length,
+    words: 0,
+    visitors: Math.floor(Math.random() * 1000) + 500,
+    views: Math.floor(Math.random() * 5000) + 2000,
+    lastUpdate: new Date().toLocaleString('zh-CN'),
+  }));
 
   useEffect(() => {
     const interval = setInterval(() => setStats(prev => ({ ...prev, lastUpdate: new Date().toLocaleString('zh-CN') })), 60000);
@@ -167,7 +156,6 @@ export const StatsCard = () => {
   }, []);
   const statItems = [
     { label: '文章数目', value: articles.length, icon: '📝' },
-    { label: '专题数目', value: stats.topics, icon: '📚' },
     { label: '本站总字数', value: `${(stats.words / 1000).toFixed(1)}k`, icon: '📄' },
     { label: '本站访客数', value: stats.visitors, icon: '👥' },
     { label: '本站总访问量', value: stats.views, icon: '👁️' },

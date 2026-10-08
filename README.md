@@ -67,7 +67,7 @@ public/
 
 ## Dynamic Article API
 
-The frontend can read published articles from the standalone service under `backend/`. The existing topic Markdown flow remains static and unchanged.
+The frontend can read published articles from the standalone service under `backend/`. Articles live as Markdown under `src/content/articles/`; the older topic subsystem (`src/content/topics/`, `/topic/...` routes) has been removed.
 
 A concise server deployment walkthrough is available in [`pipeline/backend-deployment-quickstart.md`](pipeline/backend-deployment-quickstart.md). All deployment and content flow docs are indexed in [`pipeline/README.md`](pipeline/README.md).
 

@@ -33,12 +33,11 @@ const clearLegacySiteStats = () => {
   localStorage.removeItem('blog_has_visited');
 };
 
-const getInitialSiteStats = (topicCount: number) => {
+const getInitialSiteStats = () => {
   clearLegacySiteStats();
 
   return {
     articles: 0,
-    topics: topicCount,
     visitors: 0,
     views: 0,
     lastUpdate: formatLastUpdate(),
@@ -178,8 +177,8 @@ const AnnouncementCard = () => {
 const TagsCard = () => {
   const navigate = useNavigate();
   const { articles } = useArticles();
-  const { getTagData, topics } = useContent();
-  const tagData = getTagData([...articles, ...topics]);
+  const { getTagData } = useContent();
+  const tagData = getTagData(articles);
 
   // 一篇文章都没有的时候这张卡只剩一个空盒子（后台新建的空栏目就是这样），直接不出。
   if (!tagData.length) {
@@ -231,8 +230,7 @@ const TagsCard = () => {
 // 网站资讯
 const StatsCard = () => {
   const { articles } = useArticles();
-  const { topics } = useContent();
-  const [stats, setStats] = useState(() => getInitialSiteStats(topics.length));
+  const [stats, setStats] = useState(() => getInitialSiteStats());
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -247,7 +245,6 @@ const StatsCard = () => {
   
   const items = [
     { label: '文章数目', value: articles.length, icon: '📝' },
-    { label: '专题数目', value: stats.topics, icon: '📚' },
     { label: '访客数', value: stats.visitors, icon: '👥' },
     { label: '访问量', value: stats.views, icon: '👁️' },
   ];

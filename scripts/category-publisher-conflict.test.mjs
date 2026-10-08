@@ -39,7 +39,7 @@ const { categoryPublisher, isCategoryConflict, parseCategoryDocument, serializeC
 );
 
 const CATEGORY_PATH = '/repos/Darling-02-02/my-blog-P5R/contents/src/content/categories.json';
-const table = [{ name: '后端', description: '服务端笔记', color: '#ff0040', dir: 'backend' }];
+const table = [{ name: '后端', description: '服务端笔记', color: '#ff0040' }];
 
 let calls = [];
 let putStatus = 200;

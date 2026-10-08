@@ -4,25 +4,14 @@
 // 名字刻意跟 src/data 层保持一致（getXXX），调用点因此只需要换 import 一行。
 import { createContext } from 'react';
 import type { CategoryData, TagData } from '../data/categories';
-import type { Topic, TopicSection } from '../data/topics';
 import type { Article } from '../../backend/src/articles/article.types';
 
 export interface ContentContextValue {
-  topics: Topic[];
-  getTopicsByCategory: (category: string) => Topic[];
-  findTopic: (category: string | undefined, topicSlug: string | undefined) => Topic | undefined;
-  findSection: (
-    category: string | undefined,
-    topicSlug: string | undefined,
-    sectionSlug: string | undefined,
-  ) => TopicSection | undefined;
   getArticlePath: (article: Pick<Article, 'slug'>) => string;
-  getTopicPath: (topic: Pick<Topic, 'category' | 'slug'>) => string;
-  getSectionPath: (topic: Pick<Topic, 'category' | 'slug'>, section: Pick<TopicSection, 'slug'>) => string;
   getCategoryData: (items: Array<{ category: string }>) => CategoryData[];
   getTagData: (items: Array<{ tags: string[] }>) => TagData[];
 }
 
 export const ContentContext = createContext<ContentContextValue | null>(null);
 
-export type { CategoryData, TagData, Topic, TopicSection };
+export type { CategoryData, TagData };

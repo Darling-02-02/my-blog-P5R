@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from './Header';
 import Footer from './Footer';
-import TopicReader from './TopicReader';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
 import { pickCoverForArticle } from '../lib/coverImage';
@@ -20,25 +19,12 @@ const prettyDate = (value: string) => {
   return d.toLocaleDateString('zh-CN');
 };
 
-const categoryEmoji = (category: string) => {
-  if (category.includes('后端')) return '🛠️';
-  if (category.includes('机器')) return '🤖';
-  if (category.includes('随笔')) return '🌈';
-  if (category.includes('生物')) return '🧬';
-  if (category.includes('三维')) return '🧊';
-  return '✨';
-};
-
 const ArchivePage = ({ mode }: ArchivePageProps) => {
   const navigate = useNavigate();
   const { name } = useParams<{ name: string }>();
   const { articles, status, error } = useArticles();
-  const { topics, getTopicsByCategory, getArticlePath, getTopicPath, getCategoryData, getTagData } = useContent();
+  const { getArticlePath, getTagData } = useContent();
   const decodedName = decodeURIComponent(name ?? '');
-  const categories = useMemo(() => getCategoryData(articles), [articles, getCategoryData]);
-  const selectedCategory = categories.find((category) => category.name === decodedName);
-  const topicsInCategory =
-    mode === 'category' && selectedCategory?.usesTopics ? getTopicsByCategory(decodedName) : [];
   const archiveTitle = mode === 'tag' ? `标签: ${decodedName || '未指定'}` : `分类: ${decodedName || '未指定'}`;
 
   const filteredArticles = useMemo(() => {
@@ -48,10 +34,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
     }
     return articles.filter((article) => article.category === decodedName);
   }, [articles, decodedName, mode]);
-  const archiveSummary =
-    topicsInCategory.length > 0
-      ? `共 ${topicsInCategory.length} 个专题`
-      : `共 ${filteredArticles.length} 篇文章`;
+  const archiveSummary = `共 ${filteredArticles.length} 篇文章`;
 
   const groupedByYear = useMemo(() => {
     const grouped = new Map<string, typeof filteredArticles>();
@@ -69,12 +52,6 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
   }, [articles, getTagData]);
 
   const latestEntries = useMemo(() => {
-    const topicEntries = topics.map((topic) => ({
-      key: `topic-${topic.category}-${topic.slug}`,
-      title: topic.title,
-      meta: `${topic.category} · ${topic.sections.length} 节`,
-      href: getTopicPath(topic),
-    }));
     const articleEntries = [...articles]
       .sort((a, b) => b.date.localeCompare(a.date))
       .map((article) => ({
@@ -84,8 +61,8 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
         href: getArticlePath(article),
       }));
 
-    return [...topicEntries, ...articleEntries].slice(0, 5);
-  }, [articles, topics, getArticlePath, getTopicPath]);
+    return articleEntries.slice(0, 5);
+  }, [articles, getArticlePath]);
 
   // 空卡片只是视觉噪音（比如后台刚建的空栏目）：右边没东西可放时整列都不出现，正文直接占满。
   const hasSidebar = tagCounts.length > 0 || latestEntries.length > 0;
@@ -123,23 +100,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
 
           <div className="archive-grid" style={{ display: 'grid', gridTemplateColumns: hasSidebar ? 'minmax(0, 2fr) minmax(0, 1fr)' : 'minmax(0, 1fr)', gap: '1.5rem' }}>
             <div>
-              {topicsInCategory.length > 0 ? (
-                <div className="topic-reader-card">
-                  {topicsInCategory.map((topic) => (
-                    <article key={topic.slug} className="reader-topic">
-                      <header className="reader-topic-header">
-                        <p className="reader-topic-kicker">
-                          {categoryEmoji(topic.category)} {topic.category}
-                          {topic.sections.length > 0 ? ` · ${topic.sections.length} 节` : ''}
-                        </p>
-                        <h2 className="reader-topic-title">{topic.title}</h2>
-                        {topic.summary && <p className="reader-topic-summary">{topic.summary}</p>}
-                      </header>
-                      <TopicReader topic={topic} />
-                    </article>
-                  ))}
-                </div>
-              ) : filteredArticles.length === 0 ? (
+              {filteredArticles.length === 0 ? (
                 <div
                   style={{
                     background: 'var(--bg-card)',

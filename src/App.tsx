@@ -12,7 +12,6 @@ const AboutMe = lazy(() => import('./components/AboutMe'));
 const ArchivePage = lazy(() => import('./components/ArchivePage'));
 const ExplorePage = lazy(() => import('./components/ExplorePage'));
 const StudyRoom = lazy(() => import('./components/StudyRoom'));
-const TopicPage = lazy(() => import('./components/TopicPage'));
 const AdminPage = lazy(() => import('./components/AdminPage'));
 
 const ScrollToTop = () => {
@@ -69,8 +68,6 @@ function App() {
                       <Route path="/admin" element={<AdminPage />} />
                       <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />
                       <Route path="/category/:name" element={<ArchivePage mode="category" />} />
-                      <Route path="/topic/:category/:topic" element={<TopicPage />} />
-                      <Route path="/topic/:category/:topic/:section" element={<TopicPage />} />
                     </Routes>
                   </Suspense>
                 </main>

@@ -8,6 +8,9 @@
 >
 > 目的：说清"内容到底怎么写、写完怎么上线、后端在哪一环"，避免重复排查。
 
+> **后续变更**：整个专栏 `topics` 子系统（`src/content/topics/`、`/topic/...` 路由、`src/data/topics.ts`、`src/lib/topic-*.ts`、后台「🌱 专题章节」面板）已删除，现在只剩文章 `articles` 一条内容线。
+> 下文是删除前的快照，仅作历史记录；第 1、2、7、8 节里关于专栏的部分已经不成立。
+
 ## 0. 一句话结论
 
 **现在的实现是「本地写 Markdown → git push → GitHub Actions 构建 → 静态站」。

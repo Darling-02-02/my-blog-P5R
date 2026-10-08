@@ -14,7 +14,7 @@ const Header = () => {
   const navigate = useNavigate();
   const { isDark } = useTheme();
   const { articles, status, error } = useArticles();
-  const { topics, getArticlePath, getTopicPath } = useContent();
+  const { getArticlePath } = useContent();
   const secondaryBackground = useSecondaryPageBackground();
   const useLightHeaderTheme = !isDark && location.pathname !== '/';
   const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -27,15 +27,6 @@ const Header = () => {
     const matches = (parts: string[]) =>
       parts.join(' ').toLowerCase().includes(normalizedQuery);
 
-    const topicHits = topics
-      .filter((topic) => matches([topic.title, topic.summary, topic.category, topic.tags.join(' ')]))
-      .map((topic) => ({
-        key: `topic-${topic.category}-${topic.slug}`,
-        title: topic.title,
-        subtitle: `${topic.category} · ${topic.sections.length} 节专题`,
-        href: getTopicPath(topic),
-      }));
-
     const articleHits = articles
       .filter((article) => matches([article.title, article.excerpt, article.category, article.tags.join(' ')]))
       .map((article) => ({
@@ -45,8 +36,8 @@ const Header = () => {
         href: getArticlePath(article),
       }));
 
-    return [...topicHits, ...articleHits].slice(0, 6);
-  }, [normalizedQuery, articles, topics, getArticlePath, getTopicPath]);
+    return articleHits.slice(0, 6);
+  }, [normalizedQuery, articles, getArticlePath]);
 
   const isArticlePage =
     location.pathname.startsWith('/article') ||

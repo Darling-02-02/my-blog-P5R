@@ -1,13 +1,10 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { parseCategoryDocument, topicDirectoriesFrom } from '../src/lib/category-content.ts';
+import { parseCategoryDocument } from '../src/lib/category-content.ts';
 
 const root = process.cwd();
 const articlesRoot = path.join(root, 'src', 'content', 'articles');
-const topicsRoot = path.join(root, 'src', 'content', 'topics');
 const requiredFields = ['id', 'title', 'excerpt', 'category', 'date', 'readTime', 'tags'];
-const topicFields = ['title', 'summary', 'order'];
-const sectionFields = ['title', 'order'];
 const categoriesFile = path.join(root, 'src', 'content', 'categories.json');
 
 const fail = (message) => {
@@ -15,15 +12,13 @@ const fail = (message) => {
   process.exitCode = 1;
 };
 
-// 栏目表是数据（后台 /admin 可以增删），专题目录集合由它派生，不能再硬编码。
-let categoryTable;
+// 栏目表是数据（后台 /admin 可以增删），校验它比什么都重要：这张表坏了首页就整个空掉。
 try {
-  categoryTable = parseCategoryDocument(readFileSync(categoriesFile, 'utf8'));
+  parseCategoryDocument(readFileSync(categoriesFile, 'utf8'));
 } catch (error) {
   fail(`src/content/categories.json: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 }
-const topicDirs = new Set(Object.values(topicDirectoriesFrom(categoryTable)));
 
 const walkMarkdown = (dir) => {
   const entries = readdirSync(dir, { withFileTypes: true });
@@ -31,15 +26,6 @@ const walkMarkdown = (dir) => {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) return walkMarkdown(fullPath);
     if (entry.isFile() && entry.name.endsWith('.md')) return [fullPath];
-    return [];
-  });
-};
-
-const walkDirs = (dir) => {
-  const entries = readdirSync(dir, { withFileTypes: true });
-  return entries.flatMap((entry) => {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) return [fullPath, ...walkDirs(fullPath)];
     return [];
   });
 };
@@ -127,83 +113,6 @@ if (statSync(articlesRoot, { throwIfNoEntry: false })?.isDirectory()) {
   articleCount = files.length;
 }
 
-// 一个专题都没有是合法状态：后台把专题全删掉之后 topics/ 会跟着消失，那不是错误
-// （articles/ 缺目录也是同样处理，见上面）。
-let topicCount = 0;
-let sectionCount = 0;
-
-if (statSync(topicsRoot, { throwIfNoEntry: false })?.isDirectory()) {
-  const topicKeys = new Set();
-
-  for (const dir of walkDirs(topicsRoot)) {
-    const rel = path.relative(topicsRoot, dir).replace(/\\/g, '/');
-    const parts = rel.split('/');
-
-    if (parts.length !== 2) continue;
-
-    if (!topicDirs.has(parts[0])) {
-      fail(`${rel}: unknown topic category directory "${parts[0]}"`);
-    }
-
-    const entryNames = readdirSync(dir);
-    if (!entryNames.includes('topic.md')) {
-      fail(`${rel}: missing topic.md`);
-      continue;
-    }
-
-    const topicRel = `${rel}/topic.md`;
-    const { meta, body } = parseFrontmatter(readFileSync(path.join(dir, 'topic.md'), 'utf8'), topicRel);
-    requireFields(meta, topicFields, topicRel);
-
-    if (!body.trim()) {
-      fail(`${topicRel}: topic intro is empty`);
-    }
-
-    const key = `${parts[0]}/${parts[1]}`;
-    if (topicKeys.has(key)) {
-      fail(`${rel}: duplicate topic "${key}"`);
-    }
-    topicKeys.add(key);
-    topicCount += 1;
-
-    const sectionsDir = path.join(dir, 'sections');
-    if (!statSync(sectionsDir, { throwIfNoEntry: false })?.isDirectory()) {
-      fail(`${rel}: missing sections/ directory`);
-      continue;
-    }
-
-    const sectionFiles = walkMarkdown(sectionsDir);
-    if (!sectionFiles.length) {
-      fail(`${rel}: needs at least one section`);
-    }
-
-    const sectionSlugs = new Set();
-    for (const sectionFile of sectionFiles) {
-      const sectionRel = path.relative(topicsRoot, sectionFile).replace(/\\/g, '/');
-      const sectionSlug = path.basename(sectionFile).replace(/\.md$/, '');
-      const parsed = parseFrontmatter(readFileSync(sectionFile, 'utf8'), sectionRel);
-
-      requireFields(parsed.meta, sectionFields, sectionRel);
-
-      if (!parsed.body.trim()) {
-        fail(`${sectionRel}: section body is empty`);
-      }
-
-      if (sectionSlugs.has(sectionSlug)) {
-        fail(`${sectionRel}: duplicate section slug "${sectionSlug}"`);
-      }
-      sectionSlugs.add(sectionSlug);
-      sectionCount += 1;
-    }
-  }
-
-  if (!topicCount) {
-    fail('No topics found under src/content/topics');
-  }
-}
-
 if (!process.exitCode) {
-  console.log(
-    `Validated ${articleCount} markdown article(s) and ${topicCount} topic(s) (${sectionCount} section(s)).`,
-  );
+  console.log(`Validated ${articleCount} markdown article(s).`);
 }

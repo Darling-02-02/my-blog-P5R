@@ -2,14 +2,6 @@ import { useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { getArticlePath } from '../data/articles';
 import { getCategoryData, getTagData } from '../data/categories';
-import {
-  findSection,
-  findTopic,
-  getSectionPath,
-  getTopicPath,
-  getTopicsByCategory,
-  topics,
-} from '../data/topics';
 import { ContentContext } from './content-context';
 
 export const ContentProvider = ({ children }: { children: ReactNode }) => {
@@ -17,13 +9,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
   // 组件那边也不需要动。
   const value = useMemo(
     () => ({
-      topics,
-      getTopicsByCategory,
-      findTopic,
-      findSection,
       getArticlePath,
-      getTopicPath,
-      getSectionPath,
       getCategoryData,
       getTagData,
     }),

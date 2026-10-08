@@ -2,6 +2,8 @@
 
 Last updated: 2026-09-28
 
+> 后续变更：专栏/专题子系统（`src/content/topics/`、`/topic/...` 路由、`src/data/topics.ts`、`src/lib/topic-*.ts`、后台「🌱 专题章节」）已整体删除；下文提到它的地方都是当时的记录。
+
 ## Current Objective
 
 Serve the dynamic article API publicly. The school server runs Node.js 16 only, and its campus network currently blocks all inbound connections from the internet. A concrete alternative host has now been identified (see "Host Candidate" below).

@@ -2,18 +2,18 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
-import { moveCategory, parseCategoryDocument, removeCategory, serializeCategoryDocument, topicDirectoriesFrom, upsertCategory } from '../src/lib/category-content.ts';
+import { moveCategory, parseCategoryDocument, removeCategory, serializeCategoryDocument, upsertCategory } from '../src/lib/category-content.ts';
 
 const sample = [
   { name: '生物信息', description: '生信专题', color: '#ff6b6b', subcategories: ['转录组', '代谢组'] },
-  { name: '机器学习', description: '模型训练', color: '#45b7d1', dir: 'machine-learning' },
+  { name: '机器学习', description: '模型训练', color: '#45b7d1' },
 ];
 
 test('round-trips the category table through the exact text the admin commits', () => {
   const text = serializeCategoryDocument(sample);
   assert.ok(text.endsWith('\n'));
   assert.deepEqual(parseCategoryDocument(text), sample);
-  // 空的可选字段不能凭空留下来，否则后台"编辑后保存"会写出空的 dir / subcategories。
+  // 空的可选字段不能凭空留下来，否则后台"编辑后保存"会写出空的 subcategories。
   assert.deepEqual(parseCategoryDocument(serializeCategoryDocument([{ name: '前端', description: '', color: '#ffffff' }])), [
     { name: '前端', description: '', color: '#ffffff' },
   ]);
@@ -25,11 +25,6 @@ test('rejects invalid tables before they reach GitHub', () => {
   assert.throws(() => parseCategoryDocument(JSON.stringify([{ name: 'A', color: '#fff' }])), /#rrggbb/);
   assert.throws(() => parseCategoryDocument(JSON.stringify([{ name: '', color: '#ffffff' }])), /不能为空/);
   assert.throws(() => parseCategoryDocument(JSON.stringify([{ name: 'A', color: '#ffffff' }, { name: 'A', color: '#000000' }])), /重复/);
-  assert.throws(
-    () => parseCategoryDocument(JSON.stringify([{ name: 'A', color: '#ffffff', dir: 'same-dir' }, { name: 'B', color: '#ffffff', dir: 'same-dir' }])),
-    /目录重复/,
-  );
-  assert.throws(() => parseCategoryDocument(JSON.stringify([{ name: 'A', color: '#ffffff', dir: 'Bad Dir' }])), /小写字母/);
 });
 
 test('the admin edit helpers never lose or duplicate a category', () => {
@@ -49,9 +44,6 @@ test('the shipped categories.json still describes the same home categories', () 
   const categories = parseCategoryDocument(readFileSync(path.join(process.cwd(), 'src', 'content', 'categories.json'), 'utf8'));
   // 这张快照是有意的哨兵：栏目表被误改（比如后台保存时丢了栏目）就会红。
   // 真的在后台增删/改名栏目之后，把这里和 src/content/categories.json 一起改。
-  assert.deepEqual(categories.map((category) => category.name), ['生物信息']);
-  assert.deepEqual(topicDirectoriesFrom(categories), {});
-  // 后台把这张表实时传给专题编辑器：没有"用专题组织"的栏目时必须是空表，而不是回落到构建期的旧栏目。
-  assert.deepEqual(topicDirectoriesFrom([]), {});
-  assert.deepEqual(topicDirectoriesFrom([{ name: '前端', description: '', color: '#ffffff' }]), {});
+  // 当前是空的：后台把最后一个栏目「生物信息」删掉了。
+  assert.deepEqual(categories.map((category) => category.name), []);
 });

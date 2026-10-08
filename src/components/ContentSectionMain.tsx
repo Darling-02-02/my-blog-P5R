@@ -93,32 +93,24 @@ const GiscusComments = () => {
 };
 
 // 大类栏目：卡片角标与轮播共用的计数/文案
-const categoryHasTopics = (category: CategoryData) => Boolean(category.usesTopics);
-
-const categoryIsEmpty = (category: CategoryData) => category.count === 0 && category.topicCount === 0;
-
-const categoryCountLabel = (category: CategoryData) => {
-  if (categoryIsEmpty(category)) return '还没有内容';
-  return category.usesTopics ? `${category.topicCount} 个专题` : `${category.count} 篇文章`;
-};
+const categoryCountLabel = (category: CategoryData) =>
+  category.count === 0 ? '还没有内容' : `${category.count} 篇文章`;
 
 // 幕后副标题：参考 biojuse 的淡入淡出（透明度 + 缩放 + 模糊），文案取自真实数据
 const BlogFadeText = ({
   lead,
   columnCount,
-  topicCount,
   articleCount,
 }: {
   lead: string;
   columnCount: number;
-  topicCount: number;
   articleCount: number;
 }) => {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
   const lines = useMemo(
-    () => [lead, `目前收录 ${columnCount} 个栏目`, `共 ${topicCount} 个专题 / ${articleCount} 篇文章`],
-    [lead, columnCount, topicCount, articleCount],
+    () => [lead, `目前收录 ${columnCount} 个栏目`, `共 ${articleCount} 篇文章`],
+    [lead, columnCount, articleCount],
   );
 
   useEffect(() => {
@@ -142,7 +134,6 @@ const BlogFadeText = ({
 // 大类栏目卡片
 const CategoryLandingCard = ({ category, index, mood }: { category: CategoryData; index: number; mood: WorkMood }) => {
   const navigate = useNavigate();
-  const hasTopics = categoryHasTopics(category);
   return (
     <motion.article
       className="blog-card"
@@ -180,7 +171,7 @@ const CategoryLandingCard = ({ category, index, mood }: { category: CategoryData
         <p className="blog-card-desc" style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.8rem', lineHeight: 1.7 }}>
           {category.description}
         </p>
-        <span className="blog-card-meta">{hasTopics ? '进入专题 →' : '查看全部 →'}</span>
+        <span className="blog-card-meta">查看全部 →</span>
       </div>
     </motion.article>
   );
@@ -281,7 +272,6 @@ const MainContent = () => {
           <BlogFadeText
             lead="一切都是为了正义"
             columnCount={categoryData.length}
-            topicCount={categoryData.reduce((sum, category) => sum + category.topicCount, 0)}
             articleCount={categoryData.reduce((sum, category) => sum + category.count, 0)}
           />
         </p>

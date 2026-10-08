@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArticleApiError } from '../lib/api';
 import { activeArticleSource } from '../lib/article-source';
@@ -6,12 +6,8 @@ import type { Article } from '../../backend/src/articles/article.types';
 import type { ArticleWriteInput } from '../lib/article-form';
 import ArticleEditor from './ArticleEditor';
 import CategoryManager from './CategoryManager';
-import TopicEditor from './TopicEditor';
-import type { Topic } from '../data/topics';
-import { topicDirectoriesFrom } from '../lib/category-content';
 import type { CategoryInput } from '../lib/category-content';
 import { categoryPublisher } from '../lib/category-publisher';
-import { topicPublisher } from '../lib/topic-publisher';
 
 const TOKEN_KEY = 'blog_admin_token';
 
@@ -45,30 +41,21 @@ const AdminPage = () => {
   const [tokenInput, setTokenInput] = useState(() => sessionStorage.getItem(TOKEN_KEY) ?? '');
   const [token, setToken] = useState(() => sessionStorage.getItem(TOKEN_KEY) ?? '');
   const [articles, setArticles] = useState<Article[]>([]);
-  const [topics, setTopics] = useState<Topic[]>([]);
   const [categoryList, setCategoryList] = useState<CategoryInput[] | null>(null);
   const [categorySha, setCategorySha] = useState('');
   const [categoryError, setCategoryError] = useState<string | null>(null);
-  const [topicsLoaded, setTopicsLoaded] = useState(false);
-  const [adminMode, setAdminMode] = useState<'articles' | 'topics' | 'categories'>(activeArticleSource.kind === 'github' ? 'topics' : 'articles');
+  const [adminMode, setAdminMode] = useState<'articles' | 'categories'>('articles');
   const [selected, setSelected] = useState<Article | undefined>();
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [editorError, setEditorError] = useState<string | null>(null);
-  // 专题列表和发布都按"仓库里正在生效"的栏目表解析目录（见 topic-publisher 的 directories 参数），
-  // 否则刚新建的栏目要等一次站点重建才能发专题。用 ref 是为了让 loadTopics 的依赖保持为空，
-  // 不然 loadCategories 每次写入新数组都会让本 effect 重跑，形成"读完再读"的循环。
-  const liveDirs = useRef<Record<string, string> | undefined>(undefined);
 
   const clearAdminSession = useCallback((nextMessage = '已退出后台，当前会话 Token 已清除') => {
     sessionStorage.removeItem(TOKEN_KEY);
     setTokenInput('');
     setToken('');
     setArticles([]);
-    setTopics([]);
-    setTopicsLoaded(false);
-    liveDirs.current = undefined;
     setCategoryList(null);
     setCategorySha('');
     setCategoryError(null);
@@ -94,28 +81,15 @@ const AdminPage = () => {
     }
   }, [clearAdminSession]);
 
-  const loadTopics = useCallback(async (activeToken: string) => {
-    if (activeArticleSource.kind !== 'github') return;
-    try {
-      setTopics(await topicPublisher.list(activeToken, liveDirs.current));
-      setTopicsLoaded(true);
-    } catch (error) {
-      setTopicsLoaded(false);
-      setMessage(toMessage(error));
-    }
-  }, []);
-
-  // 读仓库里"正在生效"的栏目表：后台列表和专题下拉都以它为准，构建期那份只是站点渲染用的快照。
+  // 读仓库里"正在生效"的栏目表：栏目列表以它为准，构建期那份只是站点渲染用的快照。
   const loadCategories = useCallback(async (activeToken: string) => {
     if (activeArticleSource.kind !== 'github') return;
     try {
       const snapshot = await categoryPublisher.load(activeToken);
-      liveDirs.current = topicDirectoriesFrom(snapshot.categories);
       setCategoryList(snapshot.categories);
       setCategorySha(snapshot.sha);
       setCategoryError(null);
     } catch (error) {
-      liveDirs.current = undefined;
       setCategoryList(null);
       setCategorySha('');
       setCategoryError(
@@ -130,11 +104,10 @@ const AdminPage = () => {
     if (!token) return;
     const timer = window.setTimeout(() => {
       void loadArticles(token);
-      void loadTopics(token);
       void loadCategories(token);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [loadArticles, loadCategories, loadTopics, token]);
+  }, [loadArticles, loadCategories, token]);
 
   const handleTokenSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -222,7 +195,7 @@ const AdminPage = () => {
             <h1 style={{ margin: 0, color: 'var(--text-heading)' }}>📝 内容小后台</h1>
             <p style={{ margin: '0.4rem 0 0', color: 'var(--text-muted)' }}>{activeArticleSource.panelHint}</p>
             {/* 本地 dev 读的是磁盘上的 Markdown，后台写的是 GitHub 仓库：不同步这件事必须说出来，
-                否则在后台删掉专题后本机页面照旧显示，看起来就像"删不掉"。 */}
+                否则在后台删掉内容后本机页面照旧显示，看起来就像"删不掉"。 */}
             {import.meta.env.DEV && activeArticleSource.kind === 'github' && <p style={{ margin: '0.4rem 0 0', color: 'var(--text-muted)', fontSize: '0.85rem' }}>本机 dev 页面读的是本地 Markdown，后台写的是仓库：在这里新建或删除内容后，本地要 git pull 才会跟着变（线上约 1 分钟后自动上线）。</p>}
           </div>
           <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -256,7 +229,7 @@ const AdminPage = () => {
         `}</style>
 
         {token && <div role="tablist" aria-label="内容管理" className="admin-tabs">
-          {([['articles', `📄 独立文章（${articles.length}）`], ['topics', `🌱 专题章节（${topics.length}）`], ['categories', `🗂 幕后栏目（${categoryList?.length ?? 0}）`]] as const).map(([id, label]) => (
+          {([['articles', `📄 独立文章（${articles.length}）`], ['categories', `🗂 幕后栏目（${categoryList?.length ?? 0}）`]] as const).map(([id, label]) => (
             <button key={id} type="button" role="tab" aria-selected={adminMode === id} onClick={() => setAdminMode(id)} className="admin-tab" data-active={adminMode === id ? 'true' : undefined}>{label}</button>
           ))}
         </div>}
@@ -267,8 +240,6 @@ const AdminPage = () => {
                 token={token}
                 categories={categoryList}
                 sha={categorySha}
-                topics={topics}
-                topicsLoaded={topicsLoaded}
                 articles={articles}
                 onChanged={() => loadCategories(token)}
               />
@@ -282,10 +253,6 @@ const AdminPage = () => {
             <p role="status" style={{ margin: 0, color: 'var(--text-body)' }}>当前后端数据库只存文章；幕后栏目表放在仓库里，请用 GitHub 模式管理。</p>
           )}
         </div>}
-        {token && adminMode === 'topics' && <div style={panelStyle}>
-          {activeArticleSource.kind === 'github' ? <TopicEditor token={token} topics={topics} refresh={() => loadTopics(token)} directories={categoryList ? topicDirectoriesFrom(categoryList) : undefined} /> :
-            <p role="status" style={{ color: 'var(--text-body)' }}>当前后端数据库仅支持文章；专题仍由仓库 Markdown 构建。请使用 GitHub 模式管理专题，数据库专题接口尚未接入。</p>}
-        </div>}
         {token && adminMode === 'articles' && (
           <div className="admin-grid">
             <div style={{ ...panelStyle, display: 'grid', gap: '0.75rem' }}>
@@ -296,7 +263,7 @@ const AdminPage = () => {
                 </button>
               </div>
               {loading && <p role="status" style={{ color: 'var(--text-muted)' }}>加载中…</p>}
-              {!loading && articles.length === 0 && <p style={{ color: 'var(--text-muted)' }}>这里还没有独立文章哦～专题章节请切换到上面的「🌱 专题章节」管理。</p>}
+              {!loading && articles.length === 0 && <p style={{ color: 'var(--text-muted)' }}>这里还没有文章哦～新建一篇就会出现在博客里。</p>}
               {articles.map((article) => (
                 <div key={article.slug} style={{ borderTop: '1px solid var(--border-section)', padding: '0.7rem', borderRadius: 10, background: selected?.slug === article.slug ? 'rgba(255,0,64,0.07)' : 'transparent' }}>
                   <button type="button" onClick={() => { setSelected(article); setEditorError(null); }} style={{ width: '100%', textAlign: 'left', border: 'none', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer', padding: 0 }}>
