@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from 'react';
 import { parseMarkdownImport } from '../lib/markdown-import';
+import { estimateReadTime } from '../lib/reading-time';
 const MarkdownBody = lazy(() => import('./MarkdownBody'));
 import type { Article } from '../../backend/src/articles/article.types';
 import type { ArticleWriteInput } from '../lib/article-form';
@@ -18,10 +19,8 @@ const toInitialState = (article?: Article) => ({
   title: article?.title ?? '',
   excerpt: article?.excerpt ?? '',
   content: article?.content ?? '',
-  coverUrl: article?.coverUrl ?? '',
   category: article?.category ?? '',
   subcategory: article?.subcategory ?? '',
-  readTime: article?.readTime ?? '',
   tagsText: article?.tags.join(', ') ?? '',
 });
 
@@ -70,10 +69,11 @@ const ArticleEditor = ({ initialArticle, categories, busy, error, onSave, onCanc
       title: form.title.trim(),
       excerpt: form.excerpt.trim(),
       content: form.content,
-      coverUrl: form.coverUrl.trim(),
+      // 封面 URL 后台不再提供输入框（前台没有任何地方读它）：编辑老文章时沿用文件里的值，新建时是空串（空即不写）。
+      coverUrl: initialArticle?.coverUrl ?? '',
       category: form.category.trim(),
       subcategory: form.subcategory.trim(),
-      readTime: form.readTime.trim(),
+      readTime: estimateReadTime(form.content),
       tags: form.tagsText.split(',').map((tag) => tag.trim()).filter(Boolean),
     });
   };
@@ -110,20 +110,11 @@ const ArticleEditor = ({ initialArticle, categories, busy, error, onSave, onCanc
             ))}
           </datalist>
         </label>
-        <label style={fieldStyle}>
-          阅读时长
-          <input value={form.readTime} onChange={(event) => update('readTime', event.target.value)} style={inputStyle} placeholder="5 分钟" />
-        </label>
       </div>
 
       <label style={fieldStyle}>
         摘要
         <textarea required value={form.excerpt} onChange={(event) => update('excerpt', event.target.value)} style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }} />
-      </label>
-
-      <label style={fieldStyle}>
-        封面 URL
-        <input value={form.coverUrl} onChange={(event) => update('coverUrl', event.target.value)} style={inputStyle} placeholder="/cover.png" />
       </label>
 
       <label style={fieldStyle}>

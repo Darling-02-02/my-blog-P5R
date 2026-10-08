@@ -161,7 +161,6 @@ export const articlePublisher = {
       excerpt: input.excerpt,
       category: input.category,
       subcategory: input.subcategory,
-      readTime: input.readTime,
       tags: input.tags,
       coverUrl: input.coverUrl,
       body: input.content,

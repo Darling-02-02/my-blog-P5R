@@ -41,7 +41,7 @@ npx tsx --test scripts/security-hardening.test.ts
 
 `npx tsx --test ...` runs the `node:test` checks that cover the Study Room storage helpers in `src/lib/studyRoomStorage.ts`.
 
-For article changes, ensure every Markdown file under `src/content/articles/` has frontmatter fields: `id`, `title`, `excerpt`, `category`, `date`, `readTime`, and a non-empty `tags` list.
+For article changes, ensure every Markdown file under `src/content/articles/` has frontmatter fields: `id`, `title`, `excerpt`, `category`, `date`, `readTime` (computed from the body, never typed by hand), and a non-empty `tags` list.
 
 ## Commit & Pull Request Guidelines
 

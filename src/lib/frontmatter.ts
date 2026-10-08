@@ -1,6 +1,8 @@
 // Article frontmatter format: parsing lives here so the build-time loader
 // (src/data/articles.ts) and the admin publisher (src/lib/github.ts) agree on one format.
 
+import { estimateReadTime } from './reading-time.ts';
+
 export type FrontmatterValue = string | string[];
 export type Frontmatter = Record<string, FrontmatterValue>;
 
@@ -69,7 +71,6 @@ export interface ArticleFrontmatterInput {
   category: string;
   subcategory?: string;
   date: string;
-  readTime: string;
   tags: string[];
   coverUrl?: string;
   body: string;
@@ -93,7 +94,8 @@ export const serializeArticle = (input: ArticleFrontmatterInput) => {
     lines.push(`subcategory: ${quoted(input.subcategory ?? '')}`);
   }
 
-  lines.push(`date: ${quoted(input.date)}`, `readTime: ${quoted(input.readTime)}`, 'tags:');
+  // readTime 由正文算出来（前端和 validate:content 都还要求这个字段）。
+  lines.push(`date: ${quoted(input.date)}`, `readTime: ${quoted(estimateReadTime(input.body))}`, 'tags:');
 
   const tags = [...new Set(input.tags.map(singleLine).filter(Boolean))];
   for (const tag of tags) {

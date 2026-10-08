@@ -19,7 +19,8 @@ export const parseMarkdownImport = (source: string) => {
   if (!content.trim()) throw new Error('Markdown 正文不能为空');
   if (content.length > 500_000) throw new Error('Markdown 正文不能超过 500,000 个字符');
   const fields: Partial<Omit<ArticleWriteInput, 'content'>> = {};
-  for (const key of ['slug', 'title', 'excerpt', 'category', 'subcategory', 'readTime', 'coverUrl'] as const) {
+  // readTime / coverUrl 不在导入字段里：前者由正文算，后者后台已经不提供输入框了。
+  for (const key of ['slug', 'title', 'excerpt', 'category', 'subcategory'] as const) {
     if (meta[key] !== undefined) {
       if (typeof meta[key] !== 'string') throw new Error(`${key} 必须是文本`);
       fields[key] = meta[key].trim();
