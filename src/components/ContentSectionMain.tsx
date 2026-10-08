@@ -263,8 +263,8 @@ const MainContent = () => {
         </div>
       </section>
 
-      {/* 幕后 - 大类栏目 */}
-      <section id="blog" className="home-content-block" style={sectionCardStyle}>
+      {/* 幕后 - 大类栏目：栏目表整个空了（后台全删）时整块不渲染，别留一个空标题加一大片空白 */}
+      {categoryData.length > 0 && <section id="blog" className="home-content-block" style={sectionCardStyle}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
           <span style={{ color: '#ff0040' }}>幕后</span>
         </h1>
@@ -281,7 +281,7 @@ const MainContent = () => {
             <CategoryLandingCard key={category.name} category={category} index={i} mood={mood} />
           ))}
         </div>
-      </section>
+      </section>}
 
       {/* 关于 */}
       <section id="about" className="home-content-block" style={sectionCardStyle}>
