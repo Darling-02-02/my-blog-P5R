@@ -1,11 +1,5 @@
 [
   {
-    "name": "机器学习",
-    "description": "模型训练、数据处理、工程实践和实验复盘",
-    "color": "#45b7d1",
-    "dir": "machine-learning"
-  },
-  {
     "name": "后端",
     "description": "后端学习路线、服务端工程实践和踩坑记录",
     "color": "#7c5cff",
