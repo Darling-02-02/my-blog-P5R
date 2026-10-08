@@ -6,7 +6,7 @@ import Footer from './Footer';
 import TopicReader from './TopicReader';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
-import { pickCoverByKey, pickCoverForArticle } from '../lib/coverImage';
+import { pickCoverForArticle } from '../lib/coverImage';
 
 type ArchiveMode = 'tag' | 'category';
 
@@ -100,37 +100,23 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
         }}
       >
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              borderRadius: '18px',
-              overflow: 'hidden',
-              border: '1px solid var(--border-card)',
-              marginBottom: '1.5rem',
-              background: 'var(--bg-main-card)',
-              boxShadow: 'var(--shadow-card)',
-            }}
-          >
-            <div
-              style={{
-                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.6)), url(${pickCoverByKey(`${mode}:${decodedName || 'default'}`)})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                padding: '3.2rem 2rem',
-              }}
-            >
-              <h1 style={{ color: '#fff', fontSize: 'clamp(1.6rem, 4vw, 2.3rem)', marginBottom: '0.8rem' }}>
-                {archiveTitle}
-              </h1>
-              <p style={{ color: 'rgba(255,255,255,0.92)', fontSize: '0.95rem' }}>
-                {archiveSummary}
-              </p>
-              {status === 'error' && error && (
-                <p role="alert" style={{ color: '#ffd7df', fontSize: '0.85rem', margin: '0.8rem 0 0' }}>文章 API 暂不可用，已显示本地内容：{error}</p>
-              )}
-            </div>
-          </motion.div>
+          <header style={{ marginBottom: '2.5rem' }}>
+            <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '1rem' }}>
+              {archiveTitle}
+            </h1>
+            <p style={{
+              color: 'var(--text-muted)',
+              fontSize: '1.1rem',
+              margin: 0,
+              paddingBottom: '1.5rem',
+              borderBottom: '2px solid var(--border-section)',
+            }}>
+              {archiveSummary}
+            </p>
+            {status === 'error' && error && (
+              <p role="alert" style={{ color: '#ff0047', fontSize: '0.85rem', margin: '0.8rem 0 0' }}>文章 API 暂不可用，已显示本地内容：{error}</p>
+            )}
+          </header>
 
           <div className="archive-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '1.5rem' }}>
             <div>

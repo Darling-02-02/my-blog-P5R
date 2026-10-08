@@ -17,7 +17,9 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
   const useSecondaryTheme = !isHomeRoute;
   const useHomeBackground = isHomeRoute && isInHomeHeroSection;
   const activeBackground = useHomeBackground ? '' : secondaryBackground;
-  const backgroundPosition = useHomeBackground ? 'center center' : 'center top';
+  // 次级页面的插画（CY.png 864x1216）被 cover 放大到铺满宽屏，只能看到中间一块；
+  // 定位从 top 略往下 16%，让脸落在画面中间而不是被顶边切掉。
+  const backgroundPosition = useHomeBackground ? 'center center' : 'center 16%';
   const overlayColor = useHomeBackground
     ? isDark
       ? 'rgba(0, 0, 0, 0.38)'
