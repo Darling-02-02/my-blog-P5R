@@ -4,7 +4,7 @@ import { parseTopicDocument, serializeSection, serializeTopic } from '../src/lib
 
 const topic = {
   category: '后端', slug: 'api-design', title: 'API 设计', summary: '接口设计',
-  cover: 'https://example.com/image.png', order: 2, tags: ['设计', '接口'],
+  order: 2, tags: ['设计', '接口'],
   intro: '# 介绍\n\n```ts\nconst value = 1;\n```\n\n$$x^2$$',
 };
 const section = { slug: 'overview', title: '概览', order: 1, readTime: '5 分钟', content: '# 第一节\n\n![图](./image.png)' };

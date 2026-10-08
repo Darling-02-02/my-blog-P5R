@@ -93,15 +93,10 @@ const GiscusComments = () => {
 };
 
 // 大类栏目：卡片角标与轮播共用的计数/文案
-const categoryHasTopics = (category: CategoryData) =>
-  Boolean(category.subcategories?.length) || Boolean(category.usesTopics);
+const categoryHasTopics = (category: CategoryData) => Boolean(category.usesTopics);
 
-const categoryCountLabel = (category: CategoryData) => {
-  const subcategories = category.subcategories?.length ?? 0;
-  if (subcategories) return `${subcategories} 个专题`;
-  if (category.usesTopics) return `${category.topicCount} 个专题`;
-  return `${category.count} 篇文章`;
-};
+const categoryCountLabel = (category: CategoryData) =>
+  category.usesTopics ? `${category.topicCount} 个专题` : `${category.count} 篇文章`;
 
 // 幕后副标题：参考 biojuse 的淡入淡出（透明度 + 缩放 + 模糊），文案取自真实数据
 const BlogFadeText = ({

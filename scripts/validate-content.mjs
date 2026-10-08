@@ -127,11 +127,12 @@ if (statSync(articlesRoot, { throwIfNoEntry: false })?.isDirectory()) {
   articleCount = files.length;
 }
 
-if (!statSync(topicsRoot, { throwIfNoEntry: false })?.isDirectory()) {
-  fail(`Missing content directory: ${path.relative(root, topicsRoot)}`);
-} else {
-  let topicCount = 0;
-  let sectionCount = 0;
+// 一个专题都没有是合法状态：后台把专题全删掉之后 topics/ 会跟着消失，那不是错误
+// （articles/ 缺目录也是同样处理，见上面）。
+let topicCount = 0;
+let sectionCount = 0;
+
+if (statSync(topicsRoot, { throwIfNoEntry: false })?.isDirectory()) {
   const topicKeys = new Set();
 
   for (const dir of walkDirs(topicsRoot)) {
@@ -199,10 +200,10 @@ if (!statSync(topicsRoot, { throwIfNoEntry: false })?.isDirectory()) {
   if (!topicCount) {
     fail('No topics found under src/content/topics');
   }
+}
 
-  if (!process.exitCode) {
-    console.log(
-      `Validated ${articleCount} markdown article(s) and ${topicCount} topic(s) (${sectionCount} section(s)).`,
-    );
-  }
+if (!process.exitCode) {
+  console.log(
+    `Validated ${articleCount} markdown article(s) and ${topicCount} topic(s) (${sectionCount} section(s)).`,
+  );
 }

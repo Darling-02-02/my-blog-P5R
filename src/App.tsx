@@ -68,7 +68,6 @@ function App() {
                       <Route path="/study-room" element={<StudyRoom />} />
                       <Route path="/admin" element={<AdminPage />} />
                       <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />
-                      <Route path="/category/:name/:subcategory" element={<ArchivePage mode="category" />} />
                       <Route path="/category/:name" element={<ArchivePage mode="category" />} />
                       <Route path="/topic/:category/:topic" element={<TopicPage />} />
                       <Route path="/topic/:category/:topic/:section" element={<TopicPage />} />

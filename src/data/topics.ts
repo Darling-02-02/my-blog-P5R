@@ -1,5 +1,4 @@
 import { categoryByDirectory as categoryByDir } from './category-source';
-import { pickCoverByKey } from '../lib/coverImage';
 import { parseTopicDocument } from '../lib/topic-content';
 
 export interface TopicSection {
@@ -16,15 +15,12 @@ export interface Topic {
   title: string;
   summary: string;
   order: number;
-  cover: string;
   tags: string[];
   intro: string;
   sections: TopicSection[];
 }
 
 type Frontmatter = Record<string, unknown>;
-
-const base = import.meta.env.BASE_URL;
 
 const topicModules = import.meta.glob('../content/topics/**/*.md', {
   eager: true,
@@ -90,31 +86,19 @@ for (const [path, source] of Object.entries(topicModules)) {
 const byOrder = (a: { order: number; title: string }, b: { order: number; title: string }) =>
   a.order - b.order || a.title.localeCompare(b.title, 'zh-CN');
 
-const firstImage = (content: string) => content.match(/!\[[^\]]*\]\(([^)\s]+)(?:\s+['"][^'"]*['"])?\)/)?.[1] ?? '';
 const firstSummary = (content: string) => content.split(/\n\s*\n/).map((part) => part.trim()).find((part) => part && !/^#{1,6}\s/.test(part))?.replace(/^[-*>\s]+/, '').trim().slice(0, 180) ?? '';
-
-const resolveMedia = (value: string, topicDir: string) => {
-  if (/^(?:https?:|data:|\/)/i.test(value)) return value;
-  return `${base}${topicDir}/${value.replace(/^\.\//, '').replace(/^\//, '')}`;
-};
 
 export const topics: Topic[] = [...drafts.values()]
   .filter((draft) => draft.meta)
   .map((draft) => {
     const meta = draft.meta as Frontmatter;
     const category = categoryByDir[draft.dir] ?? draft.dir;
-    const coverFile = meta.cover ? String(meta.cover) : firstImage(draft.intro);
-    const cover = coverFile
-      ? (meta.cover ? (/^https?:\/\//i.test(coverFile) ? coverFile : `${base}${coverFile.replace(/^\//, '')}`) : resolveMedia(coverFile, `${draft.dir}/${draft.slug}`))
-      : pickCoverByKey(`${category}::${draft.slug}`);
-
     return {
       category,
       slug: draft.slug,
       title: String(meta.title ?? draft.slug),
       summary: meta.summary && String(meta.summary).trim() !== '---' ? String(meta.summary) : firstSummary(draft.intro),
       order: toOrder(meta.order),
-      cover,
       tags: Array.isArray(meta.tags) ? meta.tags : [],
       intro: draft.intro,
       sections: draft.sections.sort(byOrder),

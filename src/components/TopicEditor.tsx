@@ -8,7 +8,7 @@ import { topicPublisher } from '../lib/topic-publisher';
 import { ArticleApiError } from '../lib/api';
 
 const MarkdownBody = lazy(() => import('./MarkdownBody'));
-const emptyTopic = (category: string): TopicDraftInput => ({ category, slug: '', title: '', summary: '', cover: '', order: 1, tags: [], intro: '' });
+const emptyTopic = (category: string): TopicDraftInput => ({ category, slug: '', title: '', summary: '', order: 1, tags: [], intro: '' });
 const emptySection = (order = 1): SectionDraftInput => ({ slug: '', title: '', order, readTime: '', content: '' });
 const inputStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '0.65rem', border: '1px solid var(--border-card)', borderRadius: 6, color: 'var(--text-body)', background: 'var(--bg-card)' };
 const labelStyle = { display: 'grid', gap: '0.35rem', color: 'var(--text-body)' };
@@ -55,7 +55,7 @@ export default function TopicEditor({ token, topics, refresh, directories }: Pro
     setTab('topic');
     setPreview(false);
     setMessage('');
-    setTopic(found ? { category: activeCategory, slug: found.slug, title: found.title, summary: found.summary, cover: found.cover, order: found.order, tags: found.tags, intro: found.intro } : emptyTopic(activeCategory));
+    setTopic(found ? { category: activeCategory, slug: found.slug, title: found.title, summary: found.summary, order: found.order, tags: found.tags, intro: found.intro } : emptyTopic(activeCategory));
     setTagsText(found?.tags.join(', ') ?? '');
     setSection(emptySection(found ? Math.max(0, ...found.sections.map((item) => item.order)) + 1 : 1));
   };
@@ -219,7 +219,6 @@ export default function TopicEditor({ token, topics, refresh, directories }: Pro
           <details>
             <summary style={{ cursor: 'pointer', color: 'var(--text-muted)' }}>更多设置（可选）</summary>
             <div style={{ display: 'grid', gap: '0.7rem', marginTop: '0.7rem' }}>
-              <label style={labelStyle}>封面路径<input value={topic.cover} onChange={(event) => topicField('cover', event.target.value)} style={inputStyle} placeholder="https://... 或站点路径" /></label>
               <label style={labelStyle}>标签（逗号分隔）<input value={tagsText} onChange={(event) => setTagsText(event.target.value)} style={inputStyle} placeholder="机器学习, 入门" /></label>
             </div>
           </details>

@@ -5,7 +5,6 @@ export interface TopicDraftInput {
   slug: string;
   title: string;
   summary: string;
-  cover: string;
   order: number;
   tags: string[];
   intro: string;
@@ -57,7 +56,6 @@ export const serializeTopic = (input: TopicDraftInput) => {
     title: requireText(input.title, '专题名称'),
     summary: requireText(input.summary, '专题简介'),
     order: input.order,
-    ...(input.cover.trim() ? { cover: requireText(input.cover, '封面路径') } : {}),
     tags: input.tags.map((tag) => requireText(tag, '标签')),
   }).trimEnd()}\n---\n\n${requireBody(input.intro, '专题介绍')}\n`;
 };

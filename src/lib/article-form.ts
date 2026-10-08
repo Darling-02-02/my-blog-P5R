@@ -3,7 +3,7 @@
 // 这样后端加字段时这里会自动跟上，不会再出现两边漂移。
 import type { ArticleWritePayload } from '../../backend/src/articles/article.types';
 
-/** subcategory 一定给值：编辑器留空时提交空串，后端和 GitHub 前端的序列化都按“空即不写”处理。 */
+/** subcategory 后台不再提供输入框：编辑老文章时沿用文件里的值，新建时是空串（空即不写，不会凭空写出这个键）。 */
 export type ArticleWriteInput = Omit<ArticleWritePayload, 'status' | 'subcategory'> & {
   subcategory: string;
 };

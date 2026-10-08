@@ -111,10 +111,6 @@ const ArticleEditor = ({ initialArticle, categories, busy, error, onSave, onCanc
           </datalist>
         </label>
         <label style={fieldStyle}>
-          子分类（可留空）
-          <input value={form.subcategory} onChange={(event) => update('subcategory', event.target.value)} style={inputStyle} />
-        </label>
-        <label style={fieldStyle}>
           阅读时长
           <input value={form.readTime} onChange={(event) => update('readTime', event.target.value)} style={inputStyle} placeholder="5 分钟" />
         </label>

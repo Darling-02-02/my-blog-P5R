@@ -61,7 +61,6 @@ export const topicPublisher = {
         title: String(meta.title ?? ''),
         summary: String(meta.summary ?? ''),
         order: Number(meta.order ?? 0),
-        cover: String(meta.cover ?? ''),
         tags: Array.isArray(meta.tags) ? meta.tags.map(String) : [],
         intro: body,
         sections: sections.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title, 'zh-CN')),

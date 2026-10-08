@@ -18,10 +18,9 @@ interface Draft {
   color: string;
   mode: 'dir' | 'plain';
   dir: string;
-  subcategories: string;
 }
 
-const emptyDraft = (): Draft => ({ name: '', description: '', color: presetColors[0], mode: 'dir', dir: '', subcategories: '' });
+const emptyDraft = (): Draft => ({ name: '', description: '', color: presetColors[0], mode: 'dir', dir: '' });
 
 const toDraft = (category: CategoryInput): Draft => ({
   name: category.name,
@@ -29,7 +28,6 @@ const toDraft = (category: CategoryInput): Draft => ({
   color: category.color,
   mode: category.dir ? 'dir' : 'plain',
   dir: category.dir ?? '',
-  subcategories: (category.subcategories ?? []).join('\n'),
 });
 
 interface Props {
@@ -82,9 +80,6 @@ export default function CategoryManager({ token, categories, sha, topics, topics
     description: draft.description.trim(),
     color: draft.color.trim(),
     ...(draft.mode === 'dir' ? { dir: draft.dir.trim() } : {}),
-    ...(draft.mode === 'plain' && draft.subcategories.trim()
-      ? { subcategories: draft.subcategories.split('\n').map((item) => item.trim()).filter(Boolean) }
-      : {}),
   });
 
   const commit = async (list: CategoryInput[], note: string): Promise<boolean> => {
@@ -180,7 +175,7 @@ export default function CategoryManager({ token, categories, sha, topics, topics
                 <span aria-hidden style={{ width: 12, height: 12, borderRadius: '50%', background: category.color, display: 'inline-block' }} />
                 <strong style={{ color: 'var(--text-heading)' }}>{category.name}</strong>
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-                  {category.dir ? `专题目录 ${category.dir}` : category.subcategories ? `${category.subcategories.length} 个子专题` : '按文章分类'} · {topicTotal} 专题 · {articleTotal} 文章
+                  {category.dir ? `专题目录 ${category.dir}` : '按文章分类'} · {topicTotal} 专题 · {articleTotal} 文章
                 </span>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                   <button type="button" onClick={() => openForm(category)} style={smallButtonStyle}>✏️ 编辑</button>
@@ -243,11 +238,6 @@ export default function CategoryManager({ token, categories, sha, topics, topics
             「{editingCategory.name}」现在用专题目录 {editingCategory.dir} 装内容{editingTopics ? `（${editingTopics} 个专题）` : ''}，不能改成按文章归档：
             改成不带目录后，仓库里 src/content/topics/{editingCategory.dir}/ 下的专题会变成"未知栏目"。要拆的话先搬走那些专题。
           </p>}
-          {draft.mode === 'plain' && (
-            <label style={labelStyle}>子专题清单（可选，每行一个）
-              <textarea value={draft.subcategories} onChange={(event) => field('subcategories', event.target.value)} style={{ ...inputStyle, minHeight: 110, fontFamily: 'monospace' }} placeholder={'转录组\n代谢组'} />
-            </label>
-          )}
         </fieldset>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button type="submit" disabled={busy} style={{ ...inputStyle, width: 'auto', border: 0, background: '#ff0040', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>{busy ? '提交中…' : editing === null ? '新建栏目' : '保存修改'}</button>

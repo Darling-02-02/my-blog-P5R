@@ -31,41 +31,27 @@ const categoryEmoji = (category: string) => {
 
 const ArchivePage = ({ mode }: ArchivePageProps) => {
   const navigate = useNavigate();
-  const { name, subcategory } = useParams<{ name: string; subcategory?: string }>();
+  const { name } = useParams<{ name: string }>();
   const { articles, status, error } = useArticles();
   const { topics, getTopicsByCategory, getArticlePath, getTopicPath, getCategoryData, getTagData } = useContent();
   const decodedName = decodeURIComponent(name ?? '');
-  const decodedSubcategory = decodeURIComponent(subcategory ?? '');
   const categories = useMemo(() => getCategoryData(articles), [articles, getCategoryData]);
   const selectedCategory = categories.find((category) => category.name === decodedName);
-  const subcategories = mode === 'category' && !decodedSubcategory ? (selectedCategory?.subcategories ?? []) : [];
   const topicsInCategory =
-    mode === 'category' && selectedCategory?.usesTopics && !decodedSubcategory
-      ? getTopicsByCategory(decodedName)
-      : [];
-  const archiveTitle =
-    mode === 'tag'
-      ? `标签: ${decodedName || '未指定'}`
-      : `分类: ${decodedSubcategory ? `${decodedName} / ${decodedSubcategory}` : decodedName || '未指定'}`;
+    mode === 'category' && selectedCategory?.usesTopics ? getTopicsByCategory(decodedName) : [];
+  const archiveTitle = mode === 'tag' ? `标签: ${decodedName || '未指定'}` : `分类: ${decodedName || '未指定'}`;
 
   const filteredArticles = useMemo(() => {
     if (!decodedName) return [];
     if (mode === 'tag') {
       return articles.filter((article) => article.tags.includes(decodedName));
     }
-    if (decodedSubcategory) {
-      return articles.filter(
-        (article) => article.category === decodedName && article.subcategory === decodedSubcategory,
-      );
-    }
     return articles.filter((article) => article.category === decodedName);
-  }, [articles, decodedName, decodedSubcategory, mode]);
+  }, [articles, decodedName, mode]);
   const archiveSummary =
     topicsInCategory.length > 0
       ? `共 ${topicsInCategory.length} 个专题`
-      : subcategories.length > 0
-        ? `共 ${subcategories.length} 个专题`
-        : `共 ${filteredArticles.length} 篇文章`;
+      : `共 ${filteredArticles.length} 篇文章`;
 
   const groupedByYear = useMemo(() => {
     const grouped = new Map<string, typeof filteredArticles>();
@@ -162,45 +148,6 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                       </header>
                       <TopicReader topic={topic} />
                     </article>
-                  ))}
-                </div>
-              ) : subcategories.length > 0 ? (
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 180px), 1fr))',
-                    gap: '1rem',
-                  }}
-                >
-                  {subcategories.map((subcategory, index) => (
-                    <motion.article
-                      key={subcategory}
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.25, delay: index * 0.04 }}
-                      whileHover={{ y: -4 }}
-                      onClick={() =>
-                        navigate(`/category/${encodeURIComponent(decodedName)}/${encodeURIComponent(subcategory)}`)
-                      }
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.78)',
-                        border: '1px solid var(--border-card)',
-                        borderRadius: '14px',
-                        padding: '1.25rem',
-                        minHeight: '120px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <h3 style={{ color: 'var(--text-card-title)', fontSize: '1.05rem', margin: 0 }}>
-                        {subcategory}
-                      </h3>
-                      <span style={{ color: '#ff0040', fontSize: '0.82rem', marginTop: '1.2rem' }}>
-                        查看学习文档 →
-                      </span>
-                    </motion.article>
                   ))}
                 </div>
               ) : filteredArticles.length === 0 ? (
