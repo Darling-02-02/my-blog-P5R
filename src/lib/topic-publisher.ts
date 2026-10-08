@@ -121,6 +121,47 @@ export const topicPublisher = {
     });
   },
 
+  // 专题换栏目：内容不动，只换路径。用一次 Git 提交同时「在新路径加一份、把老路径删掉」，
+  // 分成两次提交的话中途失败会让同一个专题在两个栏目里各出现一份。
+  moveTopic: async (token: string, category: string, topicSlug: string, toCategory: string, directories: Record<string, string> = topicDirectories) => {
+    const from = pathFor(directories, category, topicSlug);
+    const to = pathFor(directories, toCategory, topicSlug);
+    if (from === to) throw new ArticleApiError(400, 'SAME_CATEGORY', '这个专题已经在这个栏目里了');
+    const tree = await request<{ tree?: Array<{ path: string; type: string; sha: string }> }>(token, `${repo}/git/trees/${branch}?recursive=1`);
+    if (!tree) throw new Error('无法读取仓库专题列表');
+    const blobs = (tree.tree ?? []).filter((entry) => entry.type === 'blob');
+    const files = blobs.filter((entry) => entry.path.startsWith(`${from}/`));
+    if (!files.length) throw new ArticleApiError(404, 'NOT_FOUND', '专题未找到，请刷新列表');
+    if (blobs.some((entry) => entry.path.startsWith(`${to}/`))) throw new ArticleApiError(409, 'SLUG_EXISTS', `「${toCategory}」下已经有同名专题，换个 Slug 或者先把那边清掉`);
+
+    const ref = await request<{ object: { sha: string } }>(token, `${repo}/git/ref/heads/${branch}`);
+    if (!ref) throw new Error('无法读取仓库分支');
+    const head = ref.object.sha;
+    const commit = await request<{ tree: { sha: string } }>(token, `${repo}/git/commits/${head}`);
+    if (!commit) throw new Error('无法读取仓库提交');
+    const next = await request<{ sha: string }>(token, `${repo}/git/trees`, {
+      method: 'POST',
+      body: JSON.stringify({
+        base_tree: commit.tree.sha,
+        tree: [
+          // 新路径直接引用仓库里已有的 blob（sha 来自上面那次 tree 读取），内容不用再上传一遍。
+          ...files.map((entry) => ({ path: `${to}/${entry.path.slice(from.length + 1)}`, mode: '100644', type: 'blob', sha: entry.sha })),
+          // sha: null = 这一次提交里把老路径删掉。
+          ...files.map((entry) => ({ path: entry.path, mode: '100644', type: 'blob', sha: null })),
+        ],
+      }),
+    });
+    if (!next) throw new Error('无法创建专题文件树');
+    const moved = await request<{ sha: string }>(token, `${repo}/git/commits`, {
+      method: 'POST', body: JSON.stringify({ message: `移动专题：${topicSlug} → ${toCategory}`, tree: next.sha, parents: [head] }),
+    });
+    if (!moved) throw new Error('无法创建专题提交');
+    const updated = await request(token, `${repo}/git/refs/heads/${branch}`, {
+      method: 'PATCH', body: JSON.stringify({ sha: moved.sha, force: false }),
+    });
+    if (!updated) throw new Error('无法更新仓库分支');
+  },
+
   removeSection: async (token: string, category: string, topicSlug: string, sectionSlug: string, directories: Record<string, string> = topicDirectories) => {
     const base = pathFor(directories, category, topicSlug);
     await removeFile(token, `${base}/sections/${sectionSlug}.md`, `删除章节：${sectionSlug}`);

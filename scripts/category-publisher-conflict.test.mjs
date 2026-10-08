@@ -86,7 +86,8 @@ const saveFailure = async (sha) => {
 
 test('load reads the live table and hands back the sha it was read at', async () => {
   const snapshot = await categoryPublisher.load('token');
-  assert.equal(calls[0].url, `https://api.github.com${CATEGORY_PATH}?ref=main`);
+  assert.equal(calls[0].url.replace(/[?&]t=\d+$/, ''), `https://api.github.com${CATEGORY_PATH}?ref=main`);
+assert.match(calls[0].url, /[?&]t=\d+$/, '读栏目表要带 t= 缓存穿透参数，否则 60 秒内会把删掉的栏目读回来');
   assert.equal(snapshot.sha, 'sha-old');
   assert.deepEqual(snapshot.categories, table);
 });

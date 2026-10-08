@@ -45,8 +45,16 @@ const errorCodeFor = (status: number) => {
   return 'GITHUB_ERROR';
 };
 
+// GitHub 的读接口（contents、git/trees…）响应带 `Cache-Control: public, max-age=60`，浏览器在这 60 秒里
+// 会直接吃缓存不再问服务器：后台刚删掉的栏目，紧接着的「重新读取」会把旧内容读回来，看着像没删掉
+// （前台用的是构建期数据，所以那边已经生效了）。给每个 GET 拼一个一次性参数让缓存永远打不中——
+// 只有 GET，写请求（PUT/POST/PATCH/DELETE）不动，读页面、读 sha 也就都是仓库当前的样子。
+const cacheBuster = (path: string) => `${path}${path.includes('?') ? '&' : '?'}t=${Date.now()}`;
+
 export const request = async <T>(token: string, path: string, init: RequestInit = {}): Promise<T | undefined> => {
-  const response = await fetch(`https://api.github.com${path}`, {
+  const target = (init.method ?? 'GET').toUpperCase() === 'GET' ? cacheBuster(path) : path;
+
+  const response = await fetch(`https://api.github.com${target}`, {
     ...init,
     headers: {
       Accept: 'application/vnd.github+json',

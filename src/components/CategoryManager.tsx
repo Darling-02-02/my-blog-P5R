@@ -72,7 +72,7 @@ export default function CategoryManager({ token, categories, sha, topics, topics
   const dirDropBlocker = (category: CategoryInput | null): string | null => {
     if (!category?.dir) return null;
     const total = topicCount(category.name);
-    if (total > 0) return `「${category.name}」下还有 ${total} 个专题在 src/content/topics/${category.dir}/ 里，请先在「🌱 专题章节」把它们删掉或搬到别的栏目。`;
+    if (total > 0) return `「${category.name}」下还有 ${total} 个专题在 src/content/topics/${category.dir}/ 里。请到「🌱 专题章节」选中栏目「${category.name}」，再用「搬到别的栏目」把它们挪到别的栏目，或「🗑 删除专题」删掉，然后回来改这个栏目。`;
     if (!topicsLoaded) return `专题列表没读成功，无法确认 src/content/topics/${category.dir}/ 下是否还有文件；请在仓库里确认该目录已删（或先修好「🌱 专题章节」的列表），再来改这个栏目。`;
     return null;
   };

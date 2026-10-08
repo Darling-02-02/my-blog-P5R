@@ -45,6 +45,8 @@ export default function TopicEditor({ token, topics, refresh, directories }: Pro
   const [message, setMessage] = useState('');
   const matching = topics.filter((item) => item.category === activeCategory);
   const active = matching.find((item) => item.slug === selected);
+  // 专题换栏目用：去掉当前这个，剩下的都是能搬过去的地方。
+  const others = categories.filter((name) => name !== activeCategory);
 
   const chooseTopic = (slug: string) => {
     const found = matching.find((item) => item.slug === slug);
@@ -129,6 +131,23 @@ export default function TopicEditor({ token, topics, refresh, directories }: Pro
     finally { setBusy(false); }
   };
 
+  const moveTopic = async (toCategory: string) => {
+    if (busy || !selected || !toCategory) return;
+    if (!window.confirm(`把专题「${topic.title || selected}」搬到「${toCategory}」？\n它和它的 ${active?.sections.length ?? 0} 个章节会一起换栏目。`)) return;
+    setBusy(true);
+    setMessage('');
+    try {
+      await topicPublisher.moveTopic(token, activeCategory, selected, toCategory, table);
+      // 专题现在在新栏目下了：切过去、并把表单里的栏目字段一起改掉，
+      // 否则接着点「保存专题」会拿旧栏目去算路径，写回老位置又长出一份。
+      setCategory(toCategory);
+      setTopic((current) => ({ ...current, category: toCategory }));
+      await refresh();
+      setMessage(`已搬到「${toCategory}」，站点重新构建后前台就跟着变了。`);
+    } catch (error) { setMessage(error instanceof Error ? error.message : '移动失败'); }
+    finally { setBusy(false); }
+  };
+
   const removeSection = async () => {
     if (busy || !selected || !sectionSlug) return;
     // validate:content 要求每个专题至少留一节（scripts/validate-content.mjs:175），
@@ -170,6 +189,13 @@ export default function TopicEditor({ token, topics, refresh, directories }: Pro
         </select>
       </label>
       <button type="button" onClick={() => chooseTopic('')} style={navButtonStyle}>＋ 新建专题</button>
+      {selected && others.length > 0 && (
+        <select aria-label="搬到别的栏目" value="" disabled={busy} style={{ ...inputStyle, width: 'auto', maxWidth: '210px' }}
+          onChange={(event) => { const next = event.target.value; if (next) void moveTopic(next); }}>
+          <option value="">搬到别的栏目…</option>
+          {others.map((name) => <option key={name} value={name}>搬到「{name}」</option>)}
+        </select>
+      )}
       {selected && <button type="button" disabled={busy} onClick={() => { void removeTopic(); }} style={dangerButtonStyle}>🗑 删除专题</button>}
     </div>
     {selected && <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
