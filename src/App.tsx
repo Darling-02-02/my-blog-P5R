@@ -6,11 +6,12 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { ArticleProvider } from './contexts/ArticleContext'
 import { ContentProvider } from './contexts/ContentContext'
 import ThemeToggle from './components/ThemeToggle'
+// /explore 是首屏路由，跟 Hero 一样静态导入：懒加载要多等一个串行往返，实测把它的 LCP 拖到 900ms 上下。
+import ExplorePage from './components/ExplorePage'
 
 const Article = lazy(() => import('./components/Article'));
 const AboutMe = lazy(() => import('./components/AboutMe'));
 const ArchivePage = lazy(() => import('./components/ArchivePage'));
-const ExplorePage = lazy(() => import('./components/ExplorePage'));
 const StudyRoom = lazy(() => import('./components/StudyRoom'));
 const AdminPage = lazy(() => import('./components/AdminPage'));
 

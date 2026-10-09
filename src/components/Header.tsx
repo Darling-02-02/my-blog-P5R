@@ -79,19 +79,23 @@ const Header = () => {
     };
   }, []);
 
-  // 栏目表整个空掉时 /explore 上没有 #blog 这一块，别让「幕后」点了没反应。
+  // 栏目表整个空掉时 /explore 上没有 #blog 这一块，那就别显示「幕后」，省得点了没反应。
   const hasColumns = useMemo(() => getCategoryData(articles).length > 0, [articles, getCategoryData]);
 
-  const navItems = [
+  type NavItem = { name: string; href: string; external: boolean; columnsOnly?: boolean };
+
+  const navItems: NavItem[] = [
     { name: '首页', href: '/', external: false },
     { name: '个人简介', href: '/explore#profile', external: false },
-    { name: '幕后', href: hasColumns ? '/explore#blog' : '/explore', external: false },
+    { name: '幕后', href: '/explore#blog', external: false, columnsOnly: true },
     { name: '留言板', href: '/explore#comments', external: false },
     { name: 'Study Room', href: '/study-room', external: false },
     { name: 'GitHub', href: 'https://github.com/Darling-02-02', external: true },
   ];
 
-  const handleNavClick = (item: (typeof navItems)[0]) => {
+  const visibleNavItems = navItems.filter((item) => !item.columnsOnly || hasColumns);
+
+  const handleNavClick = (item: NavItem) => {
     if (item.external) {
       window.open(item.href, '_blank');
       setIsMenuOpen(false);
@@ -243,7 +247,7 @@ const Header = () => {
         </motion.div>
 
         <div className="desktop-nav" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-          {navItems.map((item, index) => (
+          {visibleNavItems.map((item, index) => (
             <motion.button
               key={item.name}
               onClick={() => handleNavClick(item)}
@@ -423,7 +427,7 @@ const Header = () => {
               zIndex: 2,
             }}
           >
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <button
                 key={item.name}
                 onClick={() => handleNavClick(item)}

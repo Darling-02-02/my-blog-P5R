@@ -1,17 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-
-interface Coordinates {
-  latitude: number;
-  longitude: number;
-}
-
-interface IpLocationResponse {
-  country_name?: string;
-  region?: string;
-  city?: string;
-  latitude?: number;
-  longitude?: number;
-}
+import { parseIpLocation, type Coordinates } from '../lib/ip-location';
 
 interface ReverseGeocodeResponse {
   countryName?: string;
@@ -53,9 +41,6 @@ const weatherCodeText = (code: number) => {
   return map[code] ?? '未知';
 };
 
-const regionFromIp = (data: IpLocationResponse) =>
-  [data.country_name, data.region, data.city].filter(Boolean).join(' ');
-
 const regionFromReverseGeocode = (data: ReverseGeocodeResponse) =>
   [data.countryName, data.principalSubdivision, data.city || data.locality].filter(Boolean).join(' ');
 
@@ -69,7 +54,8 @@ interface Snapshot {
 
 // 拿到的结果缓存 10 分钟：这段时间里来回翻页就不再打第三方接口，
 // 也顺便记住"这是 IP 猜的还是用户自己点出来的"，刷新后按钮不会又冒出来。
-const cacheKey = 'blog_location_weather_v1';
+// v2：v1 里可能存着换接口之前那次失败留下的「地球 / 天气未知」，别让它再挡 10 分钟。
+const cacheKey = 'blog_location_weather_v2';
 const cacheTtl = 10 * 60 * 1000;
 const earth = '地球';
 
@@ -102,7 +88,8 @@ const writeSnapshot = (snapshot: Snapshot) => {
 const fetchWeather = async ({ latitude, longitude }: Coordinates): Promise<string | null> => {
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto`;
-    const res = await fetch(url);
+    // 第三方接口卡住就别让卡片一直挂着「获取中...」
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     const data = (await res.json()) as OpenMeteoResponse;
     const current = data.current;
     if (!current) return null;
@@ -120,6 +107,7 @@ const reverseGeocode = async ({ latitude, longitude }: Coordinates): Promise<str
   try {
     const resp = await fetch(
       `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=zh`,
+      { signal: AbortSignal.timeout(8000) },
     );
     const data = (await resp.json()) as ReverseGeocodeResponse;
     return regionFromReverseGeocode(data) || null;
@@ -158,15 +146,12 @@ export const useLocationWeather = () => {
 
     void (async () => {
       try {
-        const res = await fetch('https://ipapi.co/json/');
-        const data = (await res.json()) as IpLocationResponse;
+        // ipapi.co 现在对浏览器甩 Cloudflare 的机器人挑战页（不是 JSON），换成 ipwho.is。
+        const res = await fetch('https://ipwho.is/', { signal: AbortSignal.timeout(8000) });
+        const { label, coords: ipCoords } = parseIpLocation(await res.json());
         if (!active) return;
 
-        const ipCoords =
-          typeof data.latitude === 'number' && typeof data.longitude === 'number'
-            ? { latitude: data.latitude, longitude: data.longitude }
-            : null;
-        await applyLocation(ipCoords, regionFromIp(data) || earth, false);
+        await applyLocation(ipCoords, label || earth, false);
       } catch {
         if (!active) return;
         // IP 定位失败就老实说不知道，别编一个"晴"出来。
