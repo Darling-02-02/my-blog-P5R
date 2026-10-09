@@ -14,7 +14,7 @@ const Header = () => {
   const navigate = useNavigate();
   const { isDark } = useTheme();
   const { articles, status, error } = useArticles();
-  const { getArticlePath } = useContent();
+  const { getArticlePath, getCategoryData } = useContent();
   const secondaryBackground = useSecondaryPageBackground();
   const useLightHeaderTheme = !isDark && location.pathname !== '/';
   const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -79,10 +79,13 @@ const Header = () => {
     };
   }, []);
 
+  // 栏目表整个空掉时 /explore 上没有 #blog 这一块，别让「幕后」点了没反应。
+  const hasColumns = useMemo(() => getCategoryData(articles).length > 0, [articles, getCategoryData]);
+
   const navItems = [
     { name: '首页', href: '/', external: false },
     { name: '个人简介', href: '/explore#profile', external: false },
-    { name: '幕后', href: '/explore#blog', external: false },
+    { name: '幕后', href: hasColumns ? '/explore#blog' : '/explore', external: false },
     { name: '留言板', href: '/explore#comments', external: false },
     { name: 'Study Room', href: '/study-room', external: false },
     { name: 'GitHub', href: 'https://github.com/Darling-02-02', external: true },

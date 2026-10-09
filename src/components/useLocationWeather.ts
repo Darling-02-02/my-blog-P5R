@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface Coordinates {
   latitude: number;
@@ -59,93 +59,161 @@ const regionFromIp = (data: IpLocationResponse) =>
 const regionFromReverseGeocode = (data: ReverseGeocodeResponse) =>
   [data.countryName, data.principalSubdivision, data.city || data.locality].filter(Boolean).join(' ');
 
-export const useLocationWeather = () => {
-  const [location, setLocation] = useState('地球');
-  const [weather, setWeather] = useState('获取中...');
-  const [coords, setCoords] = useState<Coordinates | null>(null);
+interface Snapshot {
+  location: string;
+  coords: Coordinates | null;
+  weatherText: string;
+  precise: boolean;
+  savedAt: number;
+}
 
+// 拿到的结果缓存 10 分钟：这段时间里来回翻页就不再打第三方接口，
+// 也顺便记住"这是 IP 猜的还是用户自己点出来的"，刷新后按钮不会又冒出来。
+const cacheKey = 'blog_location_weather_v1';
+const cacheTtl = 10 * 60 * 1000;
+const earth = '地球';
+
+const readSnapshot = (): Snapshot | null => {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const raw = sessionStorage.getItem(cacheKey);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as Snapshot;
+    if (typeof parsed?.location !== 'string' || typeof parsed?.savedAt !== 'number') return null;
+    if (Date.now() - parsed.savedAt > cacheTtl) return null;
+
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const writeSnapshot = (snapshot: Snapshot) => {
+  try {
+    sessionStorage.setItem(cacheKey, JSON.stringify(snapshot));
+  } catch {
+    // 隐私模式/配额满：缓存写不进去不影响这一屏显示
+  }
+};
+
+// 读天气；失败返回 null，让调用方保留上一次的文字，而不是把卡片改成"获取失败"。
+const fetchWeather = async ({ latitude, longitude }: Coordinates): Promise<string | null> => {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto`;
+    const res = await fetch(url);
+    const data = (await res.json()) as OpenMeteoResponse;
+    const current = data.current;
+    if (!current) return null;
+
+    const weatherText = weatherCodeText(Number(current.weather_code));
+    const temp = Number(current.temperature_2m).toFixed(1);
+    const wind = Number(current.wind_speed_10m).toFixed(1);
+    return `${weatherText} ${temp}°C · 风速${wind}km/h`;
+  } catch {
+    return null;
+  }
+};
+
+const reverseGeocode = async ({ latitude, longitude }: Coordinates): Promise<string | null> => {
+  try {
+    const resp = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=zh`,
+    );
+    const data = (await resp.json()) as ReverseGeocodeResponse;
+    return regionFromReverseGeocode(data) || null;
+  } catch {
+    return null;
+  }
+};
+
+export const useLocationWeather = () => {
+  const [snapshot] = useState(readSnapshot);
+  const [location, setLocation] = useState(snapshot?.location ?? earth);
+  const [weather, setWeather] = useState(snapshot?.weatherText || '获取中...');
+  const [coords, setCoords] = useState<Coordinates | null>(snapshot?.coords ?? null);
+  const [isPrecise, setIsPrecise] = useState(snapshot?.precise ?? false);
+  const [isLocating, setIsLocating] = useState(false);
+
+  // IP 定位和"用当前位置"都走这一段：定坐标 → 取天气 → 记缓存。
+  const applyLocation = useCallback(
+    async (nextCoords: Coordinates | null, nextLocation: string, precise: boolean) => {
+      setCoords(nextCoords);
+      setLocation(nextLocation);
+      setIsPrecise(precise);
+
+      const weatherText = nextCoords ? (await fetchWeather(nextCoords)) ?? '天气获取失败' : '天气未知';
+      setWeather(weatherText);
+      writeSnapshot({ location: nextLocation, coords: nextCoords, weatherText, precise, savedAt: Date.now() });
+    },
+    [],
+  );
+
+  // 默认只按 IP 猜个大概位置：不再一进页面就弹定位授权框。
   useEffect(() => {
-    const updateFromIp = async () => {
+    if (snapshot) return;
+
+    let active = true;
+
+    void (async () => {
       try {
         const res = await fetch('https://ipapi.co/json/');
         const data = (await res.json()) as IpLocationResponse;
-        const regionName = regionFromIp(data);
-        if (regionName) {
-          setLocation(regionName);
-        }
-        if (typeof data.latitude === 'number' && typeof data.longitude === 'number') {
-          setCoords({ latitude: data.latitude, longitude: data.longitude });
-        }
+        if (!active) return;
+
+        const ipCoords =
+          typeof data.latitude === 'number' && typeof data.longitude === 'number'
+            ? { latitude: data.latitude, longitude: data.longitude }
+            : null;
+        await applyLocation(ipCoords, regionFromIp(data) || earth, false);
       } catch {
-        setLocation('地球');
-        setWeather((current) => (current === '获取中...' ? '晴' : current));
+        if (!active) return;
+        // IP 定位失败就老实说不知道，别编一个"晴"出来。
+        setWeather((current) => (current === '获取中...' ? '天气未知' : current));
       }
-    };
-
-    const reverseGeocode = async (latitude: number, longitude: number) => {
-      try {
-        const resp = await fetch(
-          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=zh`,
-        );
-        const data = (await resp.json()) as ReverseGeocodeResponse;
-        const regionName = regionFromReverseGeocode(data);
-        if (regionName) {
-          setLocation(regionName);
-        }
-      } catch {
-        setLocation(`经纬度 ${latitude.toFixed(3)}, ${longitude.toFixed(3)}`);
-      }
-    };
-
-    updateFromIp();
-
-    if (!navigator.geolocation) {
-      const timer = window.setInterval(updateFromIp, 10 * 60 * 1000);
-      return () => window.clearInterval(timer);
-    }
-
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const latitude = position.coords.latitude;
-        const longitude = position.coords.longitude;
-        setCoords({ latitude, longitude });
-        void reverseGeocode(latitude, longitude);
-      },
-      () => {
-        void updateFromIp();
-      },
-      { enableHighAccuracy: false, maximumAge: 5 * 60 * 1000, timeout: 10000 },
-    );
-    const fallbackTimer = window.setInterval(updateFromIp, 10 * 60 * 1000);
+    })();
 
     return () => {
-      navigator.geolocation.clearWatch(watchId);
-      window.clearInterval(fallbackTimer);
+      active = false;
     };
-  }, []);
+  }, [applyLocation, snapshot]);
 
+  // 想要准一点的位置就自己点按钮，这时才请求精确定位。
+  const requestPreciseLocation = useCallback(() => {
+    if (!navigator.geolocation) return;
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const precise = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+        void (async () => {
+          const place =
+            (await reverseGeocode(precise)) ??
+            `经纬度 ${precise.latitude.toFixed(3)}, ${precise.longitude.toFixed(3)}`;
+          await applyLocation(precise, place, true);
+          setIsLocating(false);
+        })();
+      },
+      () => setIsLocating(false),
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 },
+    );
+  }, [applyLocation]);
+
+  // 页面一直开着的时候每 10 分钟对一次天气。
   useEffect(() => {
-    const updateWeather = async () => {
-      if (!coords) return;
-      try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.latitude}&longitude=${coords.longitude}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto`;
-        const res = await fetch(url);
-        const data = (await res.json()) as OpenMeteoResponse;
-        const current = data.current;
-        if (!current) return;
-        const weatherText = weatherCodeText(Number(current.weather_code));
-        const temp = Number(current.temperature_2m).toFixed(1);
-        const wind = Number(current.wind_speed_10m).toFixed(1);
-        setWeather(`${weatherText} ${temp}°C · 风速${wind}km/h`);
-      } catch {
-        setWeather('天气获取失败');
-      }
-    };
+    if (!coords) return;
 
-    void updateWeather();
-    const timer = window.setInterval(updateWeather, 5 * 60 * 1000);
+    const timer = window.setInterval(() => {
+      void fetchWeather(coords).then((weatherText) => {
+        if (!weatherText) return;
+        setWeather(weatherText);
+        writeSnapshot({ location, coords, weatherText, precise: isPrecise, savedAt: Date.now() });
+      });
+    }, cacheTtl);
+
     return () => window.clearInterval(timer);
-  }, [coords]);
+  }, [coords, isPrecise, location]);
 
-  return { location, weather };
+  return { location, weather, isPrecise, isLocating, requestPreciseLocation };
 };

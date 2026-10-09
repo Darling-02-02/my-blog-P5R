@@ -12,29 +12,6 @@ const articleCardBackground = 'var(--bg-article-card)';
 const aboutBoxBackground = 'var(--bg-article-card)';
 const commentBoxBackground = 'var(--bg-article-card)';
 
-const usefulResources = [
-  {
-    name: 'GitHub',
-    url: 'https://github.com',
-    desc: '代码托管、开源项目和学习资料检索',
-  },
-  {
-    name: 'Papers with Code',
-    url: 'https://paperswithcode.com',
-    desc: '论文、代码和机器学习榜单',
-  },
-  {
-    name: 'Hugging Face',
-    url: 'https://huggingface.co',
-    desc: '模型、数据集和 AI 应用社区',
-  },
-  {
-    name: 'Bioinformatics Workbook',
-    url: 'https://bioinformaticsworkbook.org',
-    desc: '生物信息学流程、脚本和实战记录',
-  },
-];
-
 const GiscusComments = () => {
   const { isDark } = useTheme();
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -224,29 +201,10 @@ const MainContent = () => {
         
         <div className="home-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginBottom: '3rem' }}>
           <div className="home-profile-pane" style={profilePaneStyle}>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>📚 一些好用的资源分享</h3>
-            <div style={{ display: 'grid', gap: '0.85rem' }}>
-              {usefulResources.map((resource) => (
-                <a
-                  key={resource.name}
-                  href={resource.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'block',
-                    padding: '0.9rem 1rem',
-                    background: aboutBoxBackground,
-                    border: '1px solid var(--border-card)',
-                    borderRadius: '12px',
-                    color: 'inherit',
-                    textDecoration: 'none',
-                  }}
-                >
-                  <strong style={{ display: 'block', color: 'var(--text-heading)', marginBottom: '0.25rem' }}>{resource.name}</strong>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: 1.6 }}>{resource.desc}</span>
-                </a>
-              ))}
-            </div>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>🔮 神秘力量</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.98rem', lineHeight: 1.9, margin: 0 }}>
+              还在凝聚中，链接随后补上～
+            </p>
           </div>
           <div className="home-profile-pane" style={profilePaneStyle}>
             <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>💡 兴趣爱好</h3>

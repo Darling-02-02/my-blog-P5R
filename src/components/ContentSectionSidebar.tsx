@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
+import { fetchRepoStats, type RepoStats } from '../lib/repo-stats';
+import { recordVisit, type SiteVisits } from '../lib/site-visits';
 import { useLocationWeather } from './useLocationWeather';
 
 const base = import.meta.env.BASE_URL;
@@ -20,29 +22,6 @@ const announcementSlogans = [
   '人是生而自由的，却无往不在枷锁之中',
   '认识你自己',
 ];
-
-const formatLastUpdate = () => new Date().toLocaleString('zh-CN', { hour12: false });
-
-const clearLegacySiteStats = () => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  localStorage.removeItem('blog_visitors');
-  localStorage.removeItem('blog_views');
-  localStorage.removeItem('blog_has_visited');
-};
-
-const getInitialSiteStats = () => {
-  clearLegacySiteStats();
-
-  return {
-    articles: 0,
-    visitors: 0,
-    views: 0,
-    lastUpdate: formatLastUpdate(),
-  };
-};
 
 // 侧边栏卡片
 const SidebarCard = ({ 
@@ -129,7 +108,7 @@ const ProfileCard = () => {
 
 // 公告
 const AnnouncementCard = () => {
-  const { location, weather } = useLocationWeather();
+  const { location, weather, isPrecise, isLocating, requestPreciseLocation } = useLocationWeather();
   const [time, setTime] = useState('');
   const [slogan] = useState(
     () => announcementSlogans[Math.floor(Math.random() * announcementSlogans.length)],
@@ -148,7 +127,12 @@ const AnnouncementCard = () => {
     };
     updateTime();
     const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
+    // 后台标签页里的定时器会被浏览器压成 1 分钟一跳，切回来立刻对一次表。
+    document.addEventListener('visibilitychange', updateTime);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', updateTime);
+    };
   }, []);
 
   return (
@@ -156,6 +140,16 @@ const AnnouncementCard = () => {
       <div style={{ minHeight: '140px' }}>
         <p style={{ color: 'var(--text-card-body)', fontSize: '0.9rem', lineHeight: 1.8, margin: 0 }}>
           🌍 欢迎来自 <strong style={{ color: '#ff0040' }}>{location}</strong> 的小伙伴
+          {!isPrecise && (
+            <button
+              type="button"
+              onClick={requestPreciseLocation}
+              disabled={isLocating}
+              style={{ marginLeft: '0.4rem', border: '1px solid var(--border-card)', borderRadius: '8px', padding: '0.1rem 0.45rem', background: 'transparent', color: 'var(--text-muted)', fontSize: '0.78rem', cursor: isLocating ? 'progress' : 'pointer' }}
+            >
+              {isLocating ? '定位中…' : '📍 用当前位置'}
+            </button>
+          )}
         </p>
         <p style={{ color: 'var(--text-card-body)', fontSize: '0.9rem', lineHeight: 1.8, margin: '0.6rem 0' }}>
           ⏰ 现在时间：<strong>{time}</strong>
@@ -227,37 +221,60 @@ const TagsCard = () => {
   );
 };
 
-// 网站资讯
+// 站点资讯：站点是构建期固化的，所以文章数和更新时间直接跟仓库走（正的这部分会有约 1 分钟重建延迟），
+// 访客数/访问量来自 KV 计数器。两边取不到就退回构建期数字或显示「—」，不编。
+const formatUpdatedAt = (value: string) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+};
+
 const StatsCard = () => {
   const { articles } = useArticles();
-  const [stats, setStats] = useState(() => getInitialSiteStats());
+  const [repoStats, setRepoStats] = useState<RepoStats | null>(null);
+  const [visits, setVisits] = useState<SiteVisits | null>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setStats((prev) => ({
-        ...prev,
-        lastUpdate: formatLastUpdate(),
-      }));
-    }, 60000);
-
-    return () => clearInterval(timer);
+    let active = true;
+    void fetchRepoStats().then((result) => {
+      if (active) setRepoStats(result);
+    });
+    void recordVisit().then((result) => {
+      if (active) setVisits(result);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
-  
+
+  // 仓库里有、构建期那份里还没有的，就是后台已经提交但线上还没重建完的文章。
+  const rebuilding = repoStats ? Math.max(0, repoStats.articleCount - articles.length) : 0;
+  const latestArticleDate = articles.reduce((latest, article) => (article.date > latest ? article.date : latest), '');
+  const updatedAt = repoStats?.updatedAt ?? latestArticleDate;
+  const counterHint = visits ? undefined : '访客统计还没接上，先显示 —';
   const items = [
-    { label: '文章数目', value: articles.length, icon: '📝' },
-    { label: '访客数', value: stats.visitors, icon: '👥' },
-    { label: '访问量', value: stats.views, icon: '👁️' },
+    { key: 'articles', label: '文章数目', icon: '📝', value: String(repoStats?.articleCount ?? articles.length), note: rebuilding ? `（${rebuilding} 篇正在重建）` : '', title: undefined },
+    { key: 'visitors', label: '访客数', icon: '👥', value: visits ? String(visits.uv) : '—', note: '', title: counterHint },
+    { key: 'views', label: '访问量', icon: '👁️', value: visits ? String(visits.pv) : '—', note: '', title: counterHint },
   ];
+
   return (
     <SidebarCard title="网站资讯" icon="📊">
       {items.map(item => (
-        <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+        <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{item.icon} {item.label}</span>
-          <span style={{ color: '#ff0040', fontWeight: '700', fontSize: '1rem' }}>{item.value}</span>
+          <span title={item.title} style={{ color: '#ff0040', fontWeight: '700', fontSize: '1rem', textAlign: 'right' }}>
+            {item.value}
+            {item.note && <span style={{ color: 'var(--text-muted)', fontWeight: '400', fontSize: '0.78rem', marginLeft: '0.3rem' }}>{item.note}</span>}
+          </span>
         </div>
       ))}
       <div style={{ borderTop: '1px solid var(--border-section)', paddingTop: '0.6rem', marginTop: '0.4rem' }}>
-        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>更新: {stats.lastUpdate}</span>
+        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }} title={updatedAt ? new Date(updatedAt).toLocaleString('zh-CN', { hour12: false }) : undefined}>
+          更新: {formatUpdatedAt(updatedAt)}
+        </span>
       </div>
     </SidebarCard>
   );

@@ -118,6 +118,7 @@ const ContentSection = ({ standalone = false }: ContentSectionProps) => {
             padding: 0 !important;
           }
 
+          /* 简介那两张卡片窄屏还是竖着排，别挤成两条 */
           .home-profile-grid {
             grid-template-columns: 1fr !important;
             gap: 2.5rem !important;
