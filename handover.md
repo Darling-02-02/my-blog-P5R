@@ -4,7 +4,7 @@ Last updated: 2026-09-28
 
 > 后续变更：专栏/专题子系统（`src/content/topics/`、`/topic/...` 路由、`src/data/topics.ts`、`src/lib/topic-*.ts`、后台「🌱 专题章节」）已整体删除；下文提到它的地方都是当时的记录。
 >
-> 2026-10-09：四个没被挂载的组件（`SidebarLayout.tsx`、`AboutSection.tsx`、`BentoSection.tsx`、`BlogSection.tsx`）和没人引用的静态资源（`public/vite.svg`、`p5_icon.ico`、`图片_1.jpg`、`主题.png`、`主题背景.jpg`）已删除；`/explore` 的默认定位从 ipapi.co（现在会被 Cloudflare 挡）换成 ipwho.is；新增 `public/_redirects`，按路由把深链接重写到 `/`（**不要**写成 `/*` 的 catch-all，那会把 `/assets/*` 一起吞掉，首页会白屏），深链接不再先吃一次 `404.html` 的跳转。
+> 2026-10-09：四个没被挂载的组件（`SidebarLayout.tsx`、`AboutSection.tsx`、`BentoSection.tsx`、`BlogSection.tsx`）和没人引用的静态资源（`public/vite.svg`、`p5_icon.ico`、`图片_1.jpg`、`主题.png`、`主题背景.jpg`）已删除；`/explore` 的默认定位从 ipapi.co（现在会被 Cloudflare 挡）换成 ipwho.is；新增 `public/_redirects`，按路由把深链接重写到 `/`（**不要**写成 `/*` 的 catch-all，那会把 `/assets/*` 一起吞掉，首页会白屏），深链接不再先吃一次 `404.html` 的跳转。`/about`（「关于我」）是仓库早期的占位页（`src/components/AboutMe.tsx`、`AboutMeSections.tsx`、`aboutMeContent.ts`、`useAboutMeTheme.ts`，统计数字写死 50+/20+/6+），导航里从来没有入口，已连同路由、`Header` 里的特判、没人用的 `--bg-about-box` 变量和 `_redirects` 里的那一行一起删除。
 
 ## Current Objective
 

@@ -10,7 +10,6 @@ import ThemeToggle from './components/ThemeToggle'
 import ExplorePage from './components/ExplorePage'
 
 const Article = lazy(() => import('./components/Article'));
-const AboutMe = lazy(() => import('./components/AboutMe'));
 const ArchivePage = lazy(() => import('./components/ArchivePage'));
 const StudyRoom = lazy(() => import('./components/StudyRoom'));
 const AdminPage = lazy(() => import('./components/AdminPage'));
@@ -64,7 +63,6 @@ function App() {
                       <Route path="/" element={<Home />} />
                       <Route path="/explore" element={<ExplorePage />} />
                       <Route path="/article/*" element={<Article />} />
-                      <Route path="/about" element={<AboutMe />} />
                       <Route path="/study-room" element={<StudyRoom />} />
                       <Route path="/admin" element={<AdminPage />} />
                       <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />

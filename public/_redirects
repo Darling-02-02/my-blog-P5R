@@ -8,7 +8,6 @@
 
 /explore     /  200
 /article/*   /  200
-/about       /  200
 /study-room  /  200
 /admin       /  200
 /tag/*       /  200

@@ -79,7 +79,7 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
           backgroundSize: 'cover',
           backgroundPosition,
           backgroundColor: useHomeBackground ? (isDark ? '#0a0a0a' : '#f5f5f7') : 'transparent',
-          // CY.webp 平均亮度 0.78，夜间要压得比"卡片"更狠，不然后面没铺深色遮罩的页面（如 /about）还是灰的
+          // CY.webp 平均亮度 0.78，夜间要压得比"卡片"更狠，不然后面没铺深色遮罩的页面还是灰的
           filter: isDark ? 'brightness(0.35)' : 'none',
           transition: 'filter 0.4s ease',
           zIndex: 0,

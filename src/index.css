@@ -33,7 +33,6 @@
   --bg-category-item: rgba(255, 255, 255, 0.04);
   --bg-article-card: rgba(30, 30, 30, 0.95);
   --bg-article-content: rgba(30, 30, 30, 0.92);
-  --bg-about-box: rgba(255, 0, 64, 0.08);
   --bg-comment-box: rgba(30, 30, 30, 0.9);
   --bg-social: rgba(255, 255, 255, 0.08);
   --bg-social-hover: rgba(255, 0, 64, 0.2);
@@ -101,7 +100,6 @@
   --bg-category-item: rgba(0, 0, 0, 0.02);
   --bg-article-card: rgba(255, 255, 255, 0.95);
   --bg-article-content: rgba(255, 255, 255, 0.92);
-  --bg-about-box: rgba(255, 0, 64, 0.05);
   --bg-comment-box: rgba(255, 255, 255, 0.9);
   --bg-social: rgba(0, 0, 0, 0.05);
   --bg-social-hover: rgba(255, 0, 64, 0.15);
@@ -183,7 +181,6 @@ body {
   --bg-category-item: rgba(255, 255, 255, 0.22);
   --bg-article-card: rgba(255, 255, 255, 0.9);
   --bg-article-content: rgba(255, 255, 255, 0.9);
-  --bg-about-box: rgba(255, 255, 255, 0.28);
   --bg-comment-box: rgba(255, 255, 255, 0.42);
   --bg-social: rgba(255, 255, 255, 0.3);
   --bg-social-hover: rgba(255, 0, 64, 0.14);
@@ -235,7 +232,6 @@ body {
   --bg-category-item: rgba(255, 255, 255, 0.05);
   --bg-article-card: rgba(24, 24, 24, 0.92);
   --bg-article-content: rgba(22, 22, 22, 0.92);
-  --bg-about-box: rgba(255, 0, 64, 0.1);
   --bg-comment-box: rgba(24, 24, 24, 0.82);
   --bg-social: rgba(255, 255, 255, 0.08);
   --bg-social-hover: rgba(255, 0, 64, 0.2);

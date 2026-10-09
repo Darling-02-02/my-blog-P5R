@@ -41,7 +41,6 @@ const Header = () => {
 
   const isArticlePage =
     location.pathname.startsWith('/article') ||
-    location.pathname === '/about' ||
     location.pathname === '/study-room' ||
     location.pathname.startsWith('/tag/') ||
     location.pathname.startsWith('/category/');
