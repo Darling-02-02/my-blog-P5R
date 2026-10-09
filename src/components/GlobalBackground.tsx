@@ -17,7 +17,7 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
   const useSecondaryTheme = !isHomeRoute;
   const useHomeBackground = isHomeRoute && isInHomeHeroSection;
   const activeBackground = useHomeBackground ? '' : secondaryBackground;
-  // 次级页面的插画（CY.png 864x1216）被 cover 放大到铺满宽屏，只能看到中间一块；
+  // 次级页面的插画（CY.webp 864x1216）被 cover 放大到铺满宽屏，只能看到中间一块；
   // 定位从 top 略往下 16%，让脸落在画面中间而不是被顶边切掉。
   const backgroundPosition = useHomeBackground ? 'center center' : 'center 16%';
   const overlayColor = useHomeBackground
@@ -79,7 +79,7 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
           backgroundSize: 'cover',
           backgroundPosition,
           backgroundColor: useHomeBackground ? (isDark ? '#0a0a0a' : '#f5f5f7') : 'transparent',
-          // CY.png 平均亮度 0.78，夜间要压得比"卡片"更狠，不然后面没铺深色遮罩的页面（如 /about）还是灰的
+          // CY.webp 平均亮度 0.78，夜间要压得比"卡片"更狠，不然后面没铺深色遮罩的页面（如 /about）还是灰的
           filter: isDark ? 'brightness(0.35)' : 'none',
           transition: 'filter 0.4s ease',
           zIndex: 0,

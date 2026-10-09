@@ -30,15 +30,15 @@ check('22:59 晚上生气，23:00 切深夜小睡', () => {
   assert.equal(workMoodAt(23).key, 'nap');
 });
 
-check('全天 24 小时都有状态，且四个 GIF 全部用到', () => {
+check('全天 24 小时都有状态，且四个动图全部用到', () => {
   const hourly = Array.from({ length: 24 }, (_, hour) => workMoodAt(hour));
   assert.equal(hourly.length, 24);
   assert.deepEqual([...new Set(hourly.map((mood) => mood.key))].sort(), ['angry', 'nap', 'normal', 'tired']);
   assert.equal(new Set(hourly.map((mood) => mood.file)).size, 4);
 });
 
-check('四个 GIF 都已发布到 public/muhou/', () => {
-  for (const file of ['work-normal.gif', 'work-tired.gif', 'work-angry.gif', 'work-nap.gif']) {
+check('四个动图都已发布到 public/muhou/', () => {
+  for (const file of ['work-normal.webp', 'work-tired.webp', 'work-angry.webp', 'work-nap.webp']) {
     assert.ok(existsSync(new URL(`../public/muhou/${file}`, import.meta.url)), `缺少 public/muhou/${file}`);
   }
 });

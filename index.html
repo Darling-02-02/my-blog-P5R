@@ -7,7 +7,20 @@
     <title>灵敏度加满的blog</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- 字体不阻塞首屏：拿到之前先按系统字体渲染，加载完再切回（media=print 不会被首屏阻塞）。
+         字重只留实际用到的 400/500/700/900，300 一次都没用到。 -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    >
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700;900&display=swap"
+        rel="stylesheet"
+      >
+    </noscript>
     <script type="text/javascript">
       // 接收 404.html 改写过来的 /?/<原路径>，还原成真实路径再交给前端路由。
       // 这里不再拼 pathPrefix：还原出来的就是站内绝对路径，与 Vite base 保持一致。

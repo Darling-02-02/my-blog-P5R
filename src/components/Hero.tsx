@@ -33,7 +33,7 @@ export default function Hero() {
   const [isQuoteVisible, setIsQuoteVisible] = useState(true);
 
   useEffect(() => {
-    heroSlideshowImages.slice(0, 3).forEach(preloadSlide);
+    heroSlideshowImages.slice(0, 2).forEach(preloadSlide);
   }, []);
 
   useEffect(() => {

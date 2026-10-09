@@ -114,5 +114,4 @@ Open `/admin` and paste the server's `ADMIN_TOKEN`. Because the admin page now w
 ## Unrelated Untracked Files
 
 - `.codegraph/`
-- `public/CY - 副本.png`
 - `public/p5_icon.ico`

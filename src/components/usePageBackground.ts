@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 
 const base = import.meta.env.BASE_URL;
 
-export const homePageBackground = `${base}CY.png`;
-const secondaryPageBackground = `${base}CY.png`;
+export const homePageBackground = `${base}CY.webp`;
+const secondaryPageBackground = `${base}CY.webp`;
 
 export const useSecondaryPageBackground = () => secondaryPageBackground;
 
