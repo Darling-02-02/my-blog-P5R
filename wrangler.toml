@@ -1,0 +1,10 @@
+# Cloudflare Pages 项目配置。放仓库根目录，`wrangler pages deploy` 会自己读它：
+#   - pages_build_output_dir：部署产物目录，所以 .github/workflows/deploy.yml 里不再传位置参数
+#   - KV 绑定：侧栏「网站资讯」的访客数/访问量计数器，实现在 functions/api/stats.ts
+name = "my-blog-p5r"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-08"
+
+[[kv_namespaces]]
+binding = "BLOG_STATS"
+id = "b9586df1f0fb471cb22faa3882ba35a7"

@@ -9,7 +9,7 @@
 ```
 /admin 写文章 → GitHub Contents API 提交 Markdown 到 src/content/articles/<分类>/<slug>.md
               → push 到 main
-              → GitHub Actions: npm ci → npm run build → wrangler pages deploy dist
+              → GitHub Actions: npm ci → npm run build → wrangler pages deploy
               → 约 30 秒后 https://my-blog-p5r.pages.dev 与 https://darling-02.cn 同时更新
 ```
 
@@ -23,7 +23,7 @@
 
 `Workers & Pages` → `Create` → `Pages` → `Upload assets` → 名字一字不差填 `my-blog-p5r` → 创建（先传空内容也行，第一次 CI 部署会覆盖）。
 
-本地也可以走：`npx wrangler login` 之后跑一次 `npx wrangler pages deploy dist --project-name=my-blog-p5r` —— 交互模式会顺手把项目建掉并直接首发。本地不用装 wrangler，`npx` 现拉。
+本地也可以走：`npx wrangler login` 之后跑一次 `npx wrangler pages deploy --project-name=my-blog-p5r` —— 交互模式会顺手把项目建掉并直接首发。本地不用装 wrangler，`npx` 现拉。（产物目录不写在命令行里：仓库根目录的 `wrangler.toml` 用 `pages_build_output_dir = "dist"` 声明，Functions 目录按约定还是 `functions/`。）
 
 ### 1. 建 API Token
 
@@ -67,6 +67,28 @@
 
 2026-10-04 核对：这两条 A 记录还在，两个域名都返回 Cloudflare **HTTP 530**（隧道已停），也就是域名现在完全打不开 —— 删记录 + 绑 Pages 之后才会恢复。
 
+### 5. 建 KV 命名空间（侧栏访客计数器）
+
+侧栏「网站资讯」的访客数/访问量由 Pages Function `functions/api/stats.ts`（`POST /api/stats?firstVisit=1|0`）计数，数据存在一个 KV 命名空间里。绑定写在仓库根目录 `wrangler.toml`：
+
+```toml
+[[kv_namespaces]]
+binding = "BLOG_STATS"
+id = "b9586df1f0fb471cb22faa3882ba35a7"
+```
+
+新建命名空间：`Workers & Pages` → 左侧 `KV`（新版在 `Storage & Databases` 下）→ `Create instance` → 名字 `blog-stats` → 列表里那串 32 位十六进制就是 `id`，粘回上面。命令行等价：`npx wrangler login` 之后 `npx wrangler kv namespace create blog-stats`，它会直接打印 `id = "..."`。
+
+**别在项目页 `Settings` → `Bindings` 里再手动加一遍同名绑定**：绑定只留 `wrangler.toml` 这一个出处，两处都声明会互相覆盖。
+
+命名空间没建/没绑定时是**优雅降级**而不是报错页：Function 回 503（带 `cache-control: no-store`），前端 `src/lib/site-visits.ts` 拿到非 ok 就显示「—」，不编数字。本地验证：
+
+```powershell
+npx wrangler pages dev dist                                    # 本地 KV，不会写到线上
+curl.exe -X POST 'http://127.0.0.1:8788/api/stats?firstVisit=1'  # → {"pv":1,"uv":1}
+curl.exe -X POST 'http://127.0.0.1:8788/api/stats?firstVisit=0'  # → {"pv":2,"uv":1}，uv 不动
+```
+
 ## 日常
 
 push 到 `main` 就自动部署，不用管。手动重跑在 Actions 页面点 `Run workflow`。
@@ -74,6 +96,6 @@ push 到 `main` 就自动部署，不用管。手动重跑在 Actions 页面点 
 ## 需要注意的
 
 - **SPA 深链接能用**：`public/404.html` 会把 `/article/xxx` 之类改写成 `/?/article/xxx`，`index.html` 里的脚本再还原成真实路径交给前端路由。前提是整站部署在域名根目录（`vite.config.ts` 里 `base: '/'`）。
-- **体积限制**：单文件 25 MB、总数 20000 个。当前 `dist` 是 106 个文件 / 9.21 MB / 最大 1.16 MB，离限制很远。
+- **体积限制**：单文件 25 MB、总数 20000 个。当前 `dist` 是 167 个文件 / 10.72 MB / 最大 1.41 MB（`elk-*.js`，只在文章页懒加载那几个图形库时才下），离限制很远。
 - **本地不需要装 wrangler**：workflow 用 `npx --yes wrangler@4 pages deploy ...`，每次现拉。
 - **`--branch=main`**：Pages 项目的 production 分支默认是 `main`，带上它保证 push 到 main 的部署算生产发布而不是预览。
