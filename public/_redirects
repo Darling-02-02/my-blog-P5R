@@ -1,0 +1,15 @@
+# CF Pages 对「没有对应文件的路径」返回 public/404.html（404 状态）。那个文件还是 GitHub
+# Pages 时代的跳转壳（→ /?/explore），每个深链接都白多一跳。这里按路由显式重写回根路径，
+# 交给前端路由自己认。
+#
+# 千万别改成 /* 这种 catch-all：它会把 /assets/*.js、*.css 一起重写成 index.html，
+# 脚本因 MIME 不匹配被拦，首页直接白屏（2026-10-09 踩过一次）。改完必须 curl 一个
+# 真实 /assets/* 地址确认仍是 application/javascript 或 text/css，再上线。
+
+/explore     /  200
+/article/*   /  200
+/about       /  200
+/study-room  /  200
+/admin       /  200
+/tag/*       /  200
+/category/*  /  200
