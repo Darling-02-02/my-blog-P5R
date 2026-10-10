@@ -54,15 +54,26 @@ const cacheBuster = (path: string) => `${path}${path.includes('?') ? '&' : '?'}t
 export const request = async <T>(token: string, path: string, init: RequestInit = {}): Promise<T | undefined> => {
   const target = (init.method ?? 'GET').toUpperCase() === 'GET' ? cacheBuster(path) : path;
 
-  const response = await fetch(`https://api.github.com${target}`, {
-    ...init,
-    headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${token}`,
-      'X-GitHub-Api-Version': '2022-11-28',
-      ...(init.body ? { 'Content-Type': 'application/json' } : {}),
-    },
-  });
+  // 连不上的时候浏览器只会抛一句 "Failed to fetch"（DNS 被污染、被防火墙挂住、需要代理都会这样），
+  // 后台把它原样显示出来等于没说：用户看不出是哪台机器、哪一步的问题。这里换成能照着做的提示。
+  let response: Response;
+  try {
+    response = await fetch(`https://api.github.com${target}`, {
+      ...init,
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${token}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+      },
+    });
+  } catch {
+    throw new ArticleApiError(
+      0,
+      'GITHUB_UNREACHABLE',
+      '连不上 api.github.com：这台机器的网络或 DNS 把它挡住了（也可能需要代理/VPN）。换条网络或用代理后再试。',
+    );
+  }
 
   if (response.status === 404) return undefined;
 

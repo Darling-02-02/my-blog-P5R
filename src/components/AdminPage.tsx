@@ -29,7 +29,13 @@ const toMessage = (error: unknown) => {
         : '找不到仓库或分支，请确认 Token 勾选了本仓库';
     }
     if (error.status === 409) return '这个 Slug 已经存在，请换一个';
-    if (error.status === 0) return '连不上后端接口（检查 VITE_API_BASE_URL 与 HTTPS/CORS）';
+    if (error.status === 0) {
+      // 两种通道的"连不上"完全是两回事：后端看端口/CORS，GitHub 通道看代理/DNS，
+      // 所以各自用自己的文案（GitHub 那句在 lib/github.ts 里，带着具体域名）。
+      return activeArticleSource.kind === 'api'
+        ? '连不上后端接口（检查 VITE_API_BASE_URL 与 HTTPS/CORS）'
+        : error.message;
+    }
     return error.message;
   }
   if (error instanceof Error) return error.message;

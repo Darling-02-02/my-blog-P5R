@@ -128,4 +128,29 @@ test('isCategoryConflict ignores anything that is not a publisher conflict', () 
   assert.equal(isCategoryConflict(undefined), false);
 });
 
+test('a dead network is reported as unreachable instead of the raw English "Failed to fetch"', async () => {
+  // 真实案例：这台机器的 DNS 把 api.github.com 解析到一个黑洞地址，浏览器只会抛 TypeError，
+  // 后台就把英文原话贴在「幕后栏目」上，用户完全看不出是哪一步坏了。
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    throw new TypeError('Failed to fetch');
+  };
+
+  try {
+    let error;
+    try {
+      await categoryPublisher.load('token');
+    } catch (caught) {
+      error = caught;
+    }
+    assert.ok(error, 'load 本该失败，却成功了');
+    assert.equal(error.status, 0);
+    assert.equal(error.code, 'GITHUB_UNREACHABLE');
+    assert.match(error.message, /api\.github\.com/);
+    assert.doesNotMatch(error.message, /Failed to fetch/);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
 process.on('exit', () => rmSync(workDir, { recursive: true, force: true }));
