@@ -85,7 +85,7 @@ const Header = () => {
 
   const navItems: NavItem[] = [
     { name: '首页', href: '/', external: false },
-    { name: '个人简介', href: '/explore#profile', external: false },
+    { name: '个人简介', href: '/myself', external: false },
     { name: '幕后', href: '/explore#blog', external: false, columnsOnly: true },
     { name: '留言板', href: '/explore#comments', external: false },
     { name: 'Study Room', href: '/study-room', external: false },

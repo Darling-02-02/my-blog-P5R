@@ -1,4 +1,5 @@
 // 首页内容区骨架：只负责背景样式、响应式样式与「侧边栏 + 主内容」两栏编排。
+import type { ReactNode } from 'react';
 import { useTheme } from '../contexts/useTheme';
 import MainContent from './ContentSectionMain';
 import Sidebar from './ContentSectionSidebar';
@@ -6,10 +7,13 @@ import { useScrollBackgroundPosition, useSecondaryPageBackground } from './usePa
 
 interface ContentSectionProps {
   standalone?: boolean;
+  // 别的独立页（/myself）把自己的区块塞进来，复用同一套外壳与响应式样式；
+  // 不传就是首页内容区。
+  children?: ReactNode;
 }
 
 // 主组件
-const ContentSection = ({ standalone = false }: ContentSectionProps) => {
+const ContentSection = ({ standalone = false, children }: ContentSectionProps) => {
   const { isDark } = useTheme();
   const secondaryBackground = useSecondaryPageBackground();
   const backgroundPosition = useScrollBackgroundPosition();
@@ -34,7 +38,7 @@ const ContentSection = ({ standalone = false }: ContentSectionProps) => {
       <div className="home-content-shell" style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
         <Sidebar />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <MainContent />
+          {children ?? <MainContent />}
         </div>
       </div>
       <style>{`

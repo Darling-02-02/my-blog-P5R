@@ -169,12 +169,6 @@ const MainContent = () => {
     borderRadius: 0,
     border: 'none',
   };
-  const profilePaneStyle: React.CSSProperties = {
-    background: 'var(--bg-card)',
-    border: '1px solid var(--border-card)',
-    borderRadius: '14px',
-    padding: '1.25rem',
-  };
   const aboutPaneStyle: React.CSSProperties = {
     background: 'var(--bg-card)',
     border: '1px solid var(--border-card)',
@@ -190,37 +184,6 @@ const MainContent = () => {
       boxShadow: 'none',
       padding: 0,
     }}>
-      {/* 个人简介 */}
-      <section id="profile" className="home-content-block" style={sectionCardStyle}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
-          <span style={{ color: '#ff0040' }}>个人</span>简介
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
-          离神很近，也就是离人很远。——一个臭看番的。
-        </p>
-        
-        <div className="home-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginBottom: '3rem' }}>
-          <div className="home-profile-pane" style={profilePaneStyle}>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>🔮 神秘力量</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.98rem', lineHeight: 1.9, margin: 0 }}>
-              还在凝聚中，链接随后补上～
-            </p>
-          </div>
-          <div className="home-profile-pane" style={profilePaneStyle}>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>💡 兴趣爱好</h3>
-            <ul style={{ color: 'var(--text-body)', fontSize: '1.1rem', lineHeight: 2.2, paddingLeft: '1.2rem', listStyle: 'none' }}>
-              <li style={{ color: '#ff0040', fontWeight: '500' }}>👤 CN：灵敏度加满，欢迎扩列</li>
-              <li style={{ marginTop: '0.5rem' }}>📸 摄影：偶尔拍拍，设备索尼zve10，镜头55mm</li>
-              <li>🏃 中长跑：纵有疾风起！！</li>
-              <li>💪 健身：卧推25kg，不中嘞</li>
-              <li>🎨 画画：反正没在签绘墙上画过</li>
-              <li>🎮 游戏：第九艺术！！3A永远滴神</li>
-              <li>✨ 梦想能手握switch2、5090和PS5</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
       {/* 幕后 - 大类栏目：栏目表整个空了（后台全删）时整块不渲染，别留一个空标题加一大片空白 */}
       {categoryData.length > 0 && <section id="blog" className="home-content-block" style={sectionCardStyle}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>

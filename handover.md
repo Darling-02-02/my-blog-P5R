@@ -1,18 +1,28 @@
 # Handover
 
-Last updated: 2026-09-28
+Last updated: 2026-10-10
 
 > 后续变更：专栏/专题子系统（`src/content/topics/`、`/topic/...` 路由、`src/data/topics.ts`、`src/lib/topic-*.ts`、后台「🌱 专题章节」）已整体删除；下文提到它的地方都是当时的记录。
 >
 > 2026-10-09：四个没被挂载的组件（`SidebarLayout.tsx`、`AboutSection.tsx`、`BentoSection.tsx`、`BlogSection.tsx`）和没人引用的静态资源（`public/vite.svg`、`p5_icon.ico`、`图片_1.jpg`、`主题.png`、`主题背景.jpg`）已删除；`/explore` 的默认定位从 ipapi.co（现在会被 Cloudflare 挡）换成 ipwho.is；新增 `public/_redirects`，按路由把深链接重写到 `/`（**不要**写成 `/*` 的 catch-all，那会把 `/assets/*` 一起吞掉，首页会白屏），深链接不再先吃一次 `404.html` 的跳转。`/about`（「关于我」）是仓库早期的占位页（`src/components/AboutMe.tsx`、`AboutMeSections.tsx`、`aboutMeContent.ts`、`useAboutMeTheme.ts`，统计数字写死 50+/20+/6+），导航里从来没有入口，已连同路由、`Header` 里的特判、没人用的 `--bg-about-box` 变量和 `_redirects` 里的那一行一起删除。
 
+> 2026-10-10：修掉一次线上白屏 —— 后台存下来的文章在没有标签时会写出空的一行 `tags:`（`src/lib/frontmatter.ts` 的 `serializeArticle`），而解析器 `parseArticleSource` 和 `scripts/validate-content.mjs` 都拒绝这种文件（「Article tags must be a list」）；`src/data/articles.ts` 用 `import.meta.glob(..., {eager:true})` 在模块初始化时解析全部 md，一抛错整个 SPA 挂不上，表现就是「文章保存上了、页面却打不开」。现在两端都改成「允许空/缺省，仍然拦非列表」，并新增 `scripts/frontmatter.test.mjs`（3 例）钉住这条序列化/解析往返。已推送 `581d061`（3 files，+65/-5），Actions success，线上首页与文章页复验 console 0 条。**注意**：`.github/workflows/deploy.yml` 只跑 `npm run build`，不跑 `validate:content`，所以坏 md 照样会上线；要真拦得住，得把校验加进 workflow。
+>
+> 同一天还有一版**尚未提交**（先给截图、等用户拍板，这是既定流程）：新增 `/myself`「个人简介」独立页（`src/components/MyselfPage.tsx`，参考 `biojuse.com/myself/`），把「个人简介」和资料分享从 `/explore` 搬过去，`/explore` 第一屏直接是「幕后」；`src/components/ContentSection.tsx` 多了可选 `children` 让独立页复用同一套外壳与窄屏规则；`src/components/Header.tsx` 的「个人简介」由 `/explore#profile` 改成 `/myself`；`public/_redirects` 加 `/myself  /  200`（**依旧不用 `/*` catch-all**）。资料分享那四条是从 `git show fd8c7c1` 里捡回来的真实链接（GitHub / Papers with Code / Hugging Face / Bioinformatics Workbook），原来的「🔮 神秘力量 · 还在凝聚中，链接随后补上～」占位已删。
+>
+> 同一时间压在本地未提交的还有三批：① 暗色主题抬底（`src/index.css`、`src/components/GlobalBackground.tsx`、`src/components/Hero.tsx`，等用户确认亮度够不够）；② 后台「Failed to fetch」的网络层提示（`src/lib/github.ts`、`src/components/AdminPage.tsx`、`scripts/category-publisher-conflict.test.mjs` —— 那台机器的 DNS 对 `api.github.com` 有间歇污染，Chrome 会命中 `198.41.0.4` 黑洞，用户三次未回答要不要提交）；③ `src/components/Footer.tsx` 的 `vpsLaunchedAt` **故意留 `null`**：按用户要求等正式部署到 VPS 那天再填 ISO 时间，现在显示「0天 0时 0分 0秒」，不再拿仓库第一次提交的日期冒充运行时长。
+>
+> 本地检查（2026-10-10，Node v22.22.3）全绿：`npx tsc -b` 0、`npm run lint` 0、`node --test scripts/*.test.mjs` 30/30、`npm run build` exit 0。`wrangler pages dev dist --port 8788` 预览验收：`/`、`/explore`、`/myself`、`/study-room`、`/admin` 全 200，`/myself` 的响应体与 `dist/index.html` SHA256 完全一致；`/assets/index-*.js` → `application/javascript`、`/assets/index-*.css` → `text/css`；未知路径 404；`POST /api/stats` 200。（验收完预览服务已关，日常只留 `npm run dev` 的 5173；注意它只绑 `::1`，要用 `http://localhost:5173`。）
+
 ## Current Objective
 
 Serve the dynamic article API publicly. The school server runs Node.js 16 only, and its campus network currently blocks all inbound connections from the internet. A concrete alternative host has now been identified (see "Host Candidate" below).
 
+另有前端上 VPS 的计划：页脚「已经运行了」的基准时间（`src/components/Footer.tsx` 的 `vpsLaunchedAt`）按用户要求等正式部署那天再填，现在故意留 `null`，见上方 2026-10-10 记录。
+
 ## Project Status
 
-- Frontend: React 19 + TypeScript + Vite + React Router (GitHub Pages, still in static mode).
+- Frontend: React 19 + TypeScript + Vite + React Router. 线上是 Cloudflare Pages（`my-blog-p5r.pages.dev`）：push `main` 触发 `.github/workflows/deploy.yml` → `wrangler pages deploy`；文章默认仍走 `static`（GitHub Contents API 提交）。`darling-02.cn`（香港 VPS `103.106.190.5`）是否还指向同一份产物，2026-10-10 未复验。
 - Backend: Fastify 3 + SQLite + Zod REST API under `backend/`.
 - Admin page: `/admin` now writes to **either** store, selected by `VITE_ARTICLE_SOURCE`:
   - `api` -> the backend API (token = `ADMIN_TOKEN`; supports `draft` / `published`).
@@ -25,6 +35,7 @@ Serve the dynamic article API publicly. The school server runs Node.js 16 only, 
 - Node 16 compatibility: Fastify `3.29.5`, `@fastify/cors` `7.0.0`, `better-sqlite3` `7.6.2`, `tsx` `3.12.1`, ES2021 target, Fastify 3 CJS type casts in `backend/src/app.ts`.
 - Deployment guide: `docs/backend-deployment-quickstart.md`.
 - Pushed commits: `d3b99b5` (article fixes), `d924198` (Node 16 support), `ff5d15a` (backend column + markdown code/math rendering), `5980684` (admin page can write to the backend API).
+- 前端近期提交（2026-10 这一轮）：`fd8c7c1`（侧栏数据实时化；「资源分享」四条链接被换成「神秘力量」占位）、`91956c7`（WebP 迁移 + 字体非阻塞）、`79e10b3`（KV 访客计数）、`e993362`（小问题批量）、`e9667c5`（撤掉闯祸的 `/*` catch-all）、`f9c0e24`（按路由重写深链接）、`581d061`（空标签解析修复，见下方 2026-10-10 记录）。
 
 ## Local Verification (2026-09-28, frontend side only)
 

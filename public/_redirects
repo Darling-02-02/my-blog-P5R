@@ -7,6 +7,7 @@
 # 真实 /assets/* 地址确认仍是 application/javascript 或 text/css，再上线。
 
 /explore     /  200
+/myself      /  200
 /article/*   /  200
 /study-room  /  200
 /admin       /  200

@@ -13,6 +13,7 @@ const Article = lazy(() => import('./components/Article'));
 const ArchivePage = lazy(() => import('./components/ArchivePage'));
 const StudyRoom = lazy(() => import('./components/StudyRoom'));
 const AdminPage = lazy(() => import('./components/AdminPage'));
+const MyselfPage = lazy(() => import('./components/MyselfPage'));
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -62,6 +63,7 @@ function App() {
                     <Routes>
                       <Route path="/" element={<Home />} />
                       <Route path="/explore" element={<ExplorePage />} />
+                      <Route path="/myself" element={<MyselfPage />} />
                       <Route path="/article/*" element={<Article />} />
                       <Route path="/study-room" element={<StudyRoom />} />
                       <Route path="/admin" element={<AdminPage />} />
