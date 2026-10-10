@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 
-// 博客上线日 = 仓库第一次提交的时间。这里只放这一个日期，其余全是算出来的。
-const blogStartedAt = new Date('2026-02-17T11:48:01+08:00').getTime();
+// VPS 上线时刻：正式部署那天把 ISO 时间填在这里（只放这一个日期，其余全是算出来的）。
+// 空着 = 还没开始计时，显示 0天 0时 0分 0秒，不拿仓库第一次提交的日期冒充运行时长。
+const vpsLaunchedAt: string | null = null;
+const blogStartedAt = vpsLaunchedAt ? new Date(vpsLaunchedAt).getTime() : Number.POSITIVE_INFINITY;
 
 const formatRunningTime = (elapsed: number) => {
   const seconds = Math.max(0, Math.floor(elapsed / 1000));
