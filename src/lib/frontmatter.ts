@@ -6,7 +6,8 @@ import { estimateReadTime } from './reading-time.ts';
 export type FrontmatterValue = string | string[];
 export type Frontmatter = Record<string, FrontmatterValue>;
 
-const requiredFields = ['id', 'title', 'excerpt', 'category', 'date', 'readTime', 'tags'] as const;
+// tags 不在必填里：标签是可选的（serializeArticle 在没有标签时只写一行空的 "tags:"）。
+const requiredFields = ['id', 'title', 'excerpt', 'category', 'date', 'readTime'] as const;
 
 const stripQuotes = (value: string) => value.trim().replace(/^['"]|['"]$/g, '');
 
@@ -52,9 +53,13 @@ export const parseArticleSource = (source: string, label: string): ParsedArticle
     }
   }
 
-  if (!Array.isArray(meta.tags) || meta.tags.length === 0) {
+  // 只拦真的格式错（比如 tags 写成了一个字符串）；空列表是合法的，
+  // 否则 serializeArticle 自己写出的文件自己读不回来（后台就会"保存成功但一直保存不上"）。
+  if (meta.tags !== undefined && !Array.isArray(meta.tags)) {
     throw new Error(`Article tags must be a list: ${label}`);
   }
+
+  meta.tags = Array.isArray(meta.tags) ? meta.tags : [];
 
   const id = Number(meta.id);
   if (!Number.isInteger(id)) {

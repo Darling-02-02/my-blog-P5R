@@ -4,7 +4,8 @@ import { parseCategoryDocument } from '../src/lib/category-content.ts';
 
 const root = process.cwd();
 const articlesRoot = path.join(root, 'src', 'content', 'articles');
-const requiredFields = ['id', 'title', 'excerpt', 'category', 'date', 'readTime', 'tags'];
+// tags 可选（空标签是合法文章），所以不列在这里；下面只检查它"是列表"而不是单个字符串。
+const requiredFields = ['id', 'title', 'excerpt', 'category', 'date', 'readTime'];
 const categoriesFile = path.join(root, 'src', 'content', 'categories.json');
 
 const fail = (message) => {
@@ -85,8 +86,8 @@ if (statSync(articlesRoot, { throwIfNoEntry: false })?.isDirectory()) {
 
     requireFields(meta, requiredFields, relativePath);
 
-    if (!Array.isArray(meta.tags) || meta.tags.length === 0) {
-      fail(`${relativePath}: "tags" must contain at least one item`);
+    if (meta.tags !== undefined && !Array.isArray(meta.tags)) {
+      fail(`${relativePath}: "tags" must be a list`);
     }
 
     // Columns are free-form, so only require that the name can also be a folder.
