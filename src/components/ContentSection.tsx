@@ -122,12 +122,6 @@ const ContentSection = ({ standalone = false, children }: ContentSectionProps) =
             padding: 0 !important;
           }
 
-          /* 简介那两张卡片窄屏还是竖着排，别挤成两条 */
-          .home-profile-grid {
-            grid-template-columns: 1fr !important;
-            gap: 2.5rem !important;
-          }
-
           .home-post-grid {
             gap: 1.5rem !important;
           }
@@ -169,10 +163,6 @@ const ContentSection = ({ standalone = false, children }: ContentSectionProps) =
 
           .home-content-block {
             margin-bottom: 2.5rem !important;
-          }
-
-          .home-profile-pane {
-            padding: 1rem !important;
           }
 
           .home-post-grid {

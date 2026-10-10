@@ -1,24 +1,24 @@
 // 「我自己」独立页：个人简介 + 资料分享从 /explore 搬过来（首页内容区不再出现这两块）。
-// 外壳直接复用 ContentSection：背景、侧栏、以及 .home-content-block / .home-profile-grid /
-// .home-profile-pane 的窄屏规则都在那边，这里只写区块内容。
+// 整页只留一张大卡片，内容从上往下排；外壳复用 ContentSection（背景、侧栏、窄屏规则都在那边）。
 import type { CSSProperties } from 'react';
 import Header from './Header';
 import ContentSection from './ContentSection';
 import Footer from './Footer';
 
-const blockStyle: CSSProperties = {
+const cardStyle: CSSProperties = {
   marginBottom: '4rem',
-  padding: 0,
-  background: 'transparent',
-  borderRadius: 0,
-  border: 'none',
-};
-
-const paneStyle: CSSProperties = {
+  // 窄屏别再吃 2rem 的内边距：手机上一张卡片就够挤了。
+  padding: 'clamp(1.25rem, 4vw, 2rem)',
   background: 'var(--bg-card)',
   border: '1px solid var(--border-card)',
   borderRadius: '14px',
-  padding: '1.25rem',
+};
+
+const subHeadingStyle: CSSProperties = {
+  fontSize: '1.5rem',
+  fontWeight: 600,
+  color: 'var(--text-secondary)',
+  marginBottom: '1.5rem',
 };
 
 // 资料分享：这几条在 fd8c7c1 里被换成「神秘力量」占位文案，链接本身还在 git 历史里，
@@ -42,48 +42,42 @@ const interests = [
 
 const MyselfContent = () => (
   <div className="home-main-card" style={{ background: 'transparent', borderRadius: '20px', border: 'none', boxShadow: 'none', padding: 0 }}>
-    {/* 个人简介 */}
-    <section id="profile" className="home-content-block" style={blockStyle}>
+    {/* 个人简介：整页一张大卡片，简介 / 资料分享 / 兴趣爱好都在里面，不再拆成并列小卡 */}
+    <section id="profile" className="home-content-block" style={cardStyle}>
       <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
         <span style={{ color: '#ff0040' }}>个人</span>简介
       </h1>
-      <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
+      <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '2.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
         离神很近，也就是离人很远。——一个臭看番的。
       </p>
 
-      <div className="home-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginBottom: '3rem' }}>
-        <div className="home-profile-pane" style={paneStyle}>
-          <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>📚 资料分享</h3>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-            {shareLinks.map((link) => (
-              <li key={link.url} style={{ marginBottom: '0.9rem' }}>
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ color: '#ff0040', fontWeight: '600', fontSize: '1.05rem', textDecoration: 'none' }}
-                >
-                  {link.name}
-                </a>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginLeft: '0.5rem', wordBreak: 'break-all' }}>
-                  {link.url.replace(/^https?:\/\//, '')}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <h3 style={subHeadingStyle}>📚 资料分享</h3>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        {shareLinks.map((link) => (
+          <li key={link.url} style={{ marginBottom: '0.9rem' }}>
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: '#ff0040', fontWeight: '600', fontSize: '1.05rem', textDecoration: 'none' }}
+            >
+              {link.name}
+            </a>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginLeft: '0.5rem', wordBreak: 'break-all' }}>
+              {link.url.replace(/^https?:\/\//, '')}
+            </span>
+          </li>
+        ))}
+      </ul>
 
-        <div className="home-profile-pane" style={paneStyle}>
-          <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>💡 兴趣爱好</h3>
-          <ul style={{ color: 'var(--text-body)', fontSize: '1.1rem', lineHeight: 2.2, paddingLeft: '1.2rem', listStyle: 'none' }}>
-            {interests.map((item, index) => (
-              <li key={item} style={index === 0 ? { color: '#ff0040', fontWeight: 500 } : { marginTop: index === 1 ? '0.5rem' : undefined }}>
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      <h3 style={{ ...subHeadingStyle, marginTop: '2.5rem' }}>💡 兴趣爱好</h3>
+      <ul style={{ color: 'var(--text-body)', fontSize: '1.1rem', lineHeight: 2.2, paddingLeft: 0, listStyle: 'none' }}>
+        {interests.map((item, index) => (
+          <li key={item} style={index === 0 ? { color: '#ff0040', fontWeight: 500 } : { marginTop: index === 1 ? '0.5rem' : undefined }}>
+            {item}
+          </li>
+        ))}
+      </ul>
     </section>
   </div>
 );
