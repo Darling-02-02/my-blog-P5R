@@ -5,7 +5,7 @@ import Header from './Header';
 import Footer from './Footer';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
-import { pickCoverForArticle } from '../lib/coverImage';
+import { useWorkMood, workMoodImage } from '../lib/workMood';
 
 type ArchiveMode = 'tag' | 'category';
 
@@ -23,6 +23,9 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
   const navigate = useNavigate();
   const { name } = useParams<{ name: string }>();
   const { articles, status, error } = useArticles();
+  // 小卡的封面跟「幕后」那张栏目大卡用同一张作息动图（同一个 hook，整点自动换），
+  // 这样点进栏目后看到的小卡和刚才那张大卡是同一张图。
+  const mood = useWorkMood();
   const { getArticlePath, getTagData } = useContent();
   const decodedName = decodeURIComponent(name ?? '');
   const archiveTitle = mode === 'tag' ? `标签: ${decodedName || '未指定'}` : `分类: ${decodedName || '未指定'}`;
@@ -139,7 +142,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                           }}
                         >
                           <img
-                            src={pickCoverForArticle(article)}
+                            src={workMoodImage(mood)}
                             alt={article.title}
                             style={{
                               width: '100%',
