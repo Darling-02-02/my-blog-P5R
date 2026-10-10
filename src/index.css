@@ -17,32 +17,33 @@
   --p5-cyan: #00d4ff;
 
   /* Theme-aware semantic tokens */
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #1a1a1a;
-  --bg-card: rgba(26, 26, 26, 0.9);
-  --bg-card-solid: #1a1a1a;
+  /* 深色面整体比原先的 #0a0a0a / #1a1a1a 抬一档：纯黑底上卡片和底色几乎分不出边界，整页看着发糊。 */
+  --bg-primary: #15151c;
+  --bg-secondary: #202028;
+  --bg-card: rgba(34, 34, 42, 0.9);
+  --bg-card-solid: #22222a;
   --bg-overlay: rgba(0, 0, 0, 0.45);
-  --bg-sidebar-card: rgba(30, 30, 30, 0.85);
-  --bg-main-card: rgba(20, 20, 20, 0.85);
+  --bg-sidebar-card: rgba(36, 36, 45, 0.85);
+  --bg-main-card: rgba(30, 30, 38, 0.85);
   --bg-input: rgba(255, 255, 255, 0.1);
-  --bg-code: #1e1e1e;
-  --bg-code-header: #2d2d2d;
+  --bg-code: #1b1e26;
+  --bg-code-header: #2a2f3a;
   --bg-tag: rgba(255, 0, 64, 0.15);
   --bg-blockquote: rgba(255, 0, 64, 0.08);
   --bg-hover: rgba(255, 0, 64, 0.12);
   --bg-category-item: rgba(255, 255, 255, 0.04);
-  --bg-article-card: rgba(30, 30, 30, 0.95);
-  --bg-article-content: rgba(30, 30, 30, 0.92);
-  --bg-comment-box: rgba(30, 30, 30, 0.9);
+  --bg-article-card: rgba(36, 36, 45, 0.95);
+  --bg-article-content: rgba(36, 36, 45, 0.92);
+  --bg-comment-box: rgba(34, 34, 42, 0.9);
   --bg-social: rgba(255, 255, 255, 0.08);
   --bg-social-hover: rgba(255, 0, 64, 0.2);
-  --bg-footer: rgba(26, 26, 26, 0.9);
-  --bg-mobile-menu: rgba(10, 10, 10, 0.98);
+  --bg-footer: rgba(30, 30, 38, 0.9);
+  --bg-mobile-menu: rgba(21, 21, 28, 0.98);
   --bg-inline-code: rgba(255, 0, 64, 0.15);
 
   --text-primary: #ffffff;
   --text-secondary: #cccccc;
-  --text-muted: #888888;
+  --text-muted: #9a9a9a;
   --text-body: #d4d4d4;
   --text-heading: #ffffff;
   --text-card-title: #ffffff;
@@ -52,17 +53,18 @@
   --text-inline-code: #ff6b8a;
   --text-link: #ff0040;
 
-  --border-card: rgba(255, 255, 255, 0.08);
-  --border-section: rgba(255, 255, 255, 0.08);
+  /* 底色抬亮后卡片边距也要跟着抬，否则面板之间又会糊成一片 */
+  --border-card: rgba(255, 255, 255, 0.12);
+  --border-section: rgba(255, 255, 255, 0.1);
   --border-tag: rgba(255, 0, 64, 0.3);
   --border-input: rgba(255, 0, 64, 0.5);
   --border-table: rgba(255, 255, 255, 0.1);
-  --border-mobile-menu: #2d2d2d;
+  --border-mobile-menu: #33333f;
 
   --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.3);
   --shadow-hover: 0 8px 30px rgba(255, 0, 64, 0.2);
 
-  --scrollbar-track: #1a1a1a;
+  --scrollbar-track: #202028;
   --scrollbar-thumb: #ff0040;
   --scrollbar-thumb-hover: #ff2d55;
 
@@ -216,27 +218,27 @@ body {
 
 /* 夜间模式下的内页皮肤：深色玻璃卡片 + 亮字，保证和首页一致 */
 :root[data-theme="dark"] .secondary-page-theme {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #141414;
-  --bg-card: rgba(26, 26, 26, 0.74);
-  --bg-card-solid: #1a1a1a;
+  --bg-primary: #15151c;
+  --bg-secondary: #1c1c24;
+  --bg-card: rgba(34, 34, 42, 0.74);
+  --bg-card-solid: #22222a;
   --bg-overlay: rgba(0, 0, 0, 0.4);
-  --bg-sidebar-card: rgba(24, 24, 24, 0.74);
-  --bg-main-card: rgba(20, 20, 20, 0.68);
+  --bg-sidebar-card: rgba(32, 32, 40, 0.74);
+  --bg-main-card: rgba(30, 30, 38, 0.68);
   --bg-input: rgba(255, 255, 255, 0.08);
-  --bg-code: #16181c;
-  --bg-code-header: #23262b;
+  --bg-code: #191c22;
+  --bg-code-header: #262a33;
   --bg-tag: rgba(255, 0, 64, 0.18);
   --bg-blockquote: rgba(255, 0, 64, 0.1);
   --bg-hover: rgba(255, 0, 64, 0.14);
   --bg-category-item: rgba(255, 255, 255, 0.05);
-  --bg-article-card: rgba(24, 24, 24, 0.92);
-  --bg-article-content: rgba(22, 22, 22, 0.92);
-  --bg-comment-box: rgba(24, 24, 24, 0.82);
+  --bg-article-card: rgba(32, 32, 40, 0.92);
+  --bg-article-content: rgba(30, 30, 38, 0.92);
+  --bg-comment-box: rgba(32, 32, 40, 0.82);
   --bg-social: rgba(255, 255, 255, 0.08);
   --bg-social-hover: rgba(255, 0, 64, 0.2);
-  --bg-footer: rgba(16, 16, 16, 0.82);
-  --bg-mobile-menu: rgba(10, 10, 10, 0.96);
+  --bg-footer: rgba(24, 24, 30, 0.82);
+  --bg-mobile-menu: rgba(21, 21, 28, 0.96);
   --bg-inline-code: rgba(255, 0, 64, 0.16);
   --text-primary: #f5f5f5;
   --text-secondary: #c9c9c9;
@@ -249,12 +251,12 @@ body {
   --text-code: #d6d6d6;
   --text-inline-code: #ff7a95;
   --text-link: #ff5c7a;
-  --border-card: rgba(255, 255, 255, 0.12);
-  --border-section: rgba(255, 255, 255, 0.1);
+  --border-card: rgba(255, 255, 255, 0.16);
+  --border-section: rgba(255, 255, 255, 0.14);
   --border-tag: rgba(255, 0, 64, 0.35);
   --border-input: rgba(255, 0, 64, 0.4);
-  --border-table: rgba(255, 255, 255, 0.12);
-  --border-mobile-menu: #2d2d2d;
+  --border-table: rgba(255, 255, 255, 0.16);
+  --border-mobile-menu: #33333f;
   --shadow-card: 0 18px 42px rgba(0, 0, 0, 0.55);
   --shadow-hover: 0 20px 46px rgba(255, 0, 64, 0.22);
   --scrollbar-track: rgba(255, 255, 255, 0.08);

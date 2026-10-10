@@ -22,10 +22,10 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
   const backgroundPosition = useHomeBackground ? 'center center' : 'center 16%';
   const overlayColor = useHomeBackground
     ? isDark
-      ? 'rgba(0, 0, 0, 0.38)'
+      ? 'rgba(0, 0, 0, 0.2)'
       : 'rgba(0, 0, 0, 0.08)'
     : isDark
-      ? 'rgba(0, 0, 0, 0.42)'
+      ? 'rgba(0, 0, 0, 0.24)'
       : 'rgba(255, 248, 242, 0.08)';
 
   useEffect(() => {
@@ -78,9 +78,10 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
           backgroundImage: activeBackground ? `url(${activeBackground})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition,
-          backgroundColor: useHomeBackground ? (isDark ? '#0a0a0a' : '#f5f5f7') : 'transparent',
-          // CY.webp 平均亮度 0.78，夜间要压得比"卡片"更狠，不然后面没铺深色遮罩的页面还是灰的
-          filter: isDark ? 'brightness(0.35)' : 'none',
+          backgroundColor: useHomeBackground ? 'var(--bg-primary)' : 'transparent',
+          // CY.webp 平均亮度 0.78，夜里压一档免得插画抢文字；但 0.35 压过了头，整页会糊成一块黑。
+          // 只在真的有插画时压：filter 会把纯色底一起乘暗，首页 hero 那段没有插画，压了就白抬。
+          filter: isDark && activeBackground ? 'brightness(0.55)' : 'none',
           transition: 'filter 0.4s ease',
           zIndex: 0,
           pointerEvents: 'none',

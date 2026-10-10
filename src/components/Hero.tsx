@@ -154,7 +154,7 @@ export default function Hero() {
         .background-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(to bottom, rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.52));
+          background: linear-gradient(to bottom, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.4));
         }
 
         .hero-content {
