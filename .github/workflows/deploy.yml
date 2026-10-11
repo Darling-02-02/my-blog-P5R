@@ -19,10 +19,13 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
+      # Node 22 而不是 20：scripts/validate-content.mjs 和 scripts/*.test.mjs 直接 import
+      # src/lib/*.ts（Node 22 起默认支持类型剥离）。Node 20 会在 Validate content 这一步
+      # 以 ERR_UNKNOWN_FILE_EXTENSION 挂掉——2026-10-11 run #141 就是这么失败的（Build/Deploy 全被跳过）。
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       # 放在最前面：Secret 缺失时 5 秒内报错，不必先跑完 install + build。

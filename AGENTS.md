@@ -42,6 +42,8 @@ node --test scripts/*.test.mjs
 
 `node --test scripts/*.test.mjs` runs the `node:test` checks under `scripts/` (frontmatter round-trip, markdown import, reading time, category content, repo stats, work mood, site stats, IP location, category publisher conflicts, myself content, myself publisher conflicts).
 
+Node **22+** is required: these scripts and `validate:content` import the `.ts` sources under `src/lib/` directly (type stripping is on by default from Node 22), so on Node 20 they fail with `ERR_UNKNOWN_FILE_EXTENSION`. CI runs on Node 22 for the same reason.
+
 For article changes, ensure every Markdown file under `src/content/articles/` has frontmatter fields: `id`, `title`, `excerpt`, `category`, `date`, `readTime` (computed from the body, never typed by hand), and `tags` as a YAML list (an empty list is allowed).
 
 ## Commit & Pull Request Guidelines
