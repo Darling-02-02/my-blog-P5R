@@ -4,11 +4,10 @@ A Persona 5 inspired personal blog built with React, TypeScript, and Vite.
 
 ## Overview
 
-This project combines three parts into one frontend app:
+This project combines two parts into one frontend app:
 
 - A personal homepage with animated hero banners and themed sections
 - A Markdown-based blog with article detail pages, tags, and category archives
-- A "Study Room" with local progress tracking, todo management, Live2D support, and an AI companion panel
 
 ## Tech Stack
 
@@ -62,7 +61,6 @@ src/
 public/
   cover.png
   slideshow/
-  live2d-frame.html
 ```
 
 ## Dynamic Article API

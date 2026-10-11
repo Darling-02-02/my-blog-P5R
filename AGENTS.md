@@ -5,11 +5,11 @@
 This is a React 19, TypeScript, and Vite personal blog with a Persona 5 inspired UI. Main code lives in `src/`.
 
 - `src/App.tsx` and `src/main.tsx` define the app shell and entry point.
-- `src/components/` contains page sections, layout, article views, theme controls, and Study Room UI.
+- `src/components/` contains page sections, layout, article views, and theme controls.
 - `src/contexts/` contains theme context utilities.
 - `src/data/articles.ts` indexes article metadata and content imports.
 - `src/content/articles/` stores Markdown articles by category, such as `bioinformatics/` and `machine-learning/`.
-- `public/` stores static assets served as-is, including images, slideshow files, `404.html`, and `live2d-frame.html`.
+- `public/` stores static assets served as-is, including images, slideshow files, and `404.html`.
 - `scripts/validate-content.mjs` validates Markdown frontmatter and bodies.
 - `dist/` is generated build output and should not be edited directly.
 
@@ -36,12 +36,12 @@ There is no full unit test framework configured. Before submitting changes, run:
 npm run lint
 npm run validate:content
 npm run build
-npx tsx --test scripts/security-hardening.test.ts
+node --test scripts/*.test.mjs
 ```
 
-`npx tsx --test ...` runs the `node:test` checks that cover the Study Room storage helpers in `src/lib/studyRoomStorage.ts`.
+`node --test scripts/*.test.mjs` runs the `node:test` checks under `scripts/` (frontmatter round-trip, markdown import, reading time, category content, repo stats, work mood, site stats, IP location, category publisher conflicts).
 
-For article changes, ensure every Markdown file under `src/content/articles/` has frontmatter fields: `id`, `title`, `excerpt`, `category`, `date`, `readTime` (computed from the body, never typed by hand), and a non-empty `tags` list.
+For article changes, ensure every Markdown file under `src/content/articles/` has frontmatter fields: `id`, `title`, `excerpt`, `category`, `date`, `readTime` (computed from the body, never typed by hand), and `tags` as a YAML list (an empty list is allowed).
 
 ## Commit & Pull Request Guidelines
 
@@ -51,4 +51,4 @@ Pull requests should include a brief description, testing commands run, and scre
 
 ## Security & Configuration Tips
 
-The app builds for a root-path deploy (`base: '/'`) and is published to Cloudflare Pages; `.github/workflows/deploy.yml` rebuilds and deploys on every push to `main` (operational details in `pipeline/cloudflare-pages-deployment.md`). Do not commit secrets. The Study Room AI companion keeps user-provided API keys in memory only; prefer a server-side proxy before production use.
+The app builds for a root-path deploy (`base: '/'`) and is published to Cloudflare Pages; `.github/workflows/deploy.yml` rebuilds and deploys on every push to `main` (operational details in `pipeline/cloudflare-pages-deployment.md`). Do not commit secrets. The admin page keeps the GitHub token for the current browser session only and publishes through the GitHub Contents API.

@@ -9,7 +9,8 @@
 /explore     /  200
 /myself      /  200
 /article/*   /  200
-/study-room  /  200
+# Study Room 页面已删除：老书签直接跳回首页，别落到一个没有路由匹配的白页上。
+/study-room  /  301
 /admin       /  200
 /tag/*       /  200
 /category/*  /  200

@@ -11,7 +11,6 @@ import ExplorePage from './components/ExplorePage'
 
 const Article = lazy(() => import('./components/Article'));
 const ArchivePage = lazy(() => import('./components/ArchivePage'));
-const StudyRoom = lazy(() => import('./components/StudyRoom'));
 const AdminPage = lazy(() => import('./components/AdminPage'));
 const MyselfPage = lazy(() => import('./components/MyselfPage'));
 
@@ -65,7 +64,6 @@ function App() {
                       <Route path="/explore" element={<ExplorePage />} />
                       <Route path="/myself" element={<MyselfPage />} />
                       <Route path="/article/*" element={<Article />} />
-                      <Route path="/study-room" element={<StudyRoom />} />
                       <Route path="/admin" element={<AdminPage />} />
                       <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />
                       <Route path="/category/:name" element={<ArchivePage mode="category" />} />

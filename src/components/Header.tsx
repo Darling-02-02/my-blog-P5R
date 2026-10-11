@@ -41,7 +41,6 @@ const Header = () => {
 
   const isArticlePage =
     location.pathname.startsWith('/article') ||
-    location.pathname === '/study-room' ||
     location.pathname.startsWith('/tag/') ||
     location.pathname.startsWith('/category/');
 
@@ -88,7 +87,6 @@ const Header = () => {
     { name: '个人简介', href: '/myself', external: false },
     { name: '幕后', href: '/explore#blog', external: false, columnsOnly: true },
     { name: '留言板', href: '/explore#comments', external: false },
-    { name: 'Study Room', href: '/study-room', external: false },
     { name: 'GitHub', href: 'https://github.com/Darling-02-02', external: true },
   ];
 

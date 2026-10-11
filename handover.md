@@ -1,6 +1,6 @@
 # Handover
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 
 > 后续变更：专栏/专题子系统（`src/content/topics/`、`/topic/...` 路由、`src/data/topics.ts`、`src/lib/topic-*.ts`、后台「🌱 专题章节」）已整体删除；下文提到它的地方都是当时的记录。
 >
@@ -17,6 +17,9 @@ Last updated: 2026-10-10
 > **工作方式（用户 2026-10-10 要求）**：每次改动都要 commit，不要攒批；视觉改动仍然先把截图给用户看再提交。
 >
 > 本地检查（2026-10-10，Node v22.22.3）全绿：`npx tsc -b` 0、`npm run lint` 0、`node --test scripts/*.test.mjs` 30/30、`npm run build` exit 0。`wrangler pages dev dist --port 8788` 预览验收：`/`、`/explore`、`/myself`、`/study-room`、`/admin` 全 200，`/myself` 的响应体与 `dist/index.html` SHA256 完全一致；`/assets/index-*.js` → `application/javascript`、`/assets/index-*.css` → `text/css`；未知路径 404；`POST /api/stats` 200。（验收完预览服务已关，日常只留 `npm run dev` 的 5173；注意它只绑 `::1`，要用 `http://localhost:5173`。）
+
+> 2026-10-11：按用户要求**删掉 Study Room 页面**：`/study-room` 路由、`Header` 的导航项与 `isArticlePage` 特判、`src/components/StudyRoom.tsx`、`StudyRoomSections.tsx`、`useStudyRoom.ts`、`AICompanionPanel.tsx`、`src/lib/studyRoomStorage.ts`，只测这个模块的 `scripts/security-hardening.test.ts`，以及只被它引用的 `public/live2d-frame.html`；`public/_redirects` 里那一行改成 `/study-room  /  301` 跳回首页（老书签别落到没有路由的白页上）。`AGENTS.md` 里那条随之失效的测试命令已换成 `node --test scripts/*.test.mjs`。
+> 同日：`src/components/ContentSectionMain.tsx:218`「关于本站」正文删掉「垂死挣扎的双非硕，」、结尾改成 `{'一切以实际为准。欢迎交流学习，Ciallo～(∠・ω< )⌒★'}`（裸文本里那个 `<` 会被当成 JSX 标签开头 → TS1003，必须包成 JS 字符串表达式），提交 `d8bf0b0` 线上已生效。
 
 ## Current Objective
 
