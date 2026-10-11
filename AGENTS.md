@@ -9,8 +9,9 @@ This is a React 19, TypeScript, and Vite personal blog with a Persona 5 inspired
 - `src/contexts/` contains theme context utilities.
 - `src/data/articles.ts` indexes article metadata and content imports.
 - `src/content/articles/` stores Markdown articles by category, such as `bioinformatics/` and `machine-learning/`.
+- `src/content/myself.json` holds the 「神秘力量」 blurb shown on `/myself`; `src/lib/myself-content.ts` parses/serializes it and `src/lib/myself-publisher.ts` writes it through the GitHub Contents API. The admin tab `🔮 个人简介` edits it.
 - `public/` stores static assets served as-is, including images, slideshow files, and `404.html`.
-- `scripts/validate-content.mjs` validates Markdown frontmatter and bodies.
+- `scripts/validate-content.mjs` validates Markdown frontmatter and bodies plus the JSON content files (`src/content/categories.json`, `src/content/myself.json`).
 - `dist/` is generated build output and should not be edited directly.
 
 ## Build, Test, and Development Commands
@@ -20,7 +21,7 @@ This is a React 19, TypeScript, and Vite personal blog with a Persona 5 inspired
 - `npm run build` runs TypeScript project checks with `tsc -b` and creates a production build.
 - `npm run preview` serves the built app locally for production verification.
 - `npm run lint` runs ESLint across the repository.
-- `npm run validate:content` checks article frontmatter, duplicate IDs/slugs, tags, and bodies.
+- `npm run validate:content` checks article frontmatter, duplicate IDs/slugs, tags, bodies, and the JSON content files under `src/content/`. CI (`.github/workflows/deploy.yml`) runs it before `npm run build`, so broken content fails the deploy instead of blanking the site.
 
 ## Coding Style & Naming Conventions
 
@@ -39,7 +40,7 @@ npm run build
 node --test scripts/*.test.mjs
 ```
 
-`node --test scripts/*.test.mjs` runs the `node:test` checks under `scripts/` (frontmatter round-trip, markdown import, reading time, category content, repo stats, work mood, site stats, IP location, category publisher conflicts).
+`node --test scripts/*.test.mjs` runs the `node:test` checks under `scripts/` (frontmatter round-trip, markdown import, reading time, category content, repo stats, work mood, site stats, IP location, category publisher conflicts, myself content, myself publisher conflicts).
 
 For article changes, ensure every Markdown file under `src/content/articles/` has frontmatter fields: `id`, `title`, `excerpt`, `category`, `date`, `readTime` (computed from the body, never typed by hand), and `tags` as a YAML list (an empty list is allowed).
 
@@ -51,4 +52,4 @@ Pull requests should include a brief description, testing commands run, and scre
 
 ## Security & Configuration Tips
 
-The app builds for a root-path deploy (`base: '/'`) and is published to Cloudflare Pages; `.github/workflows/deploy.yml` rebuilds and deploys on every push to `main` (operational details in `pipeline/cloudflare-pages-deployment.md`). Do not commit secrets. The admin page keeps the GitHub token for the current browser session only and publishes through the GitHub Contents API.
+The app builds for a root-path deploy (`base: '/'`) and is published to Cloudflare Pages; `.github/workflows/deploy.yml` rebuilds and deploys on every push to `main` (operational details in `pipeline/cloudflare-pages-deployment.md`). Do not commit secrets. The admin page keeps the GitHub token for the current browser session only and publishes through the GitHub Contents API: articles, the category table, and the profile blurb. Every write sends the `sha` it read, so a concurrent edit surfaces as a conflict instead of being overwritten.

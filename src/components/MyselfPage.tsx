@@ -1,6 +1,7 @@
 // 「我自己」独立页：个人简介从 /explore 搬过来（首页内容区不再出现这块）。
 // 整页只留一张大卡片，内容从上往下排；外壳复用 ContentSection（背景、侧栏、窄屏规则都在那边）。
 import type { CSSProperties } from 'react';
+import { myselfContent } from '../data/myself';
 import Header from './Header';
 import ContentSection from './ContentSection';
 import Footer from './Footer';
@@ -42,10 +43,10 @@ const MyselfContent = () => (
         离神很近，也就是离人很远。——一个臭看番的。
       </p>
 
+      {/* 文案来自 src/content/myself.json，后台 /admin 的「🔮 个人简介」页签能改它。 */}
       <h3 style={subHeadingStyle}>🔮 神秘力量</h3>
-      {/* 那个 < 直接写在 JSX 正文里会被当标签解析（TS1003），所以走字符串字面量。 */}
       <p style={{ color: 'var(--text-body)', fontSize: '1.1rem', lineHeight: 2.2 }}>
-        {'Ciallo～(∠・ω< )⌒★'}
+        {myselfContent.mystic}
       </p>
 
       <h3 style={{ ...subHeadingStyle, marginTop: '2.5rem' }}>💡 兴趣爱好</h3>

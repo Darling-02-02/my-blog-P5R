@@ -20,6 +20,9 @@ Last updated: 2026-10-11
 
 > 2026-10-11：按用户要求**删掉 Study Room 页面**：`/study-room` 路由、`Header` 的导航项与 `isArticlePage` 特判、`src/components/StudyRoom.tsx`、`StudyRoomSections.tsx`、`useStudyRoom.ts`、`AICompanionPanel.tsx`、`src/lib/studyRoomStorage.ts`，只测这个模块的 `scripts/security-hardening.test.ts`，以及只被它引用的 `public/live2d-frame.html`；`public/_redirects` 里那一行改成 `/study-room  /  301` 跳回首页（老书签别落到没有路由的白页上）。`AGENTS.md` 里那条随之失效的测试命令已换成 `node --test scripts/*.test.mjs`。
 > 同日：`src/components/ContentSectionMain.tsx:218`「关于本站」正文删掉「垂死挣扎的双非硕，」、结尾改成 `{'一切以实际为准。欢迎交流学习，Ciallo～(∠・ω< )⌒★'}`（裸文本里那个 `<` 会被当成 JSX 标签开头 → TS1003，必须包成 JS 字符串表达式），提交 `d8bf0b0` 线上已生效。
+>
+> 2026-10-11：「🔮 神秘力量」进后台，可在控制台改。新增 `src/content/myself.json`（`{"mystic": "…"}`）、`src/lib/myself-content.ts`（纯函数 parse/serialize，坏输入给中文报错、「神秘力量」文案不许为空）、`src/lib/myself-publisher.ts`（GitHub Contents API 读整份/写整份 + sha 校验，409/422 → `PROFILE_CONFLICT`）、`src/data/myself.ts`（构建期 `?raw` 读，解析失败回退默认文案并 `console.error`）；`src/components/MyselfPage.tsx` 那段文案改成读 `myselfContent.mystic`；`src/components/AdminPage.tsx` 新增第三个页签「🔮 个人简介」（文本框 + 保存/还原 + 当前仓库值；冲突时只刷 sha、不冲掉用户输入，给「重新读取」按钮）。测试 `scripts/myself-content.test.mjs`（4 例）+ `scripts/myself-publisher-conflict.test.mjs`（6 例）⇒ `node --test scripts/*.test.mjs` 40/40。同一天把 `npm run validate:content` 加进 `.github/workflows/deploy.yml`（放在 build 之前）：坏内容从此拦在 CI，2026-10-10 那次空 `tags:` 白屏就是这么漏上去的（workflow 原先只跑 `npm run build`）。
+> 用户决定（2026-10-11）：① 后台面板只加「神秘力量」这一条，不做整页编辑器；② 正式上线的站点是 `darling-02.cn`（现在由 Cloudflare 服务，与 `my-blog-p5r.pages.dev` 是同一份产物），CloudBase（env `self-d4g5iy3gmd8f1ce36`）留作手动备用 —— 它的默认域名对浏览器插「风险提醒」页、绑自定义域名要先做腾讯云接入备案，且本机没有 `tcb` 登录态（`~/.cloudbase` 不存在，`tcb env list` 直接挂到超时）；③ 页脚 `vpsLaunchedAt` 继续留 `null`，等正式部署那天再填。
 
 ## Current Objective
 
@@ -29,7 +32,7 @@ Serve the dynamic article API publicly. The school server runs Node.js 16 only, 
 
 ## Project Status
 
-- Frontend: React 19 + TypeScript + Vite + React Router. 线上是 Cloudflare Pages（`my-blog-p5r.pages.dev`）：push `main` 触发 `.github/workflows/deploy.yml` → `wrangler pages deploy`；文章默认仍走 `static`（GitHub Contents API 提交）。`darling-02.cn`（香港 VPS `103.106.190.5`）是否还指向同一份产物，2026-10-10 未复验。
+- Frontend: React 19 + TypeScript + Vite + React Router. 线上是 Cloudflare Pages（`my-blog-p5r.pages.dev`）：push `main` 触发 `.github/workflows/deploy.yml` → `npm run validate:content` → `npm run build` → `wrangler pages deploy`；文章默认仍走 `static`（GitHub Contents API 提交）。`darling-02.cn`（Cloudflare A `172.67.179.25`/`104.21.35.199`，证书到期 2026-12-30）2026-10-11 复验：与 `my-blog-p5r.pages.dev` 是同一份产物（首页引用同一组 `index-CynQP3yV.js` + `index-gzO24gv2.css`，`Server: cloudflare`；`/myself` 200、`/icon/QQ.png` 200、未知路径 404）。
 - Backend: Fastify 3 + SQLite + Zod REST API under `backend/`.
 - Admin page: `/admin` now writes to **either** store, selected by `VITE_ARTICLE_SOURCE`:
   - `api` -> the backend API (token = `ADMIN_TOKEN`; supports `draft` / `published`).

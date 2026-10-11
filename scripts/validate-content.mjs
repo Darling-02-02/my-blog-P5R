@@ -1,12 +1,14 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { parseCategoryDocument } from '../src/lib/category-content.ts';
+import { parseMyselfDocument } from '../src/lib/myself-content.ts';
 
 const root = process.cwd();
 const articlesRoot = path.join(root, 'src', 'content', 'articles');
 // tags 可选（空标签是合法文章），所以不列在这里；下面只检查它"是列表"而不是单个字符串。
 const requiredFields = ['id', 'title', 'excerpt', 'category', 'date', 'readTime'];
 const categoriesFile = path.join(root, 'src', 'content', 'categories.json');
+const myselfFile = path.join(root, 'src', 'content', 'myself.json');
 
 const fail = (message) => {
   console.error(message);
@@ -18,6 +20,15 @@ try {
   parseCategoryDocument(readFileSync(categoriesFile, 'utf8'));
 } catch (error) {
   fail(`src/content/categories.json: ${error instanceof Error ? error.message : String(error)}`);
+  process.exit(1);
+}
+
+// 个人简介配置同样是"后台能改的数据"：它坏了 /myself 那段文案就不对，
+// 所以在构建期拦住（CI 里在 npm run build 之前跑这个脚本）。
+try {
+  parseMyselfDocument(readFileSync(myselfFile, 'utf8'));
+} catch (error) {
+  fail(`src/content/myself.json: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 }
 

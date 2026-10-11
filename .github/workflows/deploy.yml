@@ -40,6 +40,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # 内容坏了不许上线：2026-10-10 那次「空 tags: 的文章」就是这么把线上打挂的
+      # （src/data/articles.ts 在模块初始化时解析所有 Markdown，抛错即整站白屏）。
+      # 校验放在 build 之前，坏内容直接拦在 CI。
+      - name: Validate content
+        run: npm run validate:content
+
       - name: Build
         run: npm run build
 

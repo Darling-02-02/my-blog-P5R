@@ -8,6 +8,8 @@ import ArticleEditor from './ArticleEditor';
 import CategoryManager from './CategoryManager';
 import type { CategoryInput } from '../lib/category-content';
 import { categoryPublisher } from '../lib/category-publisher';
+import type { MyselfContent } from '../lib/myself-content';
+import { isProfileConflict, myselfPublisher } from '../lib/myself-publisher';
 
 const TOKEN_KEY = 'blog_admin_token';
 
@@ -50,7 +52,11 @@ const AdminPage = () => {
   const [categoryList, setCategoryList] = useState<CategoryInput[] | null>(null);
   const [categorySha, setCategorySha] = useState('');
   const [categoryError, setCategoryError] = useState<string | null>(null);
-  const [adminMode, setAdminMode] = useState<'articles' | 'categories'>('articles');
+  const [myself, setMyself] = useState<MyselfContent | null>(null);
+  const [myselfSha, setMyselfSha] = useState('');
+  const [myselfDraft, setMyselfDraft] = useState('');
+  const [myselfError, setMyselfError] = useState<string | null>(null);
+  const [adminMode, setAdminMode] = useState<'articles' | 'categories' | 'myself'>('articles');
   const [selected, setSelected] = useState<Article | undefined>();
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -65,6 +71,10 @@ const AdminPage = () => {
     setCategoryList(null);
     setCategorySha('');
     setCategoryError(null);
+    setMyself(null);
+    setMyselfSha('');
+    setMyselfDraft('');
+    setMyselfError(null);
     setSelected(undefined);
     setEditorError(null);
     setMessage(nextMessage);
@@ -106,14 +116,36 @@ const AdminPage = () => {
     }
   }, []);
 
+  // 读仓库里"正在生效"的个人简介配置（神秘力量那段文案），后台的输入框以它为准。
+  // keepDraft：并发冲突后重新读 sha 时用，别把用户刚打的字冲掉。
+  const loadMyself = useCallback(async (activeToken: string, keepDraft = false) => {
+    if (activeArticleSource.kind !== 'github') return;
+    try {
+      const snapshot = await myselfPublisher.load(activeToken);
+      setMyself(snapshot.content);
+      setMyselfSha(snapshot.sha);
+      if (!keepDraft) setMyselfDraft(snapshot.content.mystic);
+      setMyselfError(null);
+    } catch (error) {
+      setMyself(null);
+      setMyselfSha('');
+      setMyselfError(
+        error instanceof ArticleApiError && (error.status === 401 || error.status === 403)
+          ? toMessage(error)
+          : error instanceof Error ? error.message : '个人简介配置读取失败',
+      );
+    }
+  }, []);
+
   useEffect(() => {
     if (!token) return;
     const timer = window.setTimeout(() => {
       void loadArticles(token);
       void loadCategories(token);
+      void loadMyself(token);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [loadArticles, loadCategories, token]);
+  }, [loadArticles, loadCategories, loadMyself, token]);
 
   const handleTokenSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -181,6 +213,33 @@ const AdminPage = () => {
     }
   };
 
+  const handleSaveMyself = async () => {
+    if (!token || !myself) return;
+    const text = myselfDraft.trim();
+    if (!text) {
+      setMyselfError('「神秘力量」文案不能为空');
+      return;
+    }
+    setBusy(true);
+    setMessage(null);
+    setMyselfError(null);
+    try {
+      // sha 用读取那一刻的：仓库被别人改过时 GitHub 会回 409，这里认出冲突后读回最新 sha 让用户重试。
+      await myselfPublisher.save(token, { mystic: text }, myselfSha, '更新个人简介：神秘力量文案');
+      await loadMyself(token);
+      setMessage('已提交，约 1 分钟后个人简介页生效');
+    } catch (error) {
+      if (isProfileConflict(error)) {
+        await loadMyself(token, true);
+        setMyselfError('仓库里的配置已经被改过（另一个窗口/标签页？），已读回最新版本，确认后再点一次保存；你刚打的字还在。');
+      } else {
+        setMyselfError(toMessage(error));
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const panelStyle = {
     // 后台要读文字、要长时间打字：用不透明的卡片底色 + 和文章卡一样的背景模糊，
     // 别让墙纸插画透上来干扰（--bg-card 在半透明主题下只有 0.48）。
@@ -235,7 +294,7 @@ const AdminPage = () => {
         `}</style>
 
         {token && <div role="tablist" aria-label="内容管理" className="admin-tabs">
-          {([['articles', `📄 独立文章（${articles.length}）`], ['categories', `🗂 幕后栏目（${categoryList?.length ?? 0}）`]] as const).map(([id, label]) => (
+          {([['articles', `📄 独立文章（${articles.length}）`], ['categories', `🗂 幕后栏目（${categoryList?.length ?? 0}）`], ['myself', '🔮 个人简介']] as const).map(([id, label]) => (
             <button key={id} type="button" role="tab" aria-selected={adminMode === id} onClick={() => setAdminMode(id)} className="admin-tab" data-active={adminMode === id ? 'true' : undefined}>{label}</button>
           ))}
         </div>}
@@ -257,6 +316,46 @@ const AdminPage = () => {
             )
           ) : (
             <p role="status" style={{ margin: 0, color: 'var(--text-body)' }}>当前后端数据库只存文章；幕后栏目表放在仓库里，请用 GitHub 模式管理。</p>
+          )}
+        </div>}
+        {token && adminMode === 'myself' && <div style={panelStyle}>
+          {activeArticleSource.kind !== 'github' ? (
+            <p role="status" style={{ margin: 0, color: 'var(--text-body)' }}>当前后端数据库只存文章；个人简介配置放在仓库里，请用 GitHub 模式管理。</p>
+          ) : myself ? (
+            <div style={{ display: 'grid', gap: '0.6rem' }}>
+              <h2 style={{ margin: 0, color: 'var(--text-heading)', fontSize: '1.1rem' }}>🔮 神秘力量</h2>
+              <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                这段文案显示在个人简介页（/myself）的「🔮 神秘力量」标题下面，存在仓库的
+                <code> src/content/myself.json</code> 里；保存后会提交到仓库，约 1 分钟后站点重新构建生效。
+              </p>
+              <textarea
+                value={myselfDraft}
+                onChange={(event) => setMyselfDraft(event.target.value)}
+                rows={3}
+                aria-label="神秘力量文案"
+                style={{ padding: '0.7rem 0.8rem', border: '1px solid var(--border-card)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-body)', font: 'inherit', resize: 'vertical' }}
+              />
+              <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  disabled={busy || !myselfDraft.trim() || myselfDraft.trim() === myself.mystic}
+                  onClick={() => void handleSaveMyself()}
+                  style={{ padding: '0.6rem 1.2rem', border: 'none', borderRadius: '8px', background: '#ff0040', color: '#fff', fontWeight: 700, cursor: busy || !myselfDraft.trim() || myselfDraft.trim() === myself.mystic ? 'not-allowed' : 'pointer', opacity: busy || !myselfDraft.trim() || myselfDraft.trim() === myself.mystic ? 0.55 : 1 }}
+                >
+                  {busy ? '提交中…' : '保存'}
+                </button>
+                <button type="button" disabled={busy || myselfDraft === myself.mystic} onClick={() => setMyselfDraft(myself.mystic)} style={{ padding: '0.6rem 1rem', border: '1px solid var(--border-card)', borderRadius: '8px', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer' }}>
+                  还原
+                </button>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>当前仓库里的值：{myself.mystic}</span>
+              </div>
+              {myselfError && <p role="alert" style={{ margin: 0, color: '#b00020' }}>{myselfError}</p>}
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: '0.6rem', justifyItems: 'start' }}>
+              <p role="status" style={{ margin: 0, color: 'var(--text-body)' }}>{myselfError ?? '正在读取仓库里的个人简介配置…'}</p>
+              {myselfError && <button type="button" onClick={() => void loadMyself(token)} style={{ border: '1px solid var(--border-card)', borderRadius: 6, padding: '0.35rem 0.7rem', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer' }}>重新读取</button>}
+            </div>
           )}
         </div>}
         {token && adminMode === 'articles' && (
