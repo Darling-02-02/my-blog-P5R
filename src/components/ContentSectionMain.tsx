@@ -215,7 +215,7 @@ const MainContent = () => {
 
         <div style={aboutPaneStyle}>
           <p style={{ color: 'var(--text-body)', fontSize: '1.15rem', lineHeight: 2.4 }}>
-            垂死挣扎的双非硕，一切以实际为准。欢迎交流学习。
+            {'一切以实际为准。欢迎交流学习，Ciallo～(∠・ω< )⌒★'}
           </p>
 
           <div style={{ marginTop: '2rem', padding: '1.5rem', background: aboutBoxBackground, borderRadius: '12px', border: '1px solid rgba(255,0,64,0.1)' }}>
