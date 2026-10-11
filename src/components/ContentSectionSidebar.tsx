@@ -66,11 +66,12 @@ const SidebarCard = ({
 // 个人资料
 const ProfileCard = () => {
   const [isSpinning, setIsSpinning] = useState(false);
+  // 图标取自 public/icon/（原来是 1254×1254、单张 1.5MB，已压到 96×96、单张约 12KB）。
   const socials = [
-    { icon: '💬', link: 'https://wpa.qq.com/msgrd?v=3&uin=1651816574' },
-    { icon: '📺', link: 'https://space.bilibili.com/84526582' },
-    { icon: '🐙', link: 'https://github.com/Darling-02-02' },
-    { icon: '🎮', link: 'https://steamcommunity.com/profiles/76561199175590351/' },
+    { icon: `${base}icon/QQ.png`, label: 'QQ', link: 'https://wpa.qq.com/msgrd?v=3&uin=1651816574' },
+    { icon: `${base}icon/bilbili.png`, label: '哔哩哔哩', link: 'https://space.bilibili.com/84526582' },
+    { icon: `${base}icon/github.png`, label: 'GitHub', link: 'https://github.com/Darling-02-02' },
+    { icon: `${base}icon/steam.png`, label: 'Steam', link: 'https://steamcommunity.com/profiles/76561199175590351/' },
   ];
   return (
     <SidebarCard>
@@ -94,10 +95,12 @@ const ProfileCard = () => {
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>无限进步。</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
           {socials.map((s, i) => (
-            <a key={i} href={s.link} target="_blank" rel="noopener noreferrer" style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'var(--bg-social)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', fontSize: '1rem', transition: 'all 0.3s ease' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-social-hover)'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg-social)'; e.currentTarget.style.transform = 'scale(1)'; }}
-            >{s.icon}</a>
+            <a key={i} href={s.link} target="_blank" rel="noopener noreferrer" title={s.label} style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'all 0.3s ease' }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+            >
+              <img src={s.icon} alt={s.label} width={34} height={34} style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover', display: 'block' }} />
+            </a>
           ))}
         </div>
       </div>
