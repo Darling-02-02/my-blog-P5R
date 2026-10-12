@@ -1,107 +1,36 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Header from './Header';
-import quotesRaw from '../../语录.txt?raw';
-import { heroSlideshowImages } from './imageConfig';
+import { heroImage } from './imageConfig';
 
-const preloadSlide = (src: string) => {
-  const img = new Image();
-  img.decoding = 'async';
-  img.src = src;
-};
-
-const initialSlideLayers = () => [
-  { src: heroSlideshowImages[0], active: true },
-  { src: heroSlideshowImages[1] ?? heroSlideshowImages[0], active: false },
-];
-
+// 首屏：一张静态图 + 一行标题 + 一个「往下滑」的指示。
+// 不再轮播（原先每 5 秒换图、每 5 秒换一句语录）：内容区（原 /explore）直接跟在下面，滚轮就能滑下去，
+// 所以这里的按钮也只是把页面滚下去，不做路由跳转。
 export default function Hero() {
-  const navigate = useNavigate();
-  const quotes = useMemo(
-    () =>
-      quotesRaw
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean),
-    [],
-  );
-
-  const currentSlideRef = useRef(0);
-  const activeLayerRef = useRef(0);
-  const [slideLayers, setSlideLayers] = useState(initialSlideLayers);
-  const [quoteIndex, setQuoteIndex] = useState(0);
-  const [isQuoteVisible, setIsQuoteVisible] = useState(true);
-
-  useEffect(() => {
-    heroSlideshowImages.slice(0, 2).forEach(preloadSlide);
-  }, []);
-
-  useEffect(() => {
-    if (heroSlideshowImages.length < 2) return;
-
-    const imgInterval = setInterval(() => {
-      const nextSlide = (currentSlideRef.current + 1) % heroSlideshowImages.length;
-      const nextLayer = activeLayerRef.current === 0 ? 1 : 0;
-
-      setSlideLayers((layers) =>
-        layers.map((layer, index) =>
-          index === nextLayer
-            ? { src: heroSlideshowImages[nextSlide], active: true }
-            : { ...layer, active: false },
-        ),
-      );
-
-      currentSlideRef.current = nextSlide;
-      activeLayerRef.current = nextLayer;
-      preloadSlide(heroSlideshowImages[(nextSlide + 1) % heroSlideshowImages.length]);
-    }, 5000);
-    return () => clearInterval(imgInterval);
-  }, []);
-
-  useEffect(() => {
-    if (!quotes.length) return;
-    let hideTimer = 0;
-    const quoteInterval = setInterval(() => {
-      setIsQuoteVisible(false);
-      hideTimer = window.setTimeout(() => {
-        setQuoteIndex((prev) => (prev + 1) % quotes.length);
-        setIsQuoteVisible(true);
-      }, 450);
-    }, 5000);
-    return () => {
-      clearInterval(quoteInterval);
-      window.clearTimeout(hideTimer);
-    };
-  }, [quotes]);
+  const scrollToContent = () => {
+    document.getElementById('content')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <section id="home" className="hero-section">
       <Header />
       <div className="background-container">
-        {slideLayers.map((slide, index) => (
-          <img
-            key={index}
-            src={slide.src}
-            alt=""
-            className={`background-image ${slide.active ? 'active' : ''}`}
-            aria-hidden="true"
-            decoding="async"
-            loading="eager"
-          />
-        ))}
+        <img
+          src={heroImage}
+          alt=""
+          className="background-image"
+          aria-hidden="true"
+          decoding="async"
+          loading="eager"
+        />
         <div className="background-overlay" />
       </div>
 
       <div className="hero-content">
         <div className="hero-copy">
-          <h1 className="hero-title">灵敏度加满的 blog</h1>
-          <p className={`hero-quote ${isQuoteVisible ? 'quote-visible' : 'quote-hidden'}`}>
-            {quotes[quoteIndex] ?? ''}
-          </p>
+          <h1 className="hero-title">灵敏度加满</h1>
         </div>
 
-        <button type="button" className="hero-scroll" onClick={() => navigate('/explore')} aria-label="进入内容页">
-          <span className="hero-scroll-label">点击进入内容页</span>
+        <button type="button" className="hero-scroll" onClick={scrollToContent} aria-label="进入内容区">
+          <span className="hero-scroll-label">往下滑</span>
           <span className="hero-scroll-pointer">
             <span className="hero-scroll-chevron" />
             <span className="hero-scroll-chevron" />
@@ -136,19 +65,9 @@ export default function Hero() {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          opacity: 0;
           pointer-events: none;
-          transform: translate3d(0, 0, 0) scale(1.02);
-          transition:
-            opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1),
-            transform 7s ease;
-          will-change: opacity, transform;
+          transform: translate3d(0, 0, 0);
           backface-visibility: hidden;
-        }
-
-        .background-image.active {
-          opacity: 1;
-          transform: translate3d(0, 0, 0) scale(1.05);
         }
 
         .background-overlay {
@@ -195,19 +114,6 @@ export default function Hero() {
         @keyframes bounce {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-5px); }
-        }
-
-        .hero-quote {
-          font-size: clamp(0.9rem, 3.8vw, 1.35rem);
-          color: #fff;
-          max-width: 90%;
-          margin: 0 auto;
-          min-height: 2rem;
-          text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
-          font-weight: 500;
-          letter-spacing: 0.3px;
-          line-height: 1.6;
-          padding: 0 0.5rem;
         }
 
         .hero-scroll {
@@ -257,26 +163,9 @@ export default function Hero() {
           50% { transform: translateY(6px); opacity: 1; }
         }
 
-        .quote-visible {
-          opacity: 1;
-          transform: scale(1) translateY(0);
-          transition: all 0.45s ease;
-        }
-
-        .quote-hidden {
-          opacity: 0;
-          transform: scale(0.96) translateY(14px);
-          transition: all 0.45s ease;
-        }
-
         @media (max-width: 768px) {
           .hero-content {
             padding: 4rem 1rem 2rem;
-          }
-
-          .hero-quote {
-            max-width: 95%;
-            min-height: 4.4rem;
           }
         }
       `}</style>
