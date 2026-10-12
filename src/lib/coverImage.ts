@@ -2,22 +2,11 @@ import type { Article } from '../../backend/src/articles/article.types';
 
 const base = import.meta.env.BASE_URL;
 
+// 首页改成单图后 public/slideshow/ 只剩 slideshow-0，池子里不再列已删掉的那 12 张。
 const coverPool = [
   `${base}cover.png`,
   `${base}R-C.jpg`,
   `${base}slideshow/slideshow-0.webp`,
-  `${base}slideshow/slideshow-1.webp`,
-  `${base}slideshow/slideshow-2.webp`,
-  `${base}slideshow/slideshow-3.webp`,
-  `${base}slideshow/slideshow-4.webp`,
-  `${base}slideshow/slideshow-5.webp`,
-  `${base}slideshow/slideshow-6.webp`,
-  `${base}slideshow/slideshow-7.webp`,
-  `${base}slideshow/slideshow-8.webp`,
-  `${base}slideshow/slideshow-9.webp`,
-  `${base}slideshow/slideshow-10.webp`,
-  `${base}slideshow/slideshow-11.webp`,
-  `${base}slideshow/slideshow-12.webp`,
 ];
 
 const hashKey = (value: string) => {
