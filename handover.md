@@ -1,6 +1,6 @@
 # Handover
 
-Last updated: 2026-10-11
+Last updated: 2026-10-13
 
 > 后续变更：专栏/专题子系统（`src/content/topics/`、`/topic/...` 路由、`src/data/topics.ts`、`src/lib/topic-*.ts`、后台「🌱 专题章节」）已整体删除；下文提到它的地方都是当时的记录。
 >
@@ -24,6 +24,10 @@ Last updated: 2026-10-11
 > 2026-10-11：「🔮 神秘力量」进后台，可在控制台改。新增 `src/content/myself.json`（`{"mystic": "…"}`）、`src/lib/myself-content.ts`（纯函数 parse/serialize，坏输入给中文报错、「神秘力量」文案不许为空）、`src/lib/myself-publisher.ts`（GitHub Contents API 读整份/写整份 + sha 校验，409/422 → `PROFILE_CONFLICT`）、`src/data/myself.ts`（构建期 `?raw` 读，解析失败回退默认文案并 `console.error`）；`src/components/MyselfPage.tsx` 那段文案改成读 `myselfContent.mystic`；`src/components/AdminPage.tsx` 新增第三个页签「🔮 个人简介」（文本框 + 保存/还原 + 当前仓库值；冲突时只刷 sha、不冲掉用户输入，给「重新读取」按钮）。测试 `scripts/myself-content.test.mjs`（4 例）+ `scripts/myself-publisher-conflict.test.mjs`（6 例）⇒ `node --test scripts/*.test.mjs` 40/40。同一天把 `npm run validate:content` 加进 `.github/workflows/deploy.yml`（放在 build 之前）：坏内容从此拦在 CI，2026-10-10 那次空 `tags:` 白屏就是这么漏上去的（workflow 原先只跑 `npm run build`）。
 > 用户决定（2026-10-11）：① 后台面板只加「神秘力量」这一条，不做整页编辑器；② 正式上线的站点是 `darling-02.cn`（现在由 Cloudflare 服务，与 `my-blog-p5r.pages.dev` 是同一份产物），CloudBase（env `self-d4g5iy3gmd8f1ce36`）留作手动备用 —— 它的默认域名对浏览器插「风险提醒」页、绑自定义域名要先做腾讯云接入备案，且本机没有 `tcb` 登录态（`~/.cloudbase` 不存在，`tcb env list` 直接挂到超时）；③ 页脚 `vpsLaunchedAt` 继续留 `null`，等正式部署那天再填。
 
+> 2026-10-13：首页不再轮播，并与内容区合并成同一页（**路由结构变了**）。首屏只留 `public/slideshow/slideshow-0.webp` 一张图 + 一行「灵敏度加满」，按钮从「点击进入内容页」改成「往下滑」（`document.getElementById('content')?.scrollIntoView`），`src/components/Hero.tsx` 里那套 `preloadSlide`/`slideLayers`/5000ms 轮播与语录全部删掉；`src/App.tsx` 的 `Home()` 现在是 `<Hero />` + `<div className="secondary-page-theme"><ContentSection standalone /></div>` + `<Footer />`（`src/components/ContentSection.tsx` 的 `<section>` 加了 `id="content"`），`/explore` 路由与 `src/components/ExplorePage.tsx` 一起删掉，`public/_redirects` 里改成 `/explore  /  301`（**仍然不用 `/*` catch-all**，它曾把 `/assets/*` 吞成 index.html）；`ScrollToTop` 改成认 hash（有 hash 就 120ms 后 `scrollIntoView`，否则瞬时回顶），`Header` 的「幕后 / 留言板」改成 `/#blog`、`/#comments`，跨页 hash 也拼进 URL。同时删掉 12 张轮播图（约 1.7MB）与根目录 `语录.txt`（只被 Hero 以 `?raw` 读过）。提交 `910a162`（Hero 单图）、`5df13c8`（合并 /explore）、`e714a2b`（清理）；线上 entry 变 `assets/index-De_dH9T3.js`，实测 `/explore` → 301 → `/`、`/explore#blog` 落地后 `#blog` 顶边 = 0、`/` 首屏只有 1 张 `.background-container img`、语录类元素 0 个。
+> 同日其它：① `c5310fd` + `28a0df1`「神秘力量」真正落进 `src/content/myself.json` 并可在后台改，**CI 同时从 Node 20 升到 Node 22**（`scripts/validate-content.mjs` 直接 import `src/lib/*.ts`，Node 20 会在 Validate content 这步 `ERR_UNKNOWN_FILE_EXTENSION`，run #141 就是这么挂的，Build/Deploy 被整段跳过）；② `c08c2d1` 侧栏「（N 篇正在重建）」改成「（N 篇已上传，刷新页面就能看到）」—— 那行字是「仓库实时篇数 − 当前页面构建期篇数」，SPA 不会自己重新拉 HTML，刷新一次就没了，不是后台没上传；③ `19d4e59` + `9dbe5ba` 修 `src/content/articles/数据下载/datadownload.md` 的三张图（源图在仓库外的 `blog_make/数据库下载.assets/`，复制到 `public/images/数据下载/` 并把 `.assets/` 引用改掉；注意分类目录叫「数据下载」、assets 目录叫「数据库下载」，别照 assets 名建目录），新增 `src/lib/article-images.ts` + `scripts/article-images.test.mjs`，`validate:content` 现在也拦「相对路径图片」与「仓库里没有的图」；④ `2647b4e` 幕后栏目卡一行三张（grid 2→3 列，gap 2.5rem→1.5rem，卡片 430×580→287×417，≤1100px 回落两列、≤640px 一列）。
+> 已知小尾巴：`src/lib/coverImage.ts` 的 `coverPool` 已收敛到 `cover.png` / `R-C.jpg` / `slideshow-0.webp`，但仍然没有调用者（按用户选择先留着不删）；`public/desktop_icon.ico`（79KB，2026-10-12 放进来的）未跟踪且**全仓无任何引用**（favicon 仍是 `index.html:5` 的 `/p5_icon.jpg`），要不要用/提交由用户决定；`public/icon/bilbili.png` 少一个 `i`（用户原样命名，未改）。验收方式：`wrangler pages dev dist --port 8788` 起本地预览（编译产物 + Functions + `_redirects`）再 curl 矩阵 + CDP 真渲染；核对布局一律用视口截图 + DOM 量尺寸，`background-attachment: fixed` + 吸顶侧栏会让全页长截图拼歪。
+
 ## Current Objective
 
 Serve the dynamic article API publicly. The school server runs Node.js 16 only, and its campus network currently blocks all inbound connections from the internet. A concrete alternative host has now been identified (see "Host Candidate" below).
@@ -45,7 +49,7 @@ Serve the dynamic article API publicly. The school server runs Node.js 16 only, 
 - Node 16 compatibility: Fastify `3.29.5`, `@fastify/cors` `7.0.0`, `better-sqlite3` `7.6.2`, `tsx` `3.12.1`, ES2021 target, Fastify 3 CJS type casts in `backend/src/app.ts`.
 - Deployment guide: `docs/backend-deployment-quickstart.md`.
 - Pushed commits: `d3b99b5` (article fixes), `d924198` (Node 16 support), `ff5d15a` (backend column + markdown code/math rendering), `5980684` (admin page can write to the backend API).
-- 前端近期提交（2026-10 这一轮）：`fd8c7c1`（侧栏数据实时化；「资源分享」四条链接被换成「神秘力量」占位）、`91956c7`（WebP 迁移 + 字体非阻塞）、`79e10b3`（KV 访客计数）、`e993362`（小问题批量）、`e9667c5`（撤掉闯祸的 `/*` catch-all）、`f9c0e24`（按路由重写深链接）、`581d061`（空标签解析修复）、`0a4be03`（`/myself` 独立页）、`bd11c6e`（栏目页小卡封面同大卡）、`da81831`（`/myself` 合并大卡）、`2aae9ab`（暗色抬底）、`71e4e06`（网络提示）、`988a571`（页脚基准）。
+- 前端近期提交（2026-10 这一轮）：`fd8c7c1`（侧栏数据实时化；「资源分享」四条链接被换成「神秘力量」占位）、`91956c7`（WebP 迁移 + 字体非阻塞）、`79e10b3`（KV 访客计数）、`e993362`（小问题批量）、`e9667c5`（撤掉闯祸的 `/*` catch-all）、`f9c0e24`（按路由重写深链接）、`581d061`（空标签解析修复）、`0a4be03`（`/myself` 独立页）、`bd11c6e`（栏目页小卡封面同大卡）、`da81831`（`/myself` 合并大卡）、`2aae9ab`（暗色抬底）、`71e4e06`（网络提示）、`988a571`（页脚基准）、`9b95f56`（侧栏社交图标换 `public/icon` 下四张 PNG，原图 1254×1254 压到 96×96）、`1215d94`（`/myself` 的「资料分享」换成「神秘力量」）、`b4e3e25`（删 Study Room）、`d8bf0b0`（「关于本站」文案）、`c5310fd` + `28a0df1`（神秘力量搬进 `myself.json` / CI 升 Node 22）、`c08c2d1`（侧栏提示文案）、`19d4e59` + `9dbe5ba`（文章图片修复 + 图片引用校验）、`2647b4e`（幕后卡三列）、`910a162` + `5df13c8` + `e714a2b`（首页单图 + 合并 `/explore` + 清理）。
 
 ## Local Verification (2026-09-28, frontend side only)
 
