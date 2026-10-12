@@ -1,10 +1,12 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { parseCategoryDocument } from '../src/lib/category-content.ts';
+import { findLocalImageProblems } from '../src/lib/article-images.ts';
 import { parseMyselfDocument } from '../src/lib/myself-content.ts';
 
 const root = process.cwd();
 const articlesRoot = path.join(root, 'src', 'content', 'articles');
+const publicRoot = path.join(root, 'public');
 // tags 可选（空标签是合法文章），所以不列在这里；下面只检查它"是列表"而不是单个字符串。
 const requiredFields = ['id', 'title', 'excerpt', 'category', 'date', 'readTime'];
 const categoriesFile = path.join(root, 'src', 'content', 'categories.json');
@@ -109,6 +111,20 @@ if (statSync(articlesRoot, { throwIfNoEntry: false })?.isDirectory()) {
 
     if (!body.trim()) {
       fail(`${relativePath}: article body is empty`);
+    }
+
+    // 正文里的本地图片：相对路径在 /article/<分类>/<slug> 下一定解析错，public 里没有的文件也不会凭空出现。
+    // 2026-10-12 的 datadownload.md 三张图就是这么等到上线才发现全 404 的。
+    const imageProblems = findLocalImageProblems(
+      body,
+      (pathUnderPublic) => statSync(path.join(publicRoot, pathUnderPublic), { throwIfNoEntry: false })?.isFile() === true,
+    );
+    for (const problem of imageProblems) {
+      fail(
+        problem.reason === 'relative'
+          ? `${relativePath}: 图片 "${problem.src}" 是相对路径，文章页在 /article/<分类>/<slug> 下会解析错；请把图放进 public/ 并用 / 开头的路径引用（例如 /images/${category}/xxx.png）`
+          : `${relativePath}: 图片 "${problem.src}" 在 public/ 下没有这个文件（图片没跟着文章一起进仓库？）`,
+      );
     }
 
     if (ids.has(String(meta.id))) {
