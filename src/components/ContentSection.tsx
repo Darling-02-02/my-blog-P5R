@@ -24,6 +24,7 @@ const ContentSection = ({ standalone = false, children }: ContentSectionProps) =
 
   return (
     <section
+      id="content"
       className="home-content-section"
       style={{
         padding: standalone ? '5.9rem 1rem 2rem' : '2rem 1rem',

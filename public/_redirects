@@ -6,7 +6,9 @@
 # 脚本因 MIME 不匹配被拦，首页直接白屏（2026-10-09 踩过一次）。改完必须 curl 一个
 # 真实 /assets/* 地址确认仍是 application/javascript 或 text/css，再上线。
 
-/explore     /  200
+# /explore 已并进首页（首屏往下滑就是原来的内容区），老书签和外部链接走这条落地。
+# 浏览器跳转时会自己保留 #hash，落地后由 App 的 ScrollToTop 滚到对应区块。
+/explore     /  301
 /myself      /  200
 /article/*   /  200
 # Study Room 页面已删除：老书签直接跳回首页，别落到一个没有路由匹配的白页上。

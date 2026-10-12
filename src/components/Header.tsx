@@ -77,7 +77,7 @@ const Header = () => {
     };
   }, []);
 
-  // 栏目表整个空掉时 /explore 上没有 #blog 这一块，那就别显示「幕后」，省得点了没反应。
+  // 栏目表整个空掉时首页上没有 #blog 这一块，那就别显示「幕后」，省得点了没反应。
   const hasColumns = useMemo(() => getCategoryData(articles).length > 0, [articles, getCategoryData]);
 
   type NavItem = { name: string; href: string; external: boolean; columnsOnly?: boolean };
@@ -85,8 +85,8 @@ const Header = () => {
   const navItems: NavItem[] = [
     { name: '首页', href: '/', external: false },
     { name: '个人简介', href: '/myself', external: false },
-    { name: '幕后', href: '/explore#blog', external: false, columnsOnly: true },
-    { name: '留言板', href: '/explore#comments', external: false },
+    { name: '幕后', href: '/#blog', external: false, columnsOnly: true },
+    { name: '留言板', href: '/#comments', external: false },
     { name: 'GitHub', href: 'https://github.com/Darling-02-02', external: true },
   ];
 
@@ -115,7 +115,8 @@ const Header = () => {
       if (location.pathname === targetPath) {
         document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth' });
       } else {
-        navigate(targetPath);
+        // 跨页时把 hash 一起带上：App 的 ScrollToTop 认这个 hash 并把页面滚到那一块。
+        navigate(`${targetPath}#${hash}`);
       }
       setIsMenuOpen(false);
       return;
