@@ -252,13 +252,14 @@ const StatsCard = () => {
     };
   }, []);
 
-  // 仓库里有、构建期那份里还没有的，就是后台已经提交但线上还没重建完的文章。
+  // 仓库里有、这份页面里还没有的 = 后台已经提交，但你手上这个页面还是旧构建。
+  // 注意这不代表"还在构建中"：构建通常 1 分钟左右就完，剩下的差距是浏览器没重新拉页面（SPA 不会自己刷新）。
   const rebuilding = repoStats ? Math.max(0, repoStats.articleCount - articles.length) : 0;
   const latestArticleDate = articles.reduce((latest, article) => (article.date > latest ? article.date : latest), '');
   const updatedAt = repoStats?.updatedAt ?? latestArticleDate;
   const counterHint = visits ? undefined : '访客统计还没接上，先显示 —';
   const items = [
-    { key: 'articles', label: '文章数目', icon: '📝', value: String(repoStats?.articleCount ?? articles.length), note: rebuilding ? `（${rebuilding} 篇正在重建）` : '', title: undefined },
+    { key: 'articles', label: '文章数目', icon: '📝', value: String(repoStats?.articleCount ?? articles.length), note: rebuilding ? `（${rebuilding} 篇已上传，刷新页面就能看到）` : '', title: undefined },
     { key: 'visitors', label: '访客数', icon: '👥', value: visits ? String(visits.uv) : '—', note: '', title: counterHint },
     { key: 'views', label: '访问量', icon: '👁️', value: visits ? String(visits.pv) : '—', note: '', title: counterHint },
   ];
