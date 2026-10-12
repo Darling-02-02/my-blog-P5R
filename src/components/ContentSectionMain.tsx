@@ -122,7 +122,7 @@ const CategoryLandingCard = ({ category, index, mood }: { category: CategoryData
       onClick={() => navigate(`/category/${encodeURIComponent(category.name)}`)}
       style={{
         background: articleCardBackground,
-        borderRadius: '16px',
+        borderRadius: '14px',
         overflow: 'hidden',
         border: '1px solid var(--border-card)',
         cursor: 'pointer',
@@ -138,14 +138,14 @@ const CategoryLandingCard = ({ category, index, mood }: { category: CategoryData
           loading="lazy"
           decoding="async"
         />
-        <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: category.color, color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '15px', fontSize: '0.85rem', fontWeight: '600' }}>
+        <span style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', background: category.color, color: '#fff', padding: '0.22rem 0.65rem', borderRadius: '13px', fontSize: '0.78rem', fontWeight: '600' }}>
           {categoryCountLabel(category)}
         </span>
         <span className="blog-card-mood" title={mood.label}>{mood.period}</span>
       </div>
-      <div style={{ padding: '1.5rem' }}>
-        <h4 className="blog-card-title" style={{ fontSize: '1.15rem', fontWeight: '600', color: 'var(--text-card-title)', marginBottom: '0.75rem', lineHeight: 1.5 }}>{category.name}</h4>
-        <p className="blog-card-desc" style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.8rem', lineHeight: 1.7 }}>
+      <div style={{ padding: '1.15rem' }}>
+        <h4 className="blog-card-title" style={{ fontSize: '1.05rem', fontWeight: '600', color: 'var(--text-card-title)', marginBottom: '0.6rem', lineHeight: 1.5 }}>{category.name}</h4>
+        <p className="blog-card-desc" style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.7rem', lineHeight: 1.65 }}>
           {category.description}
         </p>
         <span className="blog-card-meta">查看全部 →</span>
@@ -197,7 +197,8 @@ const MainContent = () => {
           />
         </p>
 
-        <div className="home-post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '2.5rem' }}>
+        {/* 一行三张；≤1100px 退回两列、≤640px 一列，规则在 ContentSection.tsx 的 <style> 里 */}
+        <div className="home-post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1.5rem' }}>
           {categoryData.map((category, i) => (
             <CategoryLandingCard key={category.name} category={category} index={i} mood={mood} />
           ))}

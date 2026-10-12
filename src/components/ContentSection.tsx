@@ -65,8 +65,8 @@ const ContentSection = ({ standalone = false, children }: ContentSectionProps) =
         /* 封面右下角的时间段标签，配合「幕后」卡片的全天作息动图 */
         .blog-card-mood {
           position: absolute;
-          right: 1rem;
-          bottom: 1rem;
+          right: 0.75rem;
+          bottom: 0.75rem;
           padding: 0.2rem 0.6rem;
           border-radius: 15px;
           background: rgba(12, 8, 12, 0.55);
@@ -123,7 +123,8 @@ const ContentSection = ({ standalone = false, children }: ContentSectionProps) =
           }
 
           .home-post-grid {
-            gap: 1.5rem !important;
+            /* 大屏一行三张；窄到这个宽度三张就挤了，退回两列 */
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
           }
         }
 
