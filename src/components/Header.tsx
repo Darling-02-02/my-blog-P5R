@@ -16,7 +16,9 @@ const Header = () => {
   const { articles, status, error } = useArticles();
   const { getArticlePath, getCategoryData } = useContent();
   const secondaryBackground = useSecondaryPageBackground();
-  const useLightHeaderTheme = !isDark && location.pathname !== '/';
+  // 首页只有站在 hero 图（深色）上面时才配白字；滚出 hero 之后底色变亮，得换成深字，
+  // 否则浅色主题下导航就是白字压白底。其他页面本来就铺了浅色背景，一直用深字。
+  const useLightHeaderTheme = !isDark && (!isInHeroSection || location.pathname !== '/');
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
   const searchResults = useMemo(() => {
@@ -286,6 +288,7 @@ const Header = () => {
               <input
                 type="text"
                 value={searchQuery}
+                aria-label="搜索文章"
                 onChange={(event) => setSearchQuery(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' && searchResults[0]) {
@@ -302,7 +305,6 @@ const Header = () => {
                   background: 'transparent',
                   border: 'none',
                   color: navTextColor,
-                  outline: 'none',
                   fontSize: '0.875rem',
                   width: '150px',
                   textShadow: useLightHeaderTheme ? 'none' : '0 1px 4px rgba(0,0,0,0.6)',
@@ -321,9 +323,12 @@ const Header = () => {
                   border: 'none',
                   background: 'transparent',
                   cursor: searchResults[0] ? 'pointer' : 'default',
-                  padding: 0,
+                  /* 只有 21px 高，摸不到 WCAG 2.2 的 24px 靶子；靠负 margin 把视觉尺寸还回去 */
+                  padding: '0.6rem',
+                  margin: '-0.6rem',
+                  lineHeight: 1,
                 }}
-                aria-label="Search article"
+                aria-label="搜索文章"
               >
                 🔍
               </button>

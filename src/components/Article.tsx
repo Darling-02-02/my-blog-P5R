@@ -87,7 +87,7 @@ const Article = () => {
             onClick={() => window.location.reload()}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            style={{ padding: '0.8rem 1.5rem', background: '#ff0040', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 700 }}
+            style={{ padding: '0.8rem 1.5rem', background: 'var(--p5-dark-red)', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 700 }}
           >
             重新加载
           </motion.button>
@@ -128,7 +128,7 @@ const Article = () => {
             whileTap={{ scale: 0.95 }}
             style={{
               padding: '1rem 2rem',
-              background: '#ff0040',
+              background: 'var(--p5-dark-red)',
               color: 'white',
               border: 'none',
               borderRadius: '5px',
@@ -170,7 +170,7 @@ const Article = () => {
             background: 'var(--bg-card)',
             border: '1px solid var(--border-card)',
             borderRadius: '20px',
-            color: '#ff0040',
+            color: 'var(--text-link)',
             cursor: 'pointer',
             fontSize: '0.9rem',
             fontWeight: '600',
@@ -183,7 +183,7 @@ const Article = () => {
         </motion.button>
 
         {status === 'error' && error && (
-          <p role="alert" style={{ color: '#b00020', marginBottom: '1rem' }}>文章 API 暂不可用，当前显示本地内容：{error}</p>
+          <p role="alert" style={{ color: 'var(--text-danger)', marginBottom: '1rem' }}>文章 API 暂不可用，当前显示本地内容：{error}</p>
         )}
 
         <motion.header
@@ -197,7 +197,7 @@ const Article = () => {
         >
           <div style={{
             display: 'inline-block',
-            background: '#ff0040',
+            background: 'var(--p5-dark-red)',
             color: '#fff',
             padding: '0.4rem 1rem',
             marginBottom: '1rem',
@@ -291,7 +291,7 @@ const Article = () => {
                 border: '1px solid var(--border-tag)',
                 borderRadius: '15px',
                 fontSize: '0.85rem',
-                color: '#ff0040',
+                color: 'var(--text-link)',
               }}
             >
               #{tag}

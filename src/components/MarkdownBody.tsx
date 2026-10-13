@@ -167,6 +167,14 @@ const MarkdownBody = ({ content }: MarkdownBodyProps) => {
           img({ src, alt, title }) {
             return <MarkdownImage src={src} alt={alt} title={title} onZoom={setZoom} />;
           },
+          p({ children, node }) {
+            // 段落里的 <figure> 是非法嵌套：浏览器会提前闭合 <p>，React 也会报 DOM 警告。
+            // 只要段落里出现图片就换成不违法的容器（图片是块级图注，混排时它照样独占一行）。
+            const hasImage = node?.children.some(
+              (child) => child.type === 'element' && child.tagName === 'img',
+            );
+            return hasImage ? <div className="md-figure-row">{children}</div> : <p>{children}</p>;
+          },
           h2({ children }) {
             const text = String(children).toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '');
             return <h2 id={text}>{children}</h2>;

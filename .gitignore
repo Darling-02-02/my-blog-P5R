@@ -62,5 +62,6 @@ deepseek-gif/
 # Local tool state and generated audit output (public repo: never push these)
 .codegraph/
 .dsh-vision-router/
+.shots/
 security-audit/
 blog-static-upload.zip

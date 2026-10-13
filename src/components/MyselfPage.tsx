@@ -52,7 +52,7 @@ const MyselfContent = () => (
       <h3 style={{ ...subHeadingStyle, marginTop: '2.5rem' }}>💡 兴趣爱好</h3>
       <ul style={{ color: 'var(--text-body)', fontSize: '1.1rem', lineHeight: 2.2, paddingLeft: 0, listStyle: 'none' }}>
         {interests.map((item, index) => (
-          <li key={item} style={index === 0 ? { color: '#ff0040', fontWeight: 500 } : { marginTop: index === 1 ? '0.5rem' : undefined }}>
+          <li key={item} style={index === 0 ? { color: 'var(--text-link)', fontWeight: 500 } : { marginTop: index === 1 ? '0.5rem' : undefined }}>
             {item}
           </li>
         ))}

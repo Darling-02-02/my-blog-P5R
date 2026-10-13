@@ -12,12 +12,35 @@ const articleCardBackground = 'var(--bg-article-card)';
 const aboutBoxBackground = 'var(--bg-article-card)';
 const commentBoxBackground = 'var(--bg-article-card)';
 
+// 栏目色是后台自己挑的任意颜色，固定的白字在黑黄/亮绿上只有 1.5:1。
+// 按亮度选黑字或白字：分界点 0.179 是两种取法的对比度交点，任选一边都不低于 4.5:1。
+const readableInk = (color: string) => {
+  const [, r, g, b] = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(color.trim()) ?? [];
+  if (!r) return '#fff';
+  const luminance = [r, g, b].reduce((sum, channel, index) => {
+    const value = parseInt(channel, 16) / 255;
+    const linear = value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+    return sum + linear * [0.2126, 0.7152, 0.0722][index];
+  }, 0);
+  return luminance > 0.179 ? '#1a1a1a' : '#fff';
+};
+
+const discussionsUrl = 'https://github.com/Darling-02-02/my-blog-P5R/discussions';
+
+const commentNoticeStyle: React.CSSProperties = {
+  margin: '0.9rem 0 0',
+  color: 'var(--text-muted)',
+  fontSize: '0.95rem',
+  lineHeight: 1.8,
+};
+
 const GiscusComments = () => {
   const { isDark } = useTheme();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [shouldLoad, setShouldLoad] = useState(
     () => typeof window !== 'undefined' && !('IntersectionObserver' in window),
   );
+  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'failed'>('idle');
 
   useEffect(() => {
     const container = containerRef.current;
@@ -28,6 +51,7 @@ const GiscusComments = () => {
       ([entry]) => {
         if (!entry.isIntersecting) return;
         setShouldLoad(true);
+        setStatus('loading');
         observer.disconnect();
       },
       { rootMargin: '320px 0px' },
@@ -58,15 +82,46 @@ const GiscusComments = () => {
     script.setAttribute('crossorigin', 'anonymous');
     script.async = true;
 
+    // giscus 的 iframe 是脚本自己插进容器的。脚本报错、或者加载完了容器里还没有 iframe，
+    // 就说明评论区废了（国内网络很常见），这时候必须给一句人话，不能留一个 200px 的空盒子。
+    let retry = 0;
+    const settle = () => {
+      if (container.querySelector('iframe')) {
+        setStatus('ready');
+        return;
+      }
+      retry = window.setTimeout(
+        () => setStatus(container.querySelector('iframe') ? 'ready' : 'failed'),
+        1500,
+      );
+    };
+    script.addEventListener('load', settle);
+    script.addEventListener('error', () => setStatus('failed'));
+
     container.innerHTML = '';
     container.appendChild(script);
 
     return () => {
+      window.clearTimeout(retry);
       container.innerHTML = '';
     };
   }, [isDark, shouldLoad]);
 
-  return <div ref={containerRef} id="giscus-container" style={{ minHeight: '200px' }} />;
+  return (
+    <>
+      <div ref={containerRef} id="giscus-container" style={{ minHeight: '200px' }} />
+      {status === 'loading' && <p style={commentNoticeStyle}>评论加载中…</p>}
+      {status === 'failed' && (
+        <p style={commentNoticeStyle}>
+          评论区没加载出来（giscus.app 不可达或被浏览器拦截）。可以先去{' '}
+          <a href={discussionsUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-link)' }}>
+            GitHub Discussions
+          </a>{' '}
+          留言。
+        </p>
+      )}
+    </>
+  );
 };
 
 // 大类栏目：卡片角标与轮播共用的计数/文案
@@ -138,7 +193,7 @@ const CategoryLandingCard = ({ category, index, mood }: { category: CategoryData
           loading="lazy"
           decoding="async"
         />
-        <span style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', background: category.color, color: '#fff', padding: '0.22rem 0.65rem', borderRadius: '13px', fontSize: '0.78rem', fontWeight: '600' }}>
+        <span style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', background: category.color, color: readableInk(category.color), padding: '0.22rem 0.65rem', borderRadius: '13px', fontSize: '0.78rem', fontWeight: '600' }}>
           {categoryCountLabel(category)}
         </span>
         <span className="blog-card-mood" title={mood.label}>{mood.period}</span>
@@ -221,7 +276,7 @@ const MainContent = () => {
 
           <div style={{ marginTop: '2rem', padding: '1.5rem', background: aboutBoxBackground, borderRadius: '12px', border: '1px solid rgba(255,0,64,0.1)' }}>
             <p style={{ color: 'var(--text-body)', fontSize: '1rem', lineHeight: 1.8, margin: 0 }}>
-              📧 联系邮箱：<a href="mailto:19503862693@163.com" style={{ color: '#ff0040', textDecoration: 'none', fontWeight: '600' }}>19503862693@163.com</a>
+              📧 联系邮箱：<a href="mailto:19503862693@163.com" style={{ color: 'var(--text-link)', textDecoration: 'none', fontWeight: '600' }}>19503862693@163.com</a>
             </p>
           </div>
         </div>

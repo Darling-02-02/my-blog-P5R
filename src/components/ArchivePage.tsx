@@ -97,7 +97,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
               {archiveSummary}
             </p>
             {status === 'error' && error && (
-              <p role="alert" style={{ color: '#ff0047', fontSize: '0.85rem', margin: '0.8rem 0 0' }}>文章 API 暂不可用，已显示本地内容：{error}</p>
+              <p role="alert" style={{ color: 'var(--text-danger)', fontSize: '0.85rem', margin: '0.8rem 0 0' }}>文章 API 暂不可用，已显示本地内容：{error}</p>
             )}
           </header>
 
@@ -134,7 +134,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                             display: 'grid',
                             gridTemplateColumns: '120px 1fr',
                             gap: '1rem',
-                            background: 'rgba(255, 255, 255, 0.78)',
+                            background: 'var(--bg-article-card)',
                             border: '1px solid var(--border-card)',
                             borderRadius: '12px',
                             padding: '0.8rem',
@@ -190,7 +190,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                       style={{
                         border: '1px solid var(--border-tag)',
                         background: 'var(--bg-tag)',
-                        color: '#ff0040',
+                        color: 'var(--text-link)',
                         borderRadius: '999px',
                         padding: '0.2rem 0.55rem',
                         cursor: 'pointer',

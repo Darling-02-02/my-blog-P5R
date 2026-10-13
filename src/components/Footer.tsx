@@ -45,7 +45,7 @@ const Footer = () => {
         textAlign: 'center',
       }}>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-          灵敏度加满の博客已经运行了 <span style={{ color: '#ff0040', fontWeight: '600' }}>{runningTime}</span>
+          灵敏度加满の博客已经运行了 <span style={{ color: 'var(--text-link)', fontWeight: '600' }}>{runningTime}</span>
         </p>
       </div>
     </footer>

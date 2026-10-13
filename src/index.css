@@ -9,7 +9,6 @@
   --p5-black: #0a0a0a;
   --p5-dark-gray: #1a1a1a;
   --p5-gray: #2d2d2d;
-  --p5-light-gray: #888888;
   --p5-white: #ffffff;
   --p5-accent: #ff2d55;
   --p5-gold: #ffd700;
@@ -51,7 +50,10 @@
   --text-strong: #ffffff;
   --text-code: #d4d4d4;
   --text-inline-code: #ff6b8a;
-  --text-link: #ff0040;
+  --text-link: #ff5c7a;
+  /* 品牌红 #ff0040 当正文小字只有 4.1:1（暗底）/ 3.9:1（浅底），
+     所以文字用调过亮度的令牌，纯色块仍然用 --p5-dark-red 保证白字达标。 */
+  --text-danger: #ff8fa3;
 
   /* 底色抬亮后卡片边距也要跟着抬，否则面板之间又会糊成一片 */
   --border-card: rgba(255, 255, 255, 0.12);
@@ -111,15 +113,16 @@
 
   --text-primary: #1a1a1a;
   --text-secondary: #444444;
-  --text-muted: #888888;
+  --text-muted: #666666;
   --text-body: #444444;
   --text-heading: #1a1a1a;
   --text-card-title: #1a1a1a;
   --text-card-body: #555555;
   --text-strong: #1a1a1a;
   --text-code: #333333;
-  --text-inline-code: #ff0040;
-  --text-link: #ff0040;
+  --text-inline-code: #c01f55;
+  --text-link: #c51c51;
+  --text-danger: #b00020;
 
   --border-card: rgba(200, 200, 200, 0.3);
   --border-section: rgba(0, 0, 0, 0.06);
@@ -200,6 +203,7 @@ body {
   --text-code: #3a2a32;
   --text-inline-code: #c01f55;
   --text-link: #c51c51;
+  --text-danger: #b00020;
   --border-card: rgba(85, 53, 64, 0.14);
   --border-section: rgba(85, 53, 64, 0.12);
   --border-tag: rgba(197, 28, 81, 0.24);
@@ -251,6 +255,7 @@ body {
   --text-code: #d6d6d6;
   --text-inline-code: #ff7a95;
   --text-link: #ff5c7a;
+  --text-danger: #ff8fa3;
   --border-card: rgba(255, 255, 255, 0.16);
   --border-section: rgba(255, 255, 255, 0.14);
   --border-tag: rgba(255, 0, 64, 0.35);
@@ -272,6 +277,12 @@ body {
 
 .secondary-page-theme .scanlines::after {
   opacity: 0.04;
+}
+
+/* Firefox 不认 ::-webkit-scrollbar，只会画原生滚动条；补上 token 让它跟 Chromium 那边一致。 */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 /* Custom Scrollbar */
@@ -298,50 +309,33 @@ body {
   color: #ffffff;
 }
 
-/* Glitch effect for text */
-.glitch {
-  position: relative;
+/* 键盘焦点环。浏览器默认那圈蓝框不属于这套配色，所以统一用品牌红；
+   只挂在 :focus-visible 上——鼠标点击不该留下框，键盘 Tab 必须看得见。
+   别再往组件里写内联 outline: none，那会连键盘焦点一起抹掉（搜索框踩过一次）。 */
+:focus-visible {
+  outline: 2px solid var(--p5-red);
+  outline-offset: 2px;
 }
 
-.glitch::before,
-.glitch::after {
-  content: attr(data-text);
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+/* 插入符和 placeholder 也是配色的一部分。
+   placeholder 用 opacity 而不是固定灰度，深浅两套主题里都跟着输入文字的颜色走。 */
+input::placeholder,
+textarea::placeholder {
+  color: inherit;
+  opacity: 0.7;
 }
 
-.glitch::before {
-  animation: glitch-1 2s infinite;
-  color: var(--p5-cyan);
-  z-index: -1;
-}
-
-.glitch::after {
-  animation: glitch-2 2s infinite;
-  color: var(--p5-red);
-  z-index: -2;
-}
-
-@keyframes glitch-1 {
-  0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
-  20% { clip-path: inset(20% 0 30% 0); transform: translate(-2px, 2px); }
-  40% { clip-path: inset(50% 0 20% 0); transform: translate(2px, -2px); }
-  60% { clip-path: inset(10% 0 60% 0); transform: translate(-2px, 0); }
-  80% { clip-path: inset(80% 0 5% 0); transform: translate(2px, 2px); }
-}
-
-@keyframes glitch-2 {
-  0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
-  20% { clip-path: inset(60% 0 10% 0); transform: translate(2px, -2px); }
-  40% { clip-path: inset(30% 0 40% 0); transform: translate(-2px, 2px); }
-  60% { clip-path: inset(10% 0 70% 0); transform: translate(2px, 0); }
-  80% { clip-path: inset(40% 0 30% 0); transform: translate(-2px, -2px); }
+input,
+textarea {
+  caret-color: var(--p5-red);
 }
 
 /* Scanline effect */
+.scanlines {
+  position: relative;
+  min-height: 100vh;
+}
+
 .scanlines::after {
   content: '';
   position: fixed;
@@ -365,26 +359,6 @@ body {
   .scanlines::after {
     display: none;
   }
-}
-
-/* Floating animation */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-.floating {
-  animation: float 3s ease-in-out infinite;
-}
-
-/* Pulse animation */
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 5px var(--p5-red), 0 0 10px var(--p5-red); }
-  50% { box-shadow: 0 0 20px var(--p5-red), 0 0 30px var(--p5-red); }
-}
-
-.pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
 }
 
 /* Theme transition —— 只过渡会被主题改变的属性。
@@ -706,6 +680,11 @@ body {
   padding-bottom: 0.8rem;
 }
 
+/* 段落里有图片时 <p> 换成的合法容器：替段落保留纵向节奏，图注块自己的边距照旧 */
+.markdown-body .md-figure-row {
+  margin: 0 0 var(--md-flow);
+}
+
 /* 图片是一等公民：居中、等比、圆角、轻阴影、可点开大图、alt 变图注 */
 .markdown-body .md-figure {
   display: flex;
@@ -810,8 +789,8 @@ body {
 }
 
 .md-lightbox-close:hover {
-  background: var(--p5-red);
-  border-color: var(--p5-red);
+  background: var(--p5-dark-red);
+  border-color: var(--p5-dark-red);
 }
 
 @keyframes md-lightbox-in {

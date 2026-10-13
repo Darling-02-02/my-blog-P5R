@@ -142,13 +142,13 @@ const AnnouncementCard = () => {
     <SidebarCard title="公告" icon="📢">
       <div style={{ minHeight: '140px' }}>
         <p style={{ color: 'var(--text-card-body)', fontSize: '0.9rem', lineHeight: 1.8, margin: 0 }}>
-          🌍 欢迎来自 <strong style={{ color: '#ff0040' }}>{location}</strong> 的小伙伴
+          🌍 欢迎来自 <strong style={{ color: 'var(--text-link)' }}>{location}</strong> 的小伙伴
           {!isPrecise && (
             <button
               type="button"
               onClick={requestPreciseLocation}
               disabled={isLocating}
-              style={{ marginLeft: '0.4rem', border: '1px solid var(--border-card)', borderRadius: '8px', padding: '0.1rem 0.45rem', background: 'transparent', color: 'var(--text-muted)', fontSize: '0.78rem', cursor: isLocating ? 'progress' : 'pointer' }}
+              style={{ marginLeft: '0.4rem', border: '1px solid var(--border-card)', borderRadius: '8px', padding: '0.3rem 0.6rem', background: 'transparent', color: 'var(--text-muted)', fontSize: '0.78rem', cursor: isLocating ? 'progress' : 'pointer' }}
             >
               {isLocating ? '定位中…' : '📍 用当前位置'}
             </button>
@@ -158,7 +158,7 @@ const AnnouncementCard = () => {
           ⏰ 现在时间：<strong>{time}</strong>
         </p>
         <p style={{ color: 'var(--text-card-body)', fontSize: '0.9rem', lineHeight: 1.8, margin: '0 0 0.8rem 0' }}>
-          🌤️ 今天天气：<strong style={{ color: '#ff0040' }}>{weather}</strong>
+          🌤️ 今天天气：<strong style={{ color: 'var(--text-link)' }}>{weather}</strong>
         </p>
         <div style={{ borderTop: '1px solid var(--border-section)', paddingTop: '0.8rem', marginTop: '0.5rem' }}>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: 1.7, margin: 0 }}>
@@ -193,18 +193,22 @@ const TagsCard = () => {
         {tagData.map(tag => {
           const size = getTagSize(tag.count);
           return (
-            <span 
+            <button
+              type="button"
               key={tag.name}
               onClick={() => navigate(`/tag/${encodeURIComponent(tag.name)}`)}
-              style={{ 
+              style={{
                 ...size,
-                color: '#ff0040',
+                color: 'var(--text-link)',
                 fontWeight: tag.count >= 3 ? '700' : '500',
-                background: 'var(--bg-tag)', 
-                border: '1px solid var(--border-tag)', 
+                background: 'var(--bg-tag)',
+                border: '1px solid var(--border-tag)',
                 borderRadius: '15px',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
+                /* button 不继承页面字体，也不吃外边距重置，补两行免得尺寸跟隔壁的 span 版跑偏 */
+                fontFamily: 'inherit',
+                margin: 0,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'scale(1.1)';
@@ -216,7 +220,7 @@ const TagsCard = () => {
               }}
             >
               #{tag.name}
-            </span>
+            </button>
           );
         })}
       </div>
@@ -269,7 +273,7 @@ const StatsCard = () => {
       {items.map(item => (
         <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{item.icon} {item.label}</span>
-          <span title={item.title} style={{ color: '#ff0040', fontWeight: '700', fontSize: '1rem', textAlign: 'right' }}>
+          <span title={item.title} style={{ color: 'var(--text-link)', fontWeight: '700', fontSize: '1rem', textAlign: 'right' }}>
             {item.value}
             {item.note && <span style={{ color: 'var(--text-muted)', fontWeight: '400', fontSize: '0.78rem', marginLeft: '0.3rem' }}>{item.note}</span>}
           </span>

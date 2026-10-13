@@ -17,10 +17,11 @@ const ContentSection = ({ standalone = false, children }: ContentSectionProps) =
   const { isDark } = useTheme();
   const secondaryBackground = useSecondaryPageBackground();
   const backgroundPosition = useScrollBackgroundPosition();
-  // CY.webp 本身很亮（平均亮度 0.78），夜间模式必须压一层黑，否则页面背景还是白的
+  // CY.webp 本身很亮（平均亮度 0.78），夜间模式必须压一层黑，否则页面背景还是白的；
+  // 白天模式原来只叠了 3%~10% 白，正文直接糊在彩色插画上（实测对比度 1.1:1），同样要压一层白。
   const sectionBackground = isDark
     ? `linear-gradient(180deg, rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0.72) 24%, rgba(0, 0, 0, 0.82) 100%), url(${secondaryBackground})`
-    : `linear-gradient(180deg, rgba(255, 249, 244, 0.03), rgba(255, 246, 240, 0.06) 24%, rgba(255, 242, 235, 0.1) 100%), url(${secondaryBackground})`;
+    : `linear-gradient(180deg, rgba(255, 249, 244, 0.66), rgba(255, 246, 240, 0.72) 24%, rgba(255, 242, 235, 0.82) 100%), url(${secondaryBackground})`;
 
   return (
     <section
@@ -70,7 +71,8 @@ const ContentSection = ({ standalone = false, children }: ContentSectionProps) =
           bottom: 0.75rem;
           padding: 0.2rem 0.6rem;
           border-radius: 15px;
-          background: rgba(12, 8, 12, 0.55);
+          /* 55% 的黑底压在亮封面上只有 2.5:1，白字会糊；压到 85% 才是干净的黑底白字 */
+          background: rgba(10, 6, 9, 0.85);
           color: #fff;
           font-size: 0.75rem;
           letter-spacing: 0.04em;
@@ -87,7 +89,7 @@ const ContentSection = ({ standalone = false, children }: ContentSectionProps) =
         }
 
         .blog-card:hover .blog-card-title {
-          color: #ff0040;
+          color: var(--text-link);
         }
 
         .blog-card-desc {
@@ -98,13 +100,14 @@ const ContentSection = ({ standalone = false, children }: ContentSectionProps) =
         }
 
         .blog-card-meta {
-          color: #858585;
-          font-size: 90%;
+          color: var(--text-muted);
+          /* 90% 会跟着卡片字号一起缩水，窄屏上掉到 10.5px；给它一个 12.8px 的下限 */
+          font-size: max(0.8rem, 90%);
           transition: color 0.2s ease-in-out;
         }
 
         .blog-card:hover .blog-card-meta {
-          color: #ff0040;
+          color: var(--text-link);
         }
 
         .blog-fade-text {

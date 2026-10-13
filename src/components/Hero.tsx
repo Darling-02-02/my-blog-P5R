@@ -92,28 +92,15 @@ export default function Hero() {
           text-align: center;
         }
 
+        /* 首屏标题：用站点自己的红黑硬边字，而不是粉紫渐变色（渐变在深色插画上发灰，
+           而且「渐变位移 + 上下弹跳」两条无限动画同时跑会把视线从正文拉走）。 */
         .hero-title {
           font-size: clamp(1.5rem, 8vw, 4rem);
           font-weight: 700;
           margin-bottom: 1rem;
-          background: linear-gradient(45deg, #ff6b9d, #c44569, #ff9ff3, #feca57, #ff9ff3, #c44569, #ff6b9d);
-          background-size: 300% 300%;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          animation: gradientShift 4s ease infinite, bounce 2s ease-in-out infinite;
+          color: #fff;
+          text-shadow: 0.055em 0.055em 0 var(--p5-red), 0 6px 26px rgba(0, 0, 0, 0.55);
           word-break: break-word;
-        }
-
-        @keyframes gradientShift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
         }
 
         .hero-scroll {

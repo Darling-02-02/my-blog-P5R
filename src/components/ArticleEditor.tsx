@@ -134,7 +134,7 @@ const ArticleEditor = ({ initialArticle, categories, busy, error, onSave, onCanc
           </button>
         </div>
       </div>
-      {importMessage && <p role="status" style={{ margin: 0, color: importMessage.includes('失败') || importMessage.includes('不能') || importMessage.includes('请选择') ? '#b00020' : 'var(--text-muted)' }}>{importMessage}</p>}
+      {importMessage && <p role="status" style={{ margin: 0, color: importMessage.includes('失败') || importMessage.includes('不能') || importMessage.includes('请选择') ? 'var(--text-danger)' : 'var(--text-muted)' }}>{importMessage}</p>}
       {preview ? (
         <div style={{ minHeight: '360px', padding: '1rem', border: '1px solid var(--border-card)', borderRadius: '8px', overflow: 'auto' }}>
           <Suspense fallback={<p role="status">加载预览…</p>}>
@@ -145,13 +145,13 @@ const ArticleEditor = ({ initialArticle, categories, busy, error, onSave, onCanc
         <textarea aria-label="Markdown 正文" required value={form.content} onChange={(event) => update('content', event.target.value)} style={{ ...inputStyle, minHeight: '360px', resize: 'vertical', fontFamily: 'monospace', lineHeight: 1.6 }} />
       )}
 
-      {error && <p role="alert" style={{ color: '#b00020', margin: 0 }}>{error}</p>}
+      {error && <p role="alert" style={{ color: 'var(--text-danger)', margin: 0 }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
         <button type="button" onClick={onCancel} disabled={busy} style={{ padding: '0.7rem 1.2rem', border: '1px solid var(--border-card)', borderRadius: '8px', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer' }}>
           取消
         </button>
-        <button type="submit" disabled={busy} style={{ padding: '0.7rem 1.2rem', border: 'none', borderRadius: '8px', background: '#ff0040', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>
+        <button type="submit" disabled={busy} style={{ padding: '0.7rem 1.2rem', border: 'none', borderRadius: '8px', background: 'var(--p5-dark-red)', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>
           {busy ? '保存中…' : '保存文章'}
         </button>
       </div>
