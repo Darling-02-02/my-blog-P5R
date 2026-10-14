@@ -73,6 +73,10 @@
   --table-header-bg: rgba(255, 0, 64, 0.15);
   --table-border: rgba(255, 255, 255, 0.1);
 
+  /* 首屏压暗层：深色主题下背景已经被 brightness(0.55) + 全局遮罩压过一档，白字站得住，
+     所以这里是透明的（等于不做）。真正铺它的是浅色主题那一档。 */
+  --hero-scrim: transparent;
+
   font-family: 'Noto Sans SC', Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -140,6 +144,10 @@
 
   --table-header-bg: rgba(255, 0, 64, 0.1);
   --table-border: #eee;
+
+  /* 浅色主题的 CY.webp 平均亮度 0.78，白字直接压上去只有 1.5:1 左右；铺 0.5 之后
+     最亮的线稿块也还有 4.3:1，大字号（3:1）稳过。 */
+  --hero-scrim: rgba(255, 249, 244, 0.55);
 
   color-scheme: light;
   color: var(--text-primary);

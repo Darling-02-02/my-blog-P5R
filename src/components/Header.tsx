@@ -4,21 +4,30 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
 import { useTheme } from '../contexts/useTheme';
-import { useSecondaryPageBackground } from './usePageBackground';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isInHeroSection, setIsInHeroSection] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  // 滑动离开顶部时下沿浮出一条虚线，回到顶部收回。只存一个布尔量，
+  // 值没变时 setState 会被 React 跳过，所以直接挂在 scroll 事件上也不需要节流。
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const syncScrolled = () => setIsScrolled(window.scrollY > 4);
+    syncScrolled();
+    window.addEventListener('scroll', syncScrolled, { passive: true });
+    return () => window.removeEventListener('scroll', syncScrolled);
+  }, []);
   const location = useLocation();
   const navigate = useNavigate();
   const { isDark } = useTheme();
   const { articles, status, error } = useArticles();
   const { getArticlePath, getCategoryData } = useContent();
-  const secondaryBackground = useSecondaryPageBackground();
-  // 首页只有站在 hero 图（深色）上面时才配白字；滚出 hero 之后底色变亮，得换成深字，
-  // 否则浅色主题下导航就是白字压白底。其他页面本来就铺了浅色背景，一直用深字。
-  const useLightHeaderTheme = !isDark && (!isInHeroSection || location.pathname !== '/');
+  // 页头不铺自己的底色（原来 hero / 子页 / 滚出首屏各一层，再加一层面纱），整条栏是透明的，
+  // 直接压在整站唯一那张背景上，所以字色只跟主题走：浅色给深字，深色给白字。
+  // 之前按「是否站在 hero 上」切换，等于假设 hero 是深底——可浅色主题的 hero 底是亮的，
+  // 于是首页首屏变成白字压白底：「搜索文章...」直接看不见了。
+  const useLightHeaderTheme = !isDark;
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
   const searchResults = useMemo(() => {
@@ -40,44 +49,6 @@ const Header = () => {
 
     return articleHits.slice(0, 6);
   }, [normalizedQuery, articles, getArticlePath]);
-
-  const isArticlePage =
-    location.pathname.startsWith('/article') ||
-    location.pathname.startsWith('/tag/') ||
-    location.pathname.startsWith('/category/');
-
-  useEffect(() => {
-    let frame = 0;
-
-    const handleScroll = () => {
-      if (frame) return;
-
-      frame = window.requestAnimationFrame(() => {
-        frame = 0;
-        const heroSection = document.getElementById('home');
-
-        if (!heroSection) {
-          setIsInHeroSection((prev) => (prev ? false : prev));
-          return;
-        }
-
-        const rect = heroSection.getBoundingClientRect();
-        const nextIsInHero = rect.bottom > 0;
-        setIsInHeroSection((prev) => (prev === nextIsInHero ? prev : nextIsInHero));
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll);
-    handleScroll();
-    return () => {
-      if (frame) {
-        window.cancelAnimationFrame(frame);
-      }
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
-    };
-  }, []);
 
   // 栏目表整个空掉时首页上没有 #blog 这一块，那就别显示「幕后」，省得点了没反应。
   const hasColumns = useMemo(() => getCategoryData(articles).length > 0, [articles, getCategoryData]);
@@ -134,21 +105,6 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
-  const headerOverlay = useLightHeaderTheme
-    ? 'linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.02))'
-    : isDark
-      ? 'linear-gradient(to bottom, rgba(10,10,10,0.24), rgba(10,10,10,0.08))'
-      : 'linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(255,255,255,0.06))';
-
-  const articleBg = useLightHeaderTheme
-    ? `linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.03)), url(${secondaryBackground})`
-    : isDark
-      ? `linear-gradient(135deg, rgba(10,10,18,0.62), rgba(10,10,18,0.44)), url(${secondaryBackground})`
-      : `linear-gradient(135deg, rgba(255,255,255,0.48), rgba(255,255,255,0.28)), url(${secondaryBackground})`;
-
-  const heroBg = isDark
-    ? 'linear-gradient(135deg, rgba(20,20,20,0.6), rgba(26,26,46,0.46))'
-    : 'linear-gradient(135deg, rgba(255,255,255,0.58), rgba(245,248,252,0.42))';
   const navTextColor = useLightHeaderTheme ? '#26191d' : '#ffffff';
   const navTextShadow = useLightHeaderTheme ? '0 1px 0 rgba(255,255,255,0.7)' : '0 2px 7px rgba(0,0,0,0.72)';
   const searchShellBackground = useLightHeaderTheme ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.14)';
@@ -166,64 +122,14 @@ const Header = () => {
         left: 0,
         right: 0,
         zIndex: 1000,
-        borderBottom: '2px solid rgba(255, 0, 64, 0.65)',
-        boxShadow: '0 2px 14px rgba(255, 0, 64, 0.2)',
-        backdropFilter: 'blur(7px)',
-        overflow: 'hidden',
+        // 虚线：浅色主题黑、深色主题白（就是标题墨色 token，深色主题下纯黑等于看不见）。
+        // 未滚动时用同宽的透明边框占位，栏高不会因它出现/消失而跳 2px。
+        borderBottom: isScrolled ? '2px dashed var(--text-heading)' : '2px dashed transparent',
       }}
     >
-      <AnimatePresence mode="sync">
-        {isArticlePage ? (
-          <motion.div
-            key="article-bg"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: articleBg,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center top',
-            }}
-          />
-        ) : isInHeroSection ? (
-          <motion.div
-            key="hero-bg"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
-            style={{ position: 'absolute', inset: 0, background: heroBg }}
-          />
-        ) : (
-          <motion.div
-            key="theme-bg"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.45 }}
-               style={{
-                 position: 'absolute',
-                 inset: 0,
-                backgroundImage: isDark
-                  ? `linear-gradient(rgba(10, 10, 10, 0.62), rgba(10, 10, 10, 0.62)), url(${secondaryBackground})`
-                  : `url(${secondaryBackground})`,
-                 backgroundSize: 'cover',
-                backgroundPosition: 'center top',
-                 backgroundRepeat: 'no-repeat',
-               }}
-          />
-        )}
-      </AnimatePresence>
-
-      <div style={{ position: 'absolute', inset: 0, background: headerOverlay, zIndex: 1 }} />
 
       <nav
         style={{
-          position: 'relative',
-          zIndex: 2,
           maxWidth: '1200px',
           margin: '0 auto',
           padding: '0.9rem 2rem',
