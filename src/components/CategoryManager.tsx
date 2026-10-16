@@ -129,7 +129,7 @@ export default function CategoryManager({ token, categories, sha, articles, onCh
       <div style={{ display: 'grid', gap: '0.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
           <h2 style={{ margin: 0, color: 'var(--text-heading)', fontSize: '1.1rem' }}>幕后栏目（{categories.length}）</h2>
-          <button type="button" onClick={() => openForm(null)} style={{ border: 'none', borderRadius: 8, padding: '0.5rem 0.9rem', background: 'var(--p5-dark-red)', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>＋ 新建栏目</button>
+          <button type="button" onClick={() => openForm(null)} style={{ border: 'none', borderRadius: 8, padding: '0.5rem 0.9rem', background: 'var(--accent-fill)', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>＋ 新建栏目</button>
         </div>
         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.82rem' }}>
           栏目决定首页卡片和 /category/&lt;栏目名&gt; 页面，这里的顺序就是首页卡片顺序；还没有文章的栏目也会显示。
@@ -138,7 +138,7 @@ export default function CategoryManager({ token, categories, sha, articles, onCh
         {categories.map((category, index) => {
           const articleTotal = articleCount(category.name);
           return (
-            <div key={category.name} style={{ borderTop: '1px solid var(--border-section)', padding: '0.7rem', borderRadius: 10, display: 'grid', gap: '0.4rem', background: editing === category.name ? 'rgba(255,0,64,0.07)' : 'transparent' }}>
+            <div key={category.name} style={{ borderTop: '1px solid var(--border-section)', padding: '0.7rem', borderRadius: 10, display: 'grid', gap: '0.4rem', background: editing === category.name ? 'var(--bg-hover)' : 'transparent' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <span aria-hidden style={{ width: 12, height: 12, borderRadius: '50%', background: category.color, display: 'inline-block' }} />
                 <strong style={{ color: 'var(--text-heading)' }}>{category.name}</strong>
@@ -180,7 +180,7 @@ export default function CategoryManager({ token, categories, sha, articles, onCh
           </div>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button type="submit" disabled={busy} style={{ ...inputStyle, width: 'auto', border: 0, background: 'var(--p5-dark-red)', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>{busy ? '提交中…' : editing === null ? '新建栏目' : '保存修改'}</button>
+          <button type="submit" disabled={busy} style={{ ...inputStyle, width: 'auto', border: 0, background: 'var(--accent-fill)', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>{busy ? '提交中…' : editing === null ? '新建栏目' : '保存修改'}</button>
           <button type="button" disabled={busy} onClick={() => { setEditing(null); setDraft(emptyDraft()); setFormOpen(false); }} style={{ ...inputStyle, width: 'auto', cursor: 'pointer' }}>取消</button>
         </div>
       </form>}

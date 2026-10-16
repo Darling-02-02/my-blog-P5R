@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 import MermaidDiagram from './MermaidDiagram';
 import 'katex/dist/katex.min.css';
 import 'highlight.js/styles/github-dark-dimmed.css';
+import { headingId } from '../lib/heading-id';
 import { textOf } from '../lib/hast-text';
 import type { HastNode } from '../lib/hast-text';
 
@@ -175,9 +176,11 @@ const MarkdownBody = ({ content }: MarkdownBodyProps) => {
             );
             return hasImage ? <div className="md-figure-row">{children}</div> : <p>{children}</p>;
           },
-          h2({ children }) {
-            const text = String(children).toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '');
-            return <h2 id={text}>{children}</h2>;
+          h2({ children, node }) {
+            return <h2 id={headingId(textOf(node as HastNode))}>{children}</h2>;
+          },
+          h3({ children, node }) {
+            return <h3 id={headingId(textOf(node as HastNode))}>{children}</h3>;
           },
           a({ href, children }) {
             return (

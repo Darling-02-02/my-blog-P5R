@@ -59,6 +59,7 @@ const Header = () => {
     { name: '首页', href: '/', external: false },
     { name: '个人简介', href: '/myself', external: false },
     { name: '幕后', href: '/#blog', external: false, columnsOnly: true },
+    { name: '友链', href: '/#links', external: false },
     { name: '留言板', href: '/#comments', external: false },
     { name: 'GitHub', href: 'https://github.com/Darling-02-02', external: true },
   ];
@@ -108,7 +109,7 @@ const Header = () => {
   const navTextColor = useLightHeaderTheme ? '#26191d' : '#ffffff';
   const navTextShadow = useLightHeaderTheme ? '0 1px 0 rgba(255,255,255,0.7)' : '0 2px 7px rgba(0,0,0,0.72)';
   const searchShellBackground = useLightHeaderTheme ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.14)';
-  const searchShellBorder = useLightHeaderTheme ? '1px solid rgba(255, 0, 64, 0.18)' : '1px solid rgba(255,255,255,0.2)';
+  const searchShellBorder = useLightHeaderTheme ? '1px solid rgba(0, 0, 0, 0.16)' : '1px solid rgba(255,255,255,0.2)';
   const mobileMenuBackground = useLightHeaderTheme ? 'rgba(255,255,255,0.76)' : 'rgba(0,0,0,0.65)';
 
   return (
@@ -143,7 +144,7 @@ const Header = () => {
           style={{
             fontSize: '1.8rem',
             fontWeight: 700,
-                color: '#ff0040',
+                color: 'var(--accent)',
                 fontFamily: '"Ma Shan Zheng", "ZCOOL KuaiLe", cursive',
                 letterSpacing: '4px',
                 textShadow: useLightHeaderTheme ? '0 1px 0 rgba(255,255,255,0.62)' : '0 2px 10px rgba(0,0,0,0.38)',
@@ -160,7 +161,7 @@ const Header = () => {
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.08 + 0.2 }}
-              whileHover={{ scale: 1.06, color: '#ff0040' }}
+              whileHover={{ scale: 1.06, color: 'var(--accent)' }}
               style={{
                 color: navTextColor,
                 background: 'transparent',
@@ -186,7 +187,7 @@ const Header = () => {
                 display: 'flex',
                 alignItems: 'center',
                 background: searchShellBackground,
-                borderRadius: '20px',
+                borderRadius: 'var(--radius-card)',
                 padding: '0.45rem 0.9rem',
                 border: searchShellBorder,
               }}
@@ -224,7 +225,7 @@ const Header = () => {
                   }
                 }}
                 style={{
-                  color: '#ff0040',
+                  color: 'var(--accent)',
                   fontSize: '1rem',
                   border: 'none',
                   background: 'transparent',
@@ -249,8 +250,8 @@ const Header = () => {
                   width: '320px',
                   maxWidth: 'min(320px, 90vw)',
                   background: isDark ? 'rgba(18,18,24,0.96)' : 'rgba(255,255,255,0.98)',
-                  border: '1px solid rgba(255, 0, 64, 0.28)',
-                  borderRadius: '16px',
+                  border: isDark ? '1px solid rgba(255, 255, 255, 0.24)' : '1px solid rgba(0, 0, 0, 0.16)',
+                  borderRadius: 'var(--radius-card)',
                   boxShadow: '0 18px 40px rgba(0, 0, 0, 0.25)',
                   overflow: 'hidden',
                   backdropFilter: 'blur(12px)',

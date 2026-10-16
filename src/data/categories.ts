@@ -27,7 +27,11 @@ export const categoryDefinitions: CategoryDefinition[] = categoryInputs.map(
   }),
 );
 
-const fallbackColors = ['#f39c12', '#8e44ad', '#2ecc71', '#e67e22'];
+// 没有在后台栏目表里配过色的栏目（比如只靠文章 frontmatter 自动生成的这种）用这里的兜底色。
+// 原来是一组高饱和色轮流取（#f39c12 琥珀 / #8e44ad 紫 / #2ecc71 绿 / #e67e22 橙），
+// 整站改黑白灰之后只剩一个中性深灰：深浅主题下都是「白字压深灰块」，两层对比都达标。
+// 后台里显式配过颜色的栏目不受影响，照旧用它们各自的颜色。
+const fallbackColors = ['#3f3f3f'];
 
 export const getCategoryDefinition = (name: string) =>
   categoryDefinitions.find((category) => category.name === name);

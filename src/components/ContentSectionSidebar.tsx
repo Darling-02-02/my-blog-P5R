@@ -14,7 +14,6 @@ const announcementSlogans = [
   '凡所有相，皆是虚妄',
   '天地不仁，以万物为刍狗',
   '人类的悲欢并不相通，我只觉得他们吵闹',
-  '他人即地狱',
   '存在先于本质',
   '人是一根会思考的芦苇',
   '上帝死了，是我们杀了他',
@@ -35,7 +34,7 @@ const SidebarCard = ({
 }) => (
   <div style={{
     background: sidebarBackground,
-    borderRadius: '14px',
+    borderRadius: 'var(--radius-card)',
     border: '1px solid var(--border-card)',
     backdropFilter: 'blur(15px)',
     boxShadow: 'var(--shadow-card)',
@@ -66,12 +65,14 @@ const SidebarCard = ({
 // 个人资料
 const ProfileCard = () => {
   const [isSpinning, setIsSpinning] = useState(false);
-  // 图标取自 public/icon/（原来是 1254×1254、单张 1.5MB，已压到 96×96、单张约 12KB）。
+  // 图标换成各平台自己的官方标记：Simple Icons 的品牌色圆底 + 白色标记，存成 public/icon/*.svg。
+  // 原来那套「白底圆角贴纸」PNG（96×96）缩到 34px 落在浅色卡片上，整排看着就是灰白一片；
+  // SVG 每张不到 1.5KB，深浅两套主题都清楚（深色主题下深色那两张靠一圈浅灰描边站得住）。
   const socials = [
-    { icon: `${base}icon/QQ.png`, label: 'QQ', link: 'https://wpa.qq.com/msgrd?v=3&uin=1651816574' },
-    { icon: `${base}icon/bilbili.png`, label: '哔哩哔哩', link: 'https://space.bilibili.com/84526582' },
-    { icon: `${base}icon/github.png`, label: 'GitHub', link: 'https://github.com/Darling-02-02' },
-    { icon: `${base}icon/steam.png`, label: 'Steam', link: 'https://steamcommunity.com/profiles/76561199175590351/' },
+    { icon: `${base}icon/qq.svg`, label: 'QQ', link: 'https://wpa.qq.com/msgrd?v=3&uin=1651816574' },
+    { icon: `${base}icon/bilibili.svg`, label: '哔哩哔哩', link: 'https://space.bilibili.com/84526582' },
+    { icon: `${base}icon/github.svg`, label: 'GitHub', link: 'https://github.com/Darling-02-02' },
+    { icon: `${base}icon/steam.svg`, label: 'Steam', link: 'https://steamcommunity.com/profiles/76561199175590351/' },
   ];
   return (
     <SidebarCard>
@@ -84,14 +85,16 @@ const ProfileCard = () => {
             height: '90px',
             borderRadius: '50%',
             background: `url(${base}头像.jpg) center/cover`,
-            border: '3px solid rgba(255, 0, 64, 0.5)',
+            /* 描边跟着主题走。原来那圈品牌红是这张卡上唯一的彩色，去掉红之后留一圈中性的细边
+               就够（首屏那张放大的头像连描边都没有，两处观感一致）。
+               transition 一并删掉：这条 border-color 现在没有任何代码会改它。 */
+            border: '3px solid var(--border-card)',
             margin: '0 auto 1rem',
             cursor: 'pointer',
             animation: isSpinning ? 'avatarSpin 0.4s linear infinite' : 'none',
-            transition: 'border-color 0.3s ease',
           }}
         />
-        <h2 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.3rem', color: '#ff0040' }}>灵敏度加满</h2>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.3rem', color: 'var(--accent)' }}>灵敏度加满</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>无限进步。</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
           {socials.map((s, i) => (
@@ -104,7 +107,6 @@ const ProfileCard = () => {
           ))}
         </div>
       </div>
-      <style>{`@keyframes avatarSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </SidebarCard>
   );
 };
@@ -148,7 +150,7 @@ const AnnouncementCard = () => {
               type="button"
               onClick={requestPreciseLocation}
               disabled={isLocating}
-              style={{ marginLeft: '0.4rem', border: '1px solid var(--border-card)', borderRadius: '8px', padding: '0.3rem 0.6rem', background: 'transparent', color: 'var(--text-muted)', fontSize: '0.78rem', cursor: isLocating ? 'progress' : 'pointer' }}
+              style={{ marginLeft: '0.4rem', border: '1px solid var(--border-card)', borderRadius: 'var(--radius-sm)', padding: '0.3rem 0.6rem', background: 'transparent', color: 'var(--text-muted)', fontSize: '0.78rem', cursor: isLocating ? 'progress' : 'pointer' }}
             >
               {isLocating ? '定位中…' : '📍 用当前位置'}
             </button>
@@ -203,7 +205,7 @@ const TagsCard = () => {
                 fontWeight: tag.count >= 3 ? '700' : '500',
                 background: 'var(--bg-tag)',
                 border: '1px solid var(--border-tag)',
-                borderRadius: '15px',
+                borderRadius: 'var(--radius-pill)',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
                 /* button 不继承页面字体，也不吃外边距重置，补两行免得尺寸跟隔壁的 span 版跑偏 */
@@ -212,7 +214,7 @@ const TagsCard = () => {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'scale(1.1)';
-                e.currentTarget.style.boxShadow = '0 2px 10px rgba(255,0,64,0.3)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-hover)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'scale(1)';

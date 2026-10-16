@@ -1,14 +1,17 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import MarkdownBody from './MarkdownBody';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useArticle } from '../contexts/useArticles';
+import { extractHeadings } from '../lib/heading-id';
 
 const Article = () => {
   const params = useParams<{ '*': string }>();
   const navigate = useNavigate();
   const { article, status, error } = useArticle(params['*']);
-  const [readingProgress, setReadingProgress] = useState(0);
+  // 目录从 Markdown 源码推导出来，不读 DOM、也不额外 setState，所以第一帧就带着目录一起画。
+  const toc = useMemo(() => extractHeadings(article?.content ?? ''), [article]);
+  const [activeId, setActiveId] = useState('');
 
   useEffect(() => {
     const handleCopy = (e: ClipboardEvent) => {
@@ -38,36 +41,40 @@ const Article = () => {
     return undefined;
   }, [article]);
 
+  // 滚动时高亮当前小节。IntersectionObserver 的回调是异步的，不算「在 effect 里同步改状态」。
+  // 只有落在「视口顶部往下 15% 到往上 70%」这条带子里的标题算正在读，取最靠上的那个，
+  // 这样滚动时高亮不会在两个标题之间来回抖。
   useEffect(() => {
-    let frame = 0;
+    const headings = toc
+      .map((item) => document.getElementById(item.id))
+      .filter((node): node is HTMLElement => node !== null);
+    if (headings.length === 0) return undefined;
 
-    const updateReadingProgress = () => {
-      if (frame) return;
+    const visible = new Set<string>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const id = entry.target.id;
+          if (entry.isIntersecting) visible.add(id);
+          else visible.delete(id);
+        });
+        const current = headings.find((node) => visible.has(node.id));
+        if (current) setActiveId(current.id);
+      },
+      { rootMargin: '-15% 0px -70% 0px' },
+    );
 
-      frame = window.requestAnimationFrame(() => {
-        frame = 0;
-        const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
-        const nextProgress = scrollableHeight <= 0
-          ? 0
-          : Math.min(100, Math.max(0, (window.scrollY / scrollableHeight) * 100));
+    headings.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, [toc]);
 
-        // scroll 事件比帧还密；进度没动就不要再触发一次整篇重渲染。
-        setReadingProgress((prev) => (Math.abs(prev - nextProgress) < 0.1 ? prev : nextProgress));
-      });
-    };
-
-    updateReadingProgress();
-    window.addEventListener('scroll', updateReadingProgress, { passive: true });
-    window.addEventListener('resize', updateReadingProgress);
-
-    return () => {
-      if (frame) {
-        window.cancelAnimationFrame(frame);
-      }
-      window.removeEventListener('scroll', updateReadingProgress);
-      window.removeEventListener('resize', updateReadingProgress);
-    };
-  }, [article]);
+  // 目录点击：滚到标题上。页头是 fixed 的，让开多少交给 index.css 的 scroll-margin-top，别在这里量高度。
+  const jumpTo = (id: string) => {
+    const target = document.getElementById(id);
+    if (!target) return;
+    setActiveId(id);
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   if (status === 'loading') {
     return (
@@ -80,14 +87,14 @@ const Article = () => {
   if (status === 'error' && !article) {
     return (
       <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: '2rem' }}>
-        <div style={{ background: 'var(--bg-card)', padding: '2rem', borderRadius: '10px', border: '1px solid #ff0040', textAlign: 'center' }}>
-          <h1 style={{ color: '#ff0040', marginBottom: '1rem' }}>文章加载失败</h1>
+        <div style={{ background: 'var(--bg-card)', padding: '2rem', borderRadius: 'var(--radius-card)', border: '1px solid var(--accent)', textAlign: 'center' }}>
+          <h1 style={{ color: 'var(--accent)', marginBottom: '1rem' }}>文章加载失败</h1>
           <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>{error ?? '请稍后重试'}</p>
           <motion.button
             onClick={() => window.location.reload()}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            style={{ padding: '0.8rem 1.5rem', background: 'var(--p5-dark-red)', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 700 }}
+            style={{ padding: '0.8rem 1.5rem', background: 'var(--accent-fill)', color: '#fff', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: 700 }}
           >
             重新加载
           </motion.button>
@@ -111,12 +118,12 @@ const Article = () => {
           style={{
             background: 'var(--bg-card)',
             padding: '3rem',
-            borderRadius: '10px',
-            border: '2px solid #ff0040',
+            borderRadius: 'var(--radius-card)',
+            border: '2px solid var(--accent)',
             textAlign: 'center',
           }}
         >
-          <h1 style={{ color: '#ff0040', marginBottom: '1rem', fontSize: '2rem' }}>
+          <h1 style={{ color: 'var(--accent)', marginBottom: '1rem', fontSize: '2rem' }}>
             文章未找到
           </h1>
           <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
@@ -128,10 +135,10 @@ const Article = () => {
             whileTap={{ scale: 0.95 }}
             style={{
               padding: '1rem 2rem',
-              background: 'var(--p5-dark-red)',
+              background: 'var(--accent-fill)',
               color: 'white',
               border: 'none',
-              borderRadius: '5px',
+              borderRadius: 'var(--radius-sm)',
               cursor: 'pointer',
               fontSize: '1rem',
               fontWeight: '700',
@@ -152,24 +159,27 @@ const Article = () => {
       className="article-shell"
       style={{
         minHeight: '100vh',
-        padding: '5rem 2rem 4rem',
+        /* 顶上不留 padinng：文章页本来就没有固定页头（这一页不渲染 Header），
+           那 5rem 是给一个不存在的栏让位的，只会把标题卡从顶边推开一段空白。
+           卡片现在从 y=0 起，返回键叠在卡片左上角。 */
+        padding: '0 2rem 4rem',
       }}
     >
       <div className="article-container" style={{
-        maxWidth: '900px',
+        maxWidth: '1160px',
         margin: '0 auto',
       }}>
         <motion.button
-          onClick={() => navigate('/')}
+          className="article-back"
+          onClick={() => navigate('/#blog')}
           initial={{ x: -50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           whileHover={{ x: -5 }}
           style={{
-            marginBottom: '2rem',
             padding: '0.6rem 1.2rem',
             background: 'var(--bg-card)',
             border: '1px solid var(--border-card)',
-            borderRadius: '20px',
+            borderRadius: 'var(--radius-card)',
             color: 'var(--text-link)',
             cursor: 'pointer',
             fontSize: '0.9rem',
@@ -179,7 +189,7 @@ const Article = () => {
             gap: '0.5rem',
           }}
         >
-          ← 返回
+          ← 返回幕后
         </motion.button>
 
         {status === 'error' && error && (
@@ -193,17 +203,27 @@ const Article = () => {
           className="article-header"
           style={{
             marginBottom: '3rem',
+            textAlign: 'center',
+            /* 标题栏自己一块黑布（跟顶栏是同一族的做法）：半透明黑 + 模糊，背后的插画化成一片暗影。
+               布是黑的，所以这里面的字一律自己配浅色——不能再用跟主题走的墨色令牌，
+               浅色主题的 --text-primary 是 #1a1a1a，压在这块布上等于看不见。 */
+            background: 'rgba(0, 0, 0, 0.55)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            borderRadius: 'var(--radius-card)',
+            padding: '2.4rem 1.5rem 2rem',
           }}
         >
           <div style={{
             display: 'inline-block',
-            background: 'var(--p5-dark-red)',
+            /* 深红压黑布发闷，黑底上换品牌亮红（跟 logo 同一个红） */
+            background: 'var(--accent)',
             color: '#fff',
             padding: '0.4rem 1rem',
             marginBottom: '1rem',
             fontSize: '0.85rem',
             fontWeight: '600',
-            borderRadius: '20px',
+            borderRadius: 'var(--radius-card)',
           }}>
             {article.category}
           </div>
@@ -213,7 +233,7 @@ const Article = () => {
             fontWeight: '700',
             marginBottom: '1rem',
             lineHeight: 1.3,
-            color: 'var(--text-primary)',
+            color: '#fff',
           }}>
             {article.title}
           </h1>
@@ -221,37 +241,49 @@ const Article = () => {
           <div className="article-meta" style={{
             display: 'flex',
             gap: '1.5rem',
-            color: 'var(--text-muted)',
+            color: 'rgba(255, 255, 255, 0.78)',
             fontSize: '0.9rem',
             flexWrap: 'wrap',
+            justifyContent: 'center',
           }}>
             <span>📅 {article.date}</span>
             <span>⏱️ {article.readTime}</span>
           </div>
-
-          <div
-            className="article-progress-track"
-            style={{
-              marginTop: '1.35rem',
-              width: '100%',
-              height: '6px',
-              borderRadius: '999px',
-              background: 'rgba(255,255,255,0.08)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                width: `${readingProgress}%`,
-                height: '100%',
-                borderRadius: '999px',
-                background: 'linear-gradient(90deg, #ff0040 0%, #ff7a59 100%)',
-                boxShadow: '0 0 18px rgba(255, 0, 64, 0.28)',
-                transition: 'width 0.15s ease-out',
-              }}
-            />
-          </div>
         </motion.header>
+
+        {toc.length > 0 && (
+          <nav className="article-toc" aria-label="文章目录">
+            <p style={{
+              margin: '0 0 0.7rem',
+              fontSize: '0.9rem',
+              fontWeight: '700',
+              color: 'var(--text-heading)',
+            }}>
+              目录
+            </p>
+            <ol style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.5rem',
+            }}>
+              {toc.map((item) => (
+                <li key={item.id} style={{ paddingLeft: item.level === 3 ? '0.9rem' : 0 }}>
+                  <button
+                    type="button"
+                    className={`article-toc-link${activeId === item.id ? ' is-active' : ''}`}
+                    aria-current={activeId === item.id ? 'location' : undefined}
+                    onClick={() => jumpTo(item.id)}
+                  >
+                    {item.text}
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )}
 
         <motion.div
           initial={{ y: 30, opacity: 0 }}
@@ -260,7 +292,7 @@ const Article = () => {
           className="article-content-card article-body"
           style={{
             background: 'var(--bg-article-content)',
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-card)',
             padding: '3rem',
             color: 'var(--text-body)',
             border: '1px solid var(--border-card)',
@@ -289,7 +321,7 @@ const Article = () => {
                 padding: '0.4rem 0.8rem',
                 background: 'var(--bg-tag)',
                 border: '1px solid var(--border-tag)',
-                borderRadius: '15px',
+                borderRadius: 'var(--radius-pill)',
                 fontSize: '0.85rem',
                 color: 'var(--text-link)',
               }}
@@ -301,9 +333,83 @@ const Article = () => {
       </div>
 
       <style>{`
+        /* 左边一栏目录、右边一栏正文：返回键、错误提示、标题头横跨两栏，
+           所以标题的居中是对整页居中，而不是对右栏居中。 */
+        .article-container {
+          position: relative;
+          display: grid;
+          grid-template-columns: 200px minmax(0, 1fr);
+          column-gap: 2rem;
+          align-items: start;
+        }
+
+        .article-header,
+        .article-container > [role='alert'] {
+          grid-column: 1 / -1;
+        }
+
+        /* 返回键不再自己占一行，改成叠在标题卡左上角——卡片上沿因此能顶到页头下沿，
+           把原来那条空白整个盖掉。absolute 不参与 grid 排布，所以标题卡升成了第一行。 */
+        .article-back {
+          position: absolute;
+          top: 1.1rem;
+          left: 1.1rem;
+          z-index: 2;
+        }
+
+        .article-toc,
+        .article-content-card,
+        .article-tags {
+          grid-column: 2;
+        }
+
+        .article-toc {
+          grid-column: 1;
+          position: sticky;
+          top: 5.5rem;
+          padding: 1.1rem 1rem;
+          background: var(--bg-card);
+          border: 1px solid var(--border-card);
+          border-radius: var(--radius-card);
+          font-size: 0.85rem;
+        }
+
+        .article-toc-link {
+          display: block;
+          width: 100%;
+          padding: 0;
+          background: none;
+          border: 0;
+          font: inherit;
+          text-align: left;
+          color: var(--text-muted);
+          line-height: 1.5;
+          cursor: pointer;
+          transition: color 0.2s ease;
+        }
+
+        .article-toc-link:hover {
+          color: var(--text-link);
+        }
+
+        .article-toc-link.is-active {
+          color: var(--accent);
+          font-weight: 600;
+        }
+
+        @media (max-width: 1100px) {
+          .article-container {
+            display: block !important;
+          }
+
+          .article-toc {
+            display: none !important;
+          }
+        }
+
         @media (max-width: 768px) {
           .article-shell {
-            padding: 4.6rem 1rem 2.4rem !important;
+            padding: 0 1rem 2.4rem !important;
           }
 
           .article-header {
@@ -317,13 +423,13 @@ const Article = () => {
 
           .article-content-card {
             padding: 1.35rem !important;
-            border-radius: 14px !important;
+            border-radius: var(--radius-card) !important;
           }
         }
 
         @media (max-width: 560px) {
           .article-shell {
-            padding: 4.5rem 0.75rem 2rem !important;
+            padding: 0 0.75rem 2rem !important;
           }
 
           .article-content-card {

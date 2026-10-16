@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
-// VPS 上线时刻：正式部署那天把 ISO 时间填在这里（只放这一个日期，其余全是算出来的）。
-// 空着 = 还没开始计时，显示 0天 0时 0分 0秒，不拿仓库第一次提交的日期冒充运行时长。
-const vpsLaunchedAt: string | null = null;
+// 上线时刻：2026-10-03 是站点整体迁到 Cloudflare Pages 的那天（pipeline/cloudflare-pages-deployment.md
+// 有记录），也就是 darling-02.cn 现在这套部署真正开始跑的日子。按别的日子算就改这一行。
+const vpsLaunchedAt: string | null = '2026-10-03T00:00:00+08:00';
 const blogStartedAt = vpsLaunchedAt ? new Date(vpsLaunchedAt).getTime() : Number.POSITIVE_INFINITY;
 
 const formatRunningTime = (elapsed: number) => {
@@ -32,7 +32,7 @@ const Footer = () => {
     <footer
       style={{
         background: 'var(--bg-footer)',
-        borderTop: '2px solid #ff0040',
+        borderTop: '2px solid var(--accent)',
         padding: '1.5rem 2rem',
         position: 'relative',
         zIndex: 1,

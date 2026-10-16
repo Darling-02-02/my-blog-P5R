@@ -12,7 +12,8 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
   const location = useLocation();
   const secondaryBackground = useSecondaryPageBackground();
   const useSecondaryTheme = location.pathname !== '/';
-
+  // /myself 用的也是 ContentSection；深色主题下它是「自己带纱」的那类，只跟首页一档。
+  const paintsOwnVeil = location.pathname === '/myself';
   return (
     <>
       <div
@@ -42,7 +43,13 @@ export const GlobalBackground = ({ children }: BackgroundProps) => {
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundColor: isDark ? 'rgba(0, 0, 0, 0.24)' : 'rgba(255, 248, 242, 0.08)',
+          // 浅色主题：全站就这一层纱，值只由 --page-veil 决定（0.30），首页首屏、内容区、内页逐像素一致。
+          // 以前内页在这儿单独压 0.66 白，那是「整个站太白」的主因——底色一旦被洗掉，卡片只能做得
+          // 又白又厚去补对比，插画就没了。要调浓淡只改 index.css 里那一个令牌。
+          // 深色主题维持原样：夜里这层是压暗用的，内页 0.66、首页 0.2（/myself 自己带纱，算首页那档）。
+          backgroundColor: isDark
+            ? (useSecondaryTheme && !paintsOwnVeil ? 'rgba(0, 0, 0, 0.66)' : 'rgba(0, 0, 0, 0.2)')
+            : 'var(--page-veil)',
           zIndex: 0,
           pointerEvents: 'none',
           transition: 'background-color 0.4s ease',

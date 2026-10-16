@@ -1,4 +1,4 @@
-// 首页内容区右栏：简介/幕后/关于/留言四个区块，含大类栏目卡片与 Giscus 评论。
+// 首页内容区右栏：幕后/关于/友链/留言四个区块，含大类栏目卡片与 Giscus 评论。
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +6,7 @@ import type { CategoryData } from '../contexts/content-context';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
 import { useTheme } from '../contexts/useTheme';
+import { friendLinks } from '../data/friend-links';
 import { useWorkMood, workMoodImage, type WorkMood } from '../lib/workMood';
 
 const articleCardBackground = 'var(--bg-article-card)';
@@ -177,7 +178,7 @@ const CategoryLandingCard = ({ category, index, mood }: { category: CategoryData
       onClick={() => navigate(`/category/${encodeURIComponent(category.name)}`)}
       style={{
         background: articleCardBackground,
-        borderRadius: '14px',
+        borderRadius: 'var(--radius-card)',
         overflow: 'hidden',
         border: '1px solid var(--border-card)',
         cursor: 'pointer',
@@ -193,7 +194,7 @@ const CategoryLandingCard = ({ category, index, mood }: { category: CategoryData
           loading="lazy"
           decoding="async"
         />
-        <span style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', background: category.color, color: readableInk(category.color), padding: '0.22rem 0.65rem', borderRadius: '13px', fontSize: '0.78rem', fontWeight: '600' }}>
+        <span style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', background: category.color, color: readableInk(category.color), padding: '0.22rem 0.65rem', borderRadius: 'var(--radius-pill)', fontSize: '0.78rem', fontWeight: '600' }}>
           {categoryCountLabel(category)}
         </span>
         <span className="blog-card-mood" title={mood.label}>{mood.period}</span>
@@ -227,22 +228,23 @@ const MainContent = () => {
   const aboutPaneStyle: React.CSSProperties = {
     background: 'var(--bg-card)',
     border: '1px solid var(--border-card)',
-    borderRadius: '14px',
+    borderRadius: 'var(--radius-card)',
     padding: '1.25rem',
   };
 
   return (
     <div className="home-main-card" style={{
       background: 'transparent',
-      borderRadius: '20px',
+      borderRadius: 'var(--radius-card)',
       border: 'none',
       boxShadow: 'none',
       padding: 0,
     }}>
       {/* 幕后 - 大类栏目：栏目表整个空了（后台全删）时整块不渲染，别留一个空标题加一大片空白 */}
       {categoryData.length > 0 && <section id="blog" className="home-content-block" style={sectionCardStyle}>
+        {/* 「首个词换强调色」那套写法在黑白灰里没有对比可言（强调色本身就是标题色），收成一色标题 */}
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
-          <span style={{ color: '#ff0040' }}>幕后</span>
+          幕后
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', minHeight: '3.6rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
           <BlogFadeText
@@ -263,7 +265,7 @@ const MainContent = () => {
       {/* 关于 */}
       <section id="about" className="home-content-block" style={sectionCardStyle}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
-          <span style={{ color: '#ff0040' }}>关于</span>本站
+          关于本站
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
           博客介绍
@@ -274,7 +276,7 @@ const MainContent = () => {
             {'一切以实际为准。欢迎交流学习，Ciallo～(∠・ω< )⌒★'}
           </p>
 
-          <div style={{ marginTop: '2rem', padding: '1.5rem', background: aboutBoxBackground, borderRadius: '12px', border: '1px solid rgba(255,0,64,0.1)' }}>
+          <div style={{ marginTop: '2rem', padding: '1.5rem', background: aboutBoxBackground, borderRadius: 'var(--radius-card)', border: '1px solid var(--border-card)' }}>
             <p style={{ color: 'var(--text-body)', fontSize: '1rem', lineHeight: 1.8, margin: 0 }}>
               📧 联系邮箱：<a href="mailto:19503862693@163.com" style={{ color: 'var(--text-link)', textDecoration: 'none', fontWeight: '600' }}>19503862693@163.com</a>
             </p>
@@ -282,10 +284,51 @@ const MainContent = () => {
         </div>
       </section>
 
+      {/* 友链 */}
+      <section id="links" className="home-content-block" style={sectionCardStyle}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
+          友链
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
+          其他小伙伴的博客
+        </p>
+
+        {/* 名单在 src/data/friend-links.ts，加一条就多一张卡片。
+            一条都没有时给一句话，不然标题下面空一片，看着像坏了。 */}
+        {friendLinks.length === 0 && (
+          <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>还没有友链，欢迎来留言板交换。</p>
+        )}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.25rem' }}>
+          {friendLinks.map((link) => (
+            <a
+              key={link.url}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'block',
+                background: aboutBoxBackground,
+                border: '1px solid var(--border-card)',
+                borderRadius: 'var(--radius-card)',
+                padding: '1.25rem',
+                textDecoration: 'none',
+              }}
+            >
+              <span style={{ display: 'block', color: 'var(--text-link)', fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.5rem' }}>
+                {link.name} ↗
+              </span>
+              <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: 1.7 }}>
+                {link.desc}
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
+
       {/* 评论区 */}
       <section id="comments" className="home-content-block" style={{ ...sectionCardStyle, marginBottom: 0 }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
-          <span style={{ color: '#ff0040' }}>留言</span>板
+          留言板
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
           欢迎留下你的足迹
@@ -293,7 +336,7 @@ const MainContent = () => {
         
         <div className="home-comment-box" style={{ 
           background: commentBoxBackground, 
-          borderRadius: '12px', 
+          borderRadius: 'var(--radius-card)', 
           padding: '1.5rem',
           border: '1px solid var(--border-card)',
         }}>

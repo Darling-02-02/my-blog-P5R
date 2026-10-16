@@ -129,7 +129,7 @@ const ArticleEditor = ({ initialArticle, categories, busy, error, onSave, onCanc
             {importing ? '读取中…' : '导入 Markdown'}
             <input aria-label="选择 Markdown 文件" type="file" accept=".md,.markdown,text/markdown" disabled={busy || importing} onChange={(event) => { void importFile(event.target.files?.[0]); event.currentTarget.value = ''; }} />
           </label>
-          <button type="button" onClick={() => setPreview((value) => !value)} style={{ padding: '0.55rem 0.8rem', border: '1px solid var(--border-card)', borderRadius: '8px', background: preview ? 'rgba(255,0,64,0.1)' : 'transparent', color: 'var(--text-body)', cursor: 'pointer' }}>
+          <button type="button" onClick={() => setPreview((value) => !value)} style={{ padding: '0.55rem 0.8rem', border: '1px solid var(--border-card)', borderRadius: '8px', background: preview ? 'var(--bg-hover)' : 'transparent', color: 'var(--text-body)', cursor: 'pointer' }}>
             {preview ? '返回编辑' : '预览渲染'}
           </button>
         </div>
@@ -151,8 +151,8 @@ const ArticleEditor = ({ initialArticle, categories, busy, error, onSave, onCanc
         <button type="button" onClick={onCancel} disabled={busy} style={{ padding: '0.7rem 1.2rem', border: '1px solid var(--border-card)', borderRadius: '8px', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer' }}>
           取消
         </button>
-        <button type="submit" disabled={busy} style={{ padding: '0.7rem 1.2rem', border: 'none', borderRadius: '8px', background: 'var(--p5-dark-red)', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>
-          {busy ? '保存中…' : '保存文章'}
+        <button type="submit" disabled={busy} style={{ padding: '0.7rem 1.2rem', border: 'none', borderRadius: '8px', background: 'var(--accent-fill)', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>
+          {busy ? '保存中…' : initialArticle ? '保存修改' : '保存文章'}
         </button>
       </div>
       </fieldset>

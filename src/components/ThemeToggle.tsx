@@ -22,18 +22,20 @@ const ThemeToggle = () => {
         width: '50px',
         height: '50px',
         borderRadius: '50%',
-        border: '2px solid #ff0040',
+        border: '2px solid var(--accent)',
+        /* 底色和光晕也中性化：原来深色是蓝紫夜、浅色是琥珀暖黄，
+           在一个黑白灰站里这两块是最扎眼的颜色（图标本身还是彩色 emoji）。 */
         background: isDark
-          ? 'linear-gradient(135deg, #1a1a2e 0%, #0f0f23 100%)'
-          : 'linear-gradient(135deg, #fff8e1 0%, #ffe0b2 100%)',
+          ? 'linear-gradient(135deg, #2b2b2b 0%, #111111 100%)'
+          : 'linear-gradient(135deg, #f7f7f7 0%, #dcdcdc 100%)',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: '1.5rem',
         boxShadow: isDark
-          ? '0 4px 20px rgba(255, 0, 64, 0.4), 0 0 40px rgba(255, 0, 64, 0.1)'
-          : '0 4px 20px rgba(255, 165, 0, 0.3), 0 0 40px rgba(255, 200, 0, 0.1)',
+          ? '0 4px 20px rgba(255, 255, 255, 0.22), 0 0 40px rgba(255, 255, 255, 0.08)'
+          : '0 4px 20px rgba(0, 0, 0, 0.18), 0 0 40px rgba(0, 0, 0, 0.06)',
         overflow: 'hidden',
       }}
     >

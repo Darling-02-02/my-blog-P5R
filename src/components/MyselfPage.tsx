@@ -12,7 +12,7 @@ const cardStyle: CSSProperties = {
   padding: 'clamp(1.25rem, 4vw, 2rem)',
   background: 'var(--bg-card)',
   border: '1px solid var(--border-card)',
-  borderRadius: '14px',
+  borderRadius: 'var(--radius-card)',
 };
 
 const subHeadingStyle: CSSProperties = {
@@ -33,11 +33,11 @@ const interests = [
 ];
 
 const MyselfContent = () => (
-  <div className="home-main-card" style={{ background: 'transparent', borderRadius: '20px', border: 'none', boxShadow: 'none', padding: 0 }}>
+  <div className="home-main-card" style={{ background: 'transparent', borderRadius: 'var(--radius-card)', border: 'none', boxShadow: 'none', padding: 0 }}>
     {/* 个人简介：整页一张大卡片，简介 / 神秘力量 / 兴趣爱好都在里面，不再拆成并列小卡 */}
     <section id="profile" className="home-content-block" style={cardStyle}>
       <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
-        <span style={{ color: '#ff0040' }}>个人</span>简介
+        个人简介
       </h1>
       <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '2.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
         离神很近，也就是离人很远。——一个臭看番的。

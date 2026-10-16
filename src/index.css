@@ -3,42 +3,43 @@
 
 :root,
 :root[data-theme="dark"] {
-  /* Persona 5 Color Palette */
-  --p5-red: #ff0040;
-  --p5-dark-red: #cc0033;
-  --p5-black: #0a0a0a;
-  --p5-dark-gray: #1a1a1a;
-  --p5-gray: #2d2d2d;
-  --p5-white: #ffffff;
-  --p5-accent: #ff2d55;
-  --p5-gold: #ffd700;
-  --p5-purple: #9b59b6;
-  --p5-cyan: #00d4ff;
+  /* 全站只剩黑白灰，所以这里只有两个颜色令牌：
+     --accent 是「强调墨色」——深色主题里是纯白、浅色主题里是近黑，凡是以前用品牌红当
+     文字/描边/光标/焦点环的地方都换成它；
+     --accent-fill 是实心块（按钮底、选中底），白字压在它上面必须达标，所以两套主题都
+     保持深色，不跟着 --accent 一起翻白。
+     原来那套 Persona 5 调色板（--accent var(--accent) / --accent-fill #cc0033）连同
+     black/dark-gray/gray/white/accent/gold/purple/cyan 一起删掉：后八个令牌全站没有任何
+     引用，留着只会让人以为还有彩色可选。 */
+  --accent: #ffffff;
+  --accent-fill: #2c2c2c;
 
   /* Theme-aware semantic tokens */
   /* 深色面整体比原先的 #0a0a0a / #1a1a1a 抬一档：纯黑底上卡片和底色几乎分不出边界，整页看着发糊。 */
-  --bg-primary: #15151c;
-  --bg-secondary: #202028;
-  --bg-card: rgba(34, 34, 42, 0.9);
-  --bg-card-solid: #22222a;
+  /* 这几档面儿原本都带一点蓝紫（#15151c / #202028 / rgba(34,34,42)…），
+     那是给品牌红做衬的；改成纯中性灰之后黑白灰才不会「看着灰但其实发紫」。 */
+  --bg-primary: #151515;
+  --bg-secondary: #202020;
+  --bg-card: rgba(34, 34, 34, 0.9);
+  --bg-card-solid: #222222;
   --bg-overlay: rgba(0, 0, 0, 0.45);
-  --bg-sidebar-card: rgba(36, 36, 45, 0.85);
-  --bg-main-card: rgba(30, 30, 38, 0.85);
+  --bg-sidebar-card: rgba(36, 36, 36, 0.85);
+  --bg-main-card: rgba(30, 30, 30, 0.85);
   --bg-input: rgba(255, 255, 255, 0.1);
-  --bg-code: #1b1e26;
-  --bg-code-header: #2a2f3a;
-  --bg-tag: rgba(255, 0, 64, 0.15);
-  --bg-blockquote: rgba(255, 0, 64, 0.08);
-  --bg-hover: rgba(255, 0, 64, 0.12);
+  --bg-code: #1c1c1c;
+  --bg-code-header: #2a2a2a;
+  --bg-tag: rgba(255, 255, 255, 0.1);
+  --bg-blockquote: rgba(255, 255, 255, 0.06);
+  --bg-hover: rgba(255, 255, 255, 0.1);
   --bg-category-item: rgba(255, 255, 255, 0.04);
-  --bg-article-card: rgba(36, 36, 45, 0.95);
-  --bg-article-content: rgba(36, 36, 45, 0.92);
-  --bg-comment-box: rgba(34, 34, 42, 0.9);
+  --bg-article-card: rgba(36, 36, 36, 0.95);
+  --bg-article-content: rgba(36, 36, 36, 0.92);
+  --bg-comment-box: rgba(34, 34, 34, 0.9);
   --bg-social: rgba(255, 255, 255, 0.08);
-  --bg-social-hover: rgba(255, 0, 64, 0.2);
-  --bg-footer: rgba(30, 30, 38, 0.9);
-  --bg-mobile-menu: rgba(21, 21, 28, 0.98);
-  --bg-inline-code: rgba(255, 0, 64, 0.15);
+  --bg-social-hover: rgba(255, 255, 255, 0.16);
+  --bg-footer: rgba(30, 30, 30, 0.9);
+  --bg-mobile-menu: rgba(21, 21, 21, 0.98);
+  --bg-inline-code: rgba(255, 255, 255, 0.1);
 
   --text-primary: #ffffff;
   --text-secondary: #cccccc;
@@ -49,33 +50,48 @@
   --text-card-body: #cccccc;
   --text-strong: #ffffff;
   --text-code: #d4d4d4;
-  --text-inline-code: #ff6b8a;
-  --text-link: #ff5c7a;
-  /* 品牌红 #ff0040 当正文小字只有 4.1:1（暗底）/ 3.9:1（浅底），
-     所以文字用调过亮度的令牌，纯色块仍然用 --p5-dark-red 保证白字达标。 */
-  --text-danger: #ff8fa3;
+  /* 行内代码和链接原来靠粉红区分，黑白灰里改用「比正文更白 + 底/下划线」来区分，
+     颜色本身不再承担语义（正文 #d4d4d4 / 提亮 #ffffff）。 */
+  --text-inline-code: #ffffff;
+  --text-link: #ffffff;
+  /* 报错文字同理：原来靠红，现在靠最高对比的纯白 + 文案本身把话说清楚。 */
+  --text-danger: #ffffff;
 
   /* 底色抬亮后卡片边距也要跟着抬，否则面板之间又会糊成一片 */
   --border-card: rgba(255, 255, 255, 0.12);
   --border-section: rgba(255, 255, 255, 0.1);
-  --border-tag: rgba(255, 0, 64, 0.3);
-  --border-input: rgba(255, 0, 64, 0.5);
+  --border-tag: rgba(255, 255, 255, 0.22);
+  --border-input: rgba(255, 255, 255, 0.28);
   --border-table: rgba(255, 255, 255, 0.1);
-  --border-mobile-menu: #33333f;
+  --border-mobile-menu: #333333;
 
   --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.3);
-  --shadow-hover: 0 8px 30px rgba(255, 0, 64, 0.2);
+  --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.35);
 
-  --scrollbar-track: #202028;
-  --scrollbar-thumb: #ff0040;
-  --scrollbar-thumb-hover: #ff2d55;
+  /* 圆角只用这三档：卡片/大块 14、控件 8、胶囊（标签、角标、搜索框）999。
+     之前前台散着 5/10/12/13/15/16/20px 好几档，肉眼几乎分不出来，只在相邻处显得毛糙。
+     后台管理页（AdminPage / ArticleEditor / CategoryManager）另有自己的 6/8px 小圆角，没动。 */
+  --radius-card: 14px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
 
-  --table-header-bg: rgba(255, 0, 64, 0.15);
+  --scrollbar-track: #202020;
+  --scrollbar-thumb: #4a4a4a;
+  --scrollbar-thumb-hover: #6a6a6a;
+
+  --table-header-bg: rgba(255, 255, 255, 0.08);
   --table-border: rgba(255, 255, 255, 0.1);
 
-  /* 首屏压暗层：深色主题下背景已经被 brightness(0.55) + 全局遮罩压过一档，白字站得住，
-     所以这里是透明的（等于不做）。真正铺它的是浅色主题那一档。 */
-  --hero-scrim: transparent;
+  /* 整站共享的一层纱：盖在那张全局背景图（CY.webp）上面，首屏和「幕后」用的是同一套，
+     所以插画从上滚到底是一模一样的亮度，不会「首页一个样、幕后又一个样」。
+     深色主题下背景已经被 brightness(0.55) + 全局遮罩压过一档，白字站得住，这里不再加纱。 */
+  --page-veil: rgba(0, 0, 0, 0);
+
+  /* 首屏那两块「帘子」的布色（Hero.tsx 的 .hero-scrim::before/::after）：只负责进场那一下，
+     合着盖满首屏，然后朝两侧拉开。它得比 --page-veil 厚一档，不然幕布和底下那层纱同色，
+     开帘等于没开。深色主题的纱本来就是透明的，这里直接给一层半透明黑——
+     背景已经被 brightness(0.55) 压过一档，0.52 的布盖上去能挡住字，拉开也不刺眼。 */
+  --curtain: rgba(0, 0, 0, 0.52);
 
   font-family: 'Noto Sans SC', Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -92,62 +108,73 @@
 }
 
 :root[data-theme="light"] {
+  /* 浅色主题的强调墨色就是近黑；实心块也用它，白字压上去 19:1。 */
+  --accent: #111111;
+  --accent-fill: #111111;
+
   --bg-primary: #f5f5f7;
   --bg-secondary: #ffffff;
-  --bg-card: rgba(255, 255, 255, 0.9);
+  --bg-card: rgba(255, 255, 255, 0.55);
   --bg-card-solid: #ffffff;
   --bg-overlay: rgba(255, 255, 255, 0.25);
-  --bg-sidebar-card: rgba(255, 255, 255, 0.85);
-  --bg-main-card: rgba(255, 255, 255, 0.82);
+  --bg-sidebar-card: rgba(255, 255, 255, 0.42);
+  --bg-main-card: rgba(255, 255, 255, 0.34);
   --bg-input: rgba(0, 0, 0, 0.05);
   --bg-code: #f6f8fa;
   --bg-code-header: #e8eaed;
-  --bg-tag: rgba(255, 0, 64, 0.08);
-  --bg-blockquote: rgba(255, 0, 64, 0.05);
-  --bg-hover: rgba(255, 0, 64, 0.08);
+  /* 原来这些弱底/悬停底都是 8%–15% 的红，换成同浓度的黑：位置和分量不变，只是不再有颜色。 */
+  --bg-tag: rgba(17, 17, 17, 0.06);
+  --bg-blockquote: rgba(17, 17, 17, 0.04);
+  --bg-hover: rgba(17, 17, 17, 0.06);
   --bg-category-item: rgba(0, 0, 0, 0.02);
-  --bg-article-card: rgba(255, 255, 255, 0.95);
-  --bg-article-content: rgba(255, 255, 255, 0.92);
-  --bg-comment-box: rgba(255, 255, 255, 0.9);
+  --bg-article-card: rgba(255, 255, 255, 0.56);
+  --bg-article-content: rgba(255, 255, 255, 0.86);
+  --bg-comment-box: rgba(255, 255, 255, 0.5);
   --bg-social: rgba(0, 0, 0, 0.05);
-  --bg-social-hover: rgba(255, 0, 64, 0.15);
-  --bg-footer: rgba(255, 255, 255, 0.9);
-  --bg-mobile-menu: rgba(255, 255, 255, 0.98);
-  --bg-inline-code: rgba(255, 0, 64, 0.1);
+  --bg-social-hover: rgba(17, 17, 17, 0.1);
+  --bg-footer: rgba(255, 255, 255, 0.5);
+  --bg-mobile-menu: rgba(255, 255, 255, 0.96);
+  --bg-inline-code: rgba(17, 17, 17, 0.07);
 
   --text-primary: #1a1a1a;
-  --text-secondary: #444444;
-  --text-muted: #666666;
-  --text-body: #444444;
+  --text-secondary: #3c3c3c;
+  --text-muted: #5e5e5e;
+  --text-body: #3c3c3c;
   --text-heading: #1a1a1a;
   --text-card-title: #1a1a1a;
-  --text-card-body: #555555;
+  --text-card-body: #484848;
   --text-strong: #1a1a1a;
   --text-code: #333333;
-  --text-inline-code: #c01f55;
-  --text-link: #c51c51;
-  --text-danger: #b00020;
+  --text-inline-code: #111111;
+  --text-link: #111111;
+  --text-danger: #111111;
 
-  --border-card: rgba(200, 200, 200, 0.3);
-  --border-section: rgba(0, 0, 0, 0.06);
-  --border-tag: rgba(255, 0, 64, 0.2);
-  --border-input: rgba(255, 0, 64, 0.4);
+  --border-card: rgba(17, 17, 17, 0.12);
+  --border-section: rgba(17, 17, 17, 0.1);
+  --border-tag: rgba(17, 17, 17, 0.18);
+  --border-input: rgba(17, 17, 17, 0.28);
   --border-table: #eee;
   --border-mobile-menu: #e0e0e0;
 
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
-  --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 6px 24px rgba(0, 0, 0, 0.12);
+  --shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.16);
 
   --scrollbar-track: #f0f0f0;
-  --scrollbar-thumb: #ff0040;
-  --scrollbar-thumb-hover: #ff2d55;
+  --scrollbar-thumb: #9a9a9a;
+  --scrollbar-thumb-hover: #767676;
 
-  --table-header-bg: rgba(255, 0, 64, 0.1);
+  --table-header-bg: rgba(17, 17, 17, 0.05);
   --table-border: #eee;
 
-  /* 浅色主题的 CY.webp 平均亮度 0.78，白字直接压上去只有 1.5:1 左右；铺 0.5 之后
-     最亮的线稿块也还有 4.3:1，大字号（3:1）稳过。 */
-  --hero-scrim: rgba(255, 249, 244, 0.55);
+  /* 全站唯一那层纱：铺在 CY.webp 上，值就等于「那张图有多清楚」。原来首屏 0.55、内页 0.66、
+     内容区另有一层渐变，三处各自为政，于是整站偏白、卡片只能做到接近纯白去补对比。
+     现在收到一个值 0.30：插画回到主场。纱是中性白——原来那点暖调（255,249,244）是配品牌红的，
+     插画去色之后会变成一层偏黄的罩子。 */
+  --page-veil: rgba(255, 255, 255, 0.3);
+
+  /* 帘子的布色（见深色主题那段注释）。白布压在 --page-veil 那层纱上，得比纱厚一档，
+     不然幕布和纱同色、开帘等于没开。0.88 合上时接近全白，拉开才露出常态的纱。 */
+  --curtain: rgba(255, 255, 255, 0.88);
 
   color-scheme: light;
   color: var(--text-primary);
@@ -177,81 +204,35 @@ body {
   width: 100%;
 }
 
-:root[data-theme="light"] .secondary-page-theme {
-  --bg-primary: #f6f0ea;
-  --bg-secondary: #fffaf7;
-  --bg-card: rgba(255, 255, 255, 0.48);
-  --bg-card-solid: #fffaf7;
-  --bg-overlay: rgba(255, 248, 242, 0.08);
-  --bg-sidebar-card: rgba(255, 255, 255, 0.38);
-  --bg-main-card: rgba(255, 255, 255, 0.28);
-  --bg-input: rgba(255, 255, 255, 0.34);
-  --bg-code: rgba(250, 245, 241, 0.98);
-  --bg-code-header: rgba(242, 234, 228, 0.98);
-  --bg-tag: rgba(255, 0, 64, 0.1);
-  --bg-blockquote: rgba(255, 255, 255, 0.34);
-  --bg-hover: rgba(255, 0, 64, 0.08);
-  --bg-category-item: rgba(255, 255, 255, 0.22);
-  --bg-article-card: rgba(255, 255, 255, 0.9);
-  --bg-article-content: rgba(255, 255, 255, 0.9);
-  --bg-comment-box: rgba(255, 255, 255, 0.42);
-  --bg-social: rgba(255, 255, 255, 0.3);
-  --bg-social-hover: rgba(255, 0, 64, 0.14);
-  --bg-footer: rgba(255, 255, 255, 0.34);
-  --bg-mobile-menu: rgba(255, 255, 255, 0.92);
-  --bg-inline-code: rgba(255, 0, 64, 0.12);
-  --text-primary: #24181d;
-  --text-secondary: #402a32;
-  --text-muted: #6e5a63;
-  --text-body: #2f2328;
-  --text-heading: #21161b;
-  --text-card-title: #21161b;
-  --text-card-body: #3c2d35;
-  --text-strong: #1f1518;
-  --text-code: #3a2a32;
-  --text-inline-code: #c01f55;
-  --text-link: #c51c51;
-  --text-danger: #b00020;
-  --border-card: rgba(85, 53, 64, 0.14);
-  --border-section: rgba(85, 53, 64, 0.12);
-  --border-tag: rgba(197, 28, 81, 0.24);
-  --border-input: rgba(197, 28, 81, 0.2);
-  --border-table: rgba(85, 53, 64, 0.12);
-  --border-mobile-menu: rgba(85, 53, 64, 0.1);
-  --shadow-card: 0 18px 42px rgba(25, 18, 24, 0.18);
-  --shadow-hover: 0 20px 46px rgba(197, 28, 81, 0.16);
-  --scrollbar-track: rgba(255, 255, 255, 0.5);
-  --scrollbar-thumb: #d43d70;
-  --scrollbar-thumb-hover: #c51c51;
-  --table-header-bg: rgba(255, 255, 255, 0.88);
-  --table-border: rgba(85, 53, 64, 0.12);
-  color-scheme: light;
-}
+/* 内页浅色皮肤不再单独一套：以前内页要「薄一档」，是因为内页背景被洗成 0.66 的白，卡片只有做薄才看得见插画；
+   现在全站共用同一层 --page-veil（见 GlobalBackground），底色一样了，卡片也就该用同一套。
+   下面这 52 行令牌全是主浅色主题 :root[data-theme=light] 的同名翻版，删掉即继承。
+   夜间那套 :root[data-theme=dark] .secondary-page-theme 故意留着不动。 */
 
 /* 夜间模式下的内页皮肤：深色玻璃卡片 + 亮字，保证和首页一致 */
 :root[data-theme="dark"] .secondary-page-theme {
-  --bg-primary: #15151c;
-  --bg-secondary: #1c1c24;
-  --bg-card: rgba(34, 34, 42, 0.74);
-  --bg-card-solid: #22222a;
+  --bg-primary: #151515;
+  --bg-secondary: #1c1c1c;
+  --bg-card: rgba(34, 34, 34, 0.74);
+  --bg-card-solid: #222222;
   --bg-overlay: rgba(0, 0, 0, 0.4);
-  --bg-sidebar-card: rgba(32, 32, 40, 0.74);
-  --bg-main-card: rgba(30, 30, 38, 0.68);
+  --bg-sidebar-card: rgba(32, 32, 32, 0.74);
+  --bg-main-card: rgba(30, 30, 30, 0.68);
   --bg-input: rgba(255, 255, 255, 0.08);
-  --bg-code: #191c22;
-  --bg-code-header: #262a33;
-  --bg-tag: rgba(255, 0, 64, 0.18);
-  --bg-blockquote: rgba(255, 0, 64, 0.1);
-  --bg-hover: rgba(255, 0, 64, 0.14);
+  --bg-code: #1c1c1c;
+  --bg-code-header: #2a2a2a;
+  --bg-tag: rgba(255, 255, 255, 0.12);
+  --bg-blockquote: rgba(255, 255, 255, 0.07);
+  --bg-hover: rgba(255, 255, 255, 0.1);
   --bg-category-item: rgba(255, 255, 255, 0.05);
-  --bg-article-card: rgba(32, 32, 40, 0.92);
-  --bg-article-content: rgba(30, 30, 38, 0.92);
-  --bg-comment-box: rgba(32, 32, 40, 0.82);
+  --bg-article-card: rgba(32, 32, 32, 0.92);
+  --bg-article-content: rgba(30, 30, 30, 0.92);
+  --bg-comment-box: rgba(32, 32, 32, 0.82);
   --bg-social: rgba(255, 255, 255, 0.08);
-  --bg-social-hover: rgba(255, 0, 64, 0.2);
-  --bg-footer: rgba(24, 24, 30, 0.82);
-  --bg-mobile-menu: rgba(21, 21, 28, 0.96);
-  --bg-inline-code: rgba(255, 0, 64, 0.16);
+  --bg-social-hover: rgba(255, 255, 255, 0.16);
+  --bg-footer: rgba(24, 24, 24, 0.82);
+  --bg-mobile-menu: rgba(21, 21, 21, 0.96);
+  --bg-inline-code: rgba(255, 255, 255, 0.1);
   --text-primary: #f5f5f5;
   --text-secondary: #c9c9c9;
   --text-muted: #9a9a9a;
@@ -261,25 +242,22 @@ body {
   --text-card-body: #cfcfcf;
   --text-strong: #ffffff;
   --text-code: #d6d6d6;
-  --text-inline-code: #ff7a95;
-  --text-link: #ff5c7a;
-  --text-danger: #ff8fa3;
+  --text-inline-code: #ffffff;
+  --text-link: #ffffff;
+  --text-danger: #ffffff;
   --border-card: rgba(255, 255, 255, 0.16);
   --border-section: rgba(255, 255, 255, 0.14);
-  --border-tag: rgba(255, 0, 64, 0.35);
-  --border-input: rgba(255, 0, 64, 0.4);
+  --border-tag: rgba(255, 255, 255, 0.24);
+  --border-input: rgba(255, 255, 255, 0.28);
   --border-table: rgba(255, 255, 255, 0.16);
-  --border-mobile-menu: #33333f;
+  --border-mobile-menu: #333333;
   --shadow-card: 0 18px 42px rgba(0, 0, 0, 0.55);
-  --shadow-hover: 0 20px 46px rgba(255, 0, 64, 0.22);
+  --shadow-hover: 0 20px 46px rgba(0, 0, 0, 0.5);
   --scrollbar-track: rgba(255, 255, 255, 0.08);
-  --scrollbar-thumb: #ff0040;
-  --scrollbar-thumb-hover: #ff2d55;
-  --table-header-bg: rgba(255, 0, 64, 0.16);
+  --scrollbar-thumb: #4a4a4a;
+  --scrollbar-thumb-hover: #6a6a6a;
+  --table-header-bg: rgba(255, 255, 255, 0.08);
   --table-border: rgba(255, 255, 255, 0.12);
-  /* 深底上把品牌红提亮一档，避免标题红字对比度不足 */
-  --p5-red: #ff3358;
-  --p5-dark-red: #e01f45;
   color-scheme: dark;
 }
 
@@ -304,7 +282,7 @@ html {
 
 ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -313,15 +291,16 @@ html {
 
 /* Selection */
 ::selection {
-  background: var(--p5-red);
-  color: #ffffff;
+  background: var(--accent);
+  /* 配字形底色的字色要跟着主题翻：深色主题里强调色是纯白，写死 #ffffff 会变成白底白字。 */
+  color: var(--bg-primary);
 }
 
-/* 键盘焦点环。浏览器默认那圈蓝框不属于这套配色，所以统一用品牌红；
+/* 键盘焦点环。浏览器默认那圈蓝框不属于这套配色，所以统一用强调墨色（深色主题上是纯白）；
    只挂在 :focus-visible 上——鼠标点击不该留下框，键盘 Tab 必须看得见。
    别再往组件里写内联 outline: none，那会连键盘焦点一起抹掉（搜索框踩过一次）。 */
 :focus-visible {
-  outline: 2px solid var(--p5-red);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -335,7 +314,7 @@ textarea::placeholder {
 
 input,
 textarea {
-  caret-color: var(--p5-red);
+  caret-color: var(--accent);
 }
 
 /* Scanline effect */
@@ -375,6 +354,19 @@ textarea {
 *::before,
 *::after {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* 头像旋转。原来这个 keyframes 声明在侧栏 ProfileCard 的内联 <style> 里；首屏那张放大的头像
+   （Hero 的 .hero-avatar）也要用同一个动作，就提到这里当唯一声明：两边引用同一个名字，
+   不会出现「两个同名 @keyframes 谁后挂谁生效」这种互相覆盖的隐患。 */
+@keyframes avatarSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive */
@@ -451,9 +443,11 @@ textarea {
 .markdown-body {
   --md-flow: 1.3rem;       /* 段落 / 列表之间的纵向节奏 */
   --md-measure: 44rem;     /* 阅读宽度上限：一行四十来个汉字，宽屏不铺满 */
-  --md-radius: 14px;
-  --md-accent: var(--p5-red);
-  --md-accent-soft: rgba(255, 0, 64, 0.5);
+  --md-radius: var(--radius-card);
+  --md-accent: var(--accent);
+  /* 半透明的强调色用中灰而不是黑：这条饰条在深浅两套主题里都得看得见，
+     写 rgba(17,17,17,…) 到了深色主题就沉进背景里了。 */
+  --md-accent-soft: rgba(127, 127, 127, 0.45);
 
   max-width: var(--md-measure);
   margin-inline: auto;
@@ -470,6 +464,20 @@ textarea {
   line-height: 1.35;
   letter-spacing: 0.01em;
   text-wrap: balance;
+}
+
+/* 标题锚点用：跳转过去之后标题别贴在最上沿（目录点击和带 ?# 的老链接都走这条）。 */
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+  scroll-margin-top: 1.5rem;
+}
+
+/* 首页的页内锚点（#blog / #about / #comments）跳转时给固定页头让位，
+   否则「幕后」标题正好被压在导航文字底下（导航里的「幕后」和文章页的「返回幕后」都跳这里）。 */
+.home-content-section section[id] {
+  scroll-margin-top: 5.5rem;
 }
 
 .markdown-body h1 {
@@ -552,7 +560,7 @@ textarea {
 
 .markdown-body a:hover {
   background: var(--bg-tag);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   text-decoration-color: var(--md-accent);
 }
 
@@ -581,7 +589,7 @@ textarea {
 /* 行内代码：只作用在不属于代码块的 code 上 */
 .markdown-body :not(pre) > code {
   padding: 0.14em 0.45em;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--bg-inline-code);
   color: var(--text-inline-code);
 }
@@ -619,7 +627,7 @@ textarea {
 .markdown-body .md-copy {
   padding: 0.22rem 0.7rem;
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--text-muted);
   font-family: inherit;
@@ -788,7 +796,7 @@ textarea {
   width: 2.35rem;
   height: 2.35rem;
   border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(12, 10, 12, 0.6);
   color: #ffffff;
   font-size: 1rem;
@@ -796,9 +804,11 @@ textarea {
   cursor: pointer;
 }
 
+/* 灯箱底色永远是暗的、不跟主题走，所以这里不能用 --accent-fill：
+   浅色主题那个近黑块压在暗罩子上等于看不见。改成一层提亮的白。 */
 .md-lightbox-close:hover {
-  background: var(--p5-dark-red);
-  border-color: var(--p5-dark-red);
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 @keyframes md-lightbox-in {
@@ -849,7 +859,7 @@ textarea {
   }
 
   .markdown-body .md-figure img {
-    border-radius: 12px;
+    border-radius: var(--radius-card);
   }
 
   .markdown-body table {

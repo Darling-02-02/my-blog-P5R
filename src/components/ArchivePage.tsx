@@ -108,7 +108,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                   style={{
                     background: 'var(--bg-card)',
                     border: '1px solid var(--border-card)',
-                    borderRadius: '14px',
+                    borderRadius: 'var(--radius-card)',
                     padding: '2rem',
                     color: 'var(--text-muted)',
                   }}
@@ -120,7 +120,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
               ) : (
                 groupedByYear.map(([year, yearArticles]) => (
                   <section key={year} style={{ marginBottom: '1.25rem' }}>
-                    <div style={{ color: '#ff0040', fontWeight: 800, marginBottom: '0.8rem', fontSize: '1.25rem' }}>
+                    <div style={{ color: 'var(--accent)', fontWeight: 800, marginBottom: '0.8rem', fontSize: '1.25rem' }}>
                       {year}
                     </div>
                     <div style={{ display: 'grid', gap: '0.9rem' }}>
@@ -136,7 +136,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                             gap: '1rem',
                             background: 'var(--bg-article-card)',
                             border: '1px solid var(--border-card)',
-                            borderRadius: '12px',
+                            borderRadius: 'var(--radius-card)',
                             padding: '0.8rem',
                             cursor: 'pointer',
                           }}
@@ -149,7 +149,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                               height: '100%',
                               minHeight: '84px',
                               objectFit: 'cover',
-                              borderRadius: '10px',
+                              borderRadius: 'var(--radius-sm)',
                             }}
                           />
                           <div>
@@ -176,7 +176,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                 style={{
                   background: 'var(--bg-sidebar-card)',
                   border: '1px solid var(--border-card)',
-                  borderRadius: '14px',
+                  borderRadius: 'var(--radius-card)',
                   padding: '1rem',
                   marginBottom: '1rem',
                 }}
@@ -191,7 +191,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                         border: '1px solid var(--border-tag)',
                         background: 'var(--bg-tag)',
                         color: 'var(--text-link)',
-                        borderRadius: '999px',
+                        borderRadius: 'var(--radius-pill)',
                         padding: '0.2rem 0.55rem',
                         cursor: 'pointer',
                         fontSize: '0.8rem',
@@ -207,7 +207,7 @@ const ArchivePage = ({ mode }: ArchivePageProps) => {
                 style={{
                   background: 'var(--bg-sidebar-card)',
                   border: '1px solid var(--border-card)',
-                  borderRadius: '14px',
+                  borderRadius: 'var(--radius-card)',
                   padding: '1rem',
                 }}
               >

@@ -277,7 +277,7 @@ const AdminPage = () => {
             {activeArticleSource.tokenLabel}
             <input id="admin-token" type="password" value={tokenInput} onChange={(event) => setTokenInput(event.target.value)} style={{ padding: '0.7rem 0.8rem', border: '1px solid var(--border-card)', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-body)' }} />
           </label>
-          <button type="submit" style={{ alignSelf: 'end', padding: '0.7rem 1.2rem', border: 'none', borderRadius: '8px', background: 'var(--p5-dark-red)', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>
+          <button type="submit" style={{ alignSelf: 'end', padding: '0.7rem 1.2rem', border: 'none', borderRadius: '8px', background: 'var(--accent-fill)', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>
             连接后台
           </button>
         </form>}
@@ -287,7 +287,7 @@ const AdminPage = () => {
         <style>{`
           .admin-tabs{display:flex;gap:.5rem;flex-wrap:wrap;background:var(--bg-article-content);border:1px solid var(--border-card);border-radius:14px;padding:.6rem;backdrop-filter:blur(10px)}
           .admin-tab{padding:.6rem 1.1rem;border:1px solid var(--border-card);border-radius:10px;background:var(--bg-card);color:var(--text-body);cursor:pointer;font:inherit}
-          .admin-tab[data-active]{background:var(--p5-dark-red);border-color:var(--p5-dark-red);color:#fff;font-weight:700}
+          .admin-tab[data-active]{background:var(--accent-fill);border-color:var(--accent-fill);color:#fff;font-weight:700}
           .admin-grid{display:grid;grid-template-columns:minmax(220px,.8fr) minmax(0,1.6fr);gap:1rem;align-items:flex-start}
           .admin-cols{display:grid;grid-template-columns:minmax(260px,1fr) minmax(0,1.2fr);gap:1.25rem;align-items:flex-start}
           @media (max-width:900px){.admin-grid,.admin-cols{grid-template-columns:minmax(0,1fr)}}
@@ -340,7 +340,7 @@ const AdminPage = () => {
                   type="button"
                   disabled={busy || !myselfDraft.trim() || myselfDraft.trim() === myself.mystic}
                   onClick={() => void handleSaveMyself()}
-                  style={{ padding: '0.6rem 1.2rem', border: 'none', borderRadius: '8px', background: 'var(--p5-dark-red)', color: '#fff', fontWeight: 700, cursor: busy || !myselfDraft.trim() || myselfDraft.trim() === myself.mystic ? 'not-allowed' : 'pointer', opacity: busy || !myselfDraft.trim() || myselfDraft.trim() === myself.mystic ? 0.55 : 1 }}
+                  style={{ padding: '0.6rem 1.2rem', border: 'none', borderRadius: '8px', background: 'var(--accent-fill)', color: '#fff', fontWeight: 700, cursor: busy || !myselfDraft.trim() || myselfDraft.trim() === myself.mystic ? 'not-allowed' : 'pointer', opacity: busy || !myselfDraft.trim() || myselfDraft.trim() === myself.mystic ? 0.55 : 1 }}
                 >
                   {busy ? '提交中…' : '保存'}
                 </button>
@@ -363,14 +363,14 @@ const AdminPage = () => {
             <div style={{ ...panelStyle, display: 'grid', gap: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
                 <h2 style={{ margin: 0, color: 'var(--text-heading)', fontSize: '1.1rem' }}>文章列表</h2>
-                <button type="button" onClick={() => { setSelected(undefined); setEditorError(null); }} style={{ border: 'none', borderRadius: '8px', padding: '0.5rem 0.9rem', background: 'var(--p5-dark-red)', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
+                <button type="button" onClick={() => { setSelected(undefined); setEditorError(null); }} style={{ border: 'none', borderRadius: '8px', padding: '0.5rem 0.9rem', background: 'var(--accent-fill)', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
                   ＋ 新建文章
                 </button>
               </div>
               {loading && <p role="status" style={{ color: 'var(--text-muted)' }}>加载中…</p>}
               {!loading && articles.length === 0 && <p style={{ color: 'var(--text-muted)' }}>这里还没有文章哦～新建一篇就会出现在博客里。</p>}
               {articles.map((article) => (
-                <div key={article.slug} style={{ borderTop: '1px solid var(--border-section)', padding: '0.7rem', borderRadius: 10, background: selected?.slug === article.slug ? 'rgba(255,0,64,0.07)' : 'transparent' }}>
+                <div key={article.slug} style={{ borderTop: '1px solid var(--border-section)', padding: '0.7rem', borderRadius: 10, background: selected?.slug === article.slug ? 'var(--bg-hover)' : 'transparent' }}>
                   <button type="button" onClick={() => { setSelected(article); setEditorError(null); }} style={{ width: '100%', textAlign: 'left', border: 'none', background: 'transparent', color: 'var(--text-body)', cursor: 'pointer', padding: 0 }}>
                     <strong style={{ display: 'block', color: 'var(--text-heading)' }}>{article.title}</strong>
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{article.category} · {article.date}</span>
@@ -386,6 +386,7 @@ const AdminPage = () => {
                         {article.status === 'published' ? '下架' : '发布'}
                       </button>
                     )}
+                    <button type="button" disabled={busy} onClick={() => { setSelected(article); setEditorError(null); }} style={{ border: '1px solid var(--border-card)', borderRadius: '8px', padding: '0.4rem 0.7rem', background: 'transparent', color: 'var(--accent)', cursor: 'pointer' }}>✏️ 编辑</button>
                     <button type="button" disabled={busy} onClick={() => void handleDelete(article)} style={{ border: '1px solid #b00020', borderRadius: '8px', padding: '0.4rem 0.7rem', background: 'transparent', color: 'var(--text-danger)', cursor: 'pointer' }}>🗑 删除</button>
                   </div>
                 </div>
