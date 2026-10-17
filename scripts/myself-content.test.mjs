@@ -29,6 +29,16 @@ test('serialize → parse round-trips without changing the text', () => {
   assert.match(text, /\n$/, '提交上去的文件要以换行结尾');
 });
 
+// 用户在后台上敲的回车是要显示出来的（/myself 那个 <p> 靠 white-space: pre-line 渲染它们），
+// 所以解析这一层绝不能顺手把中间的换行抹掉——末尾那一个除外，序列化会补回来。
+test('内层换行原样留着，末尾换行不重复', () => {
+  const multi = { mystic: '第一行\n第二行\n\n第四行' };
+  assert.deepEqual(parseMyselfDocument(serializeMyselfDocument(multi)), multi);
+  assert.equal(parseMyselfDocument(serializeMyselfDocument(multi)).mystic.split('\n').length, 4);
+  // 末尾带一个换行的输入（后台粘进来的段落常见）削掉，免得每存一次多一行。
+  assert.equal(parseMyselfDocument('{"mystic":"甲\\n乙\\n"}').mystic, '甲\n乙');
+});
+
 test('缺字段、空白、非字符串、结构不对都抛中文错，而不是静默变成空段落', () => {
   const bad = [
     '{}',                          // 缺 mystic

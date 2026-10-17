@@ -16,8 +16,15 @@ export const defaultMyselfContent: MyselfContent = {
   mystic: 'Ciallo～(∠・ω< )⌒★',
 };
 
+/** 收尾：削掉首尾空白，再削掉末尾的一个换行
+ *  不能直接用 .trim()——它连**中间**的换行也一起吃掉，而后台多行输入框里敲的回车
+ *  是要显示出来的（/myself 那段靠 white-space: pre-line 渲染）。
+ *  末尾那个换行单独削：serializeMyselfDocument 会补上文件结尾应有的那一个，
+ *  不削的话每保存一次就多出一个空行。 */
+export const normalizeText = (value: string) => value.trim().replace(/\n$/, '');
+
 const requireText = (value: unknown, label: string) => {
-  const text = typeof value === 'string' ? value.trim() : '';
+  const text = typeof value === 'string' ? normalizeText(value) : '';
   if (!text) throw new Error(`${label}不能为空`);
   return text;
 };

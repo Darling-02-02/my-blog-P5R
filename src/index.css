@@ -369,11 +369,192 @@ textarea {
   }
 }
 
+
+
+/* 首屏（Hero.tsx）。这段样式原来写在组件的 <style> 模板字符串里，跟 JSX 混在同一个文件里；
+   搬到这儿是因为同仓其它组件本来就共用一份 index.css（Home / ArchivePage / MyselfPage 等都是这么挂样式），
+   首屏没必要自己开一套。选择器、顺序、取值原样搬过来，行为不变。 */
+.hero-section {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 首屏不再自己铺纱：全站那唯一一层 --page-veil 已经在 GlobalBackground 里铺好了，
+   这里再铺一遍就是两层叠着，首屏会比内容区明显发白。保留这个元素只因为下面那两块
+   「帘子」挂在它的伪元素上。 */
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* 背景上那两块「帘子」：进场时朝两侧拉开——先把背景遮住，再亮出来。
+   不加灰度、也不碰插画（上面那层纱原地不动），帘子只是「比纱厚一档的布 + 一道竖褶」。
+   挂在 .hero-scrim 的两个伪元素上，JSX 一行都不用改；fill-mode 的 both 让它停在拉开后的位置，
+   .hero-section 的 overflow:hidden 负责把滑出去的布剪掉——少了它会被撑出横向滚动条。
+   两块各占 51% 宽，中缝叠那 1% 是为了不露出发丝细的一条亮线。
+   起点 0.1s 跟标题逐字进场的 0.15s 对齐：帘子刚开始动，字就开始浮上来。 */
+.hero-scrim::before,
+.hero-scrim::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 51%;
+  background-color: var(--curtain);
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(128, 128, 128, 0.16) 0px,
+    rgba(128, 128, 128, 0.16) 3px,
+    rgba(128, 128, 128, 0) 3px,
+    rgba(128, 128, 128, 0) 28px
+  );
+  pointer-events: none;
+  animation: 1.1s cubic-bezier(0.46, 0.02, 0.24, 1) 0.1s both;
+}
+
+.hero-scrim::before {
+  left: 0;
+  animation-name: curtain-left;
+  /* 前缘这道细边是「布边」：两块同色布滑过去时，好让人看出这是一片布而不是一层雾 */
+  box-shadow: inset -1px 0 0 rgba(128, 128, 128, 0.38);
+}
+
+.hero-scrim::after {
+  right: 0;
+  animation-name: curtain-right;
+  box-shadow: inset 1px 0 0 rgba(128, 128, 128, 0.38);
+}
+
+@keyframes curtain-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-101%); }
+}
+
+@keyframes curtain-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(101%); }
+}
+
+/* 系统里开了「减少动态效果」：不放帘子，直接看背景；头像也不转（光标提示一并收掉，
+   免得"看着能转却不动"）。滚轮转场不在这里关——那组值由 JS 侧的 useReducedMotion
+   直接不下发，元素停在默认静止状态。 */
+@media (prefers-reduced-motion: reduce) {
+  .hero-scrim::before,
+  .hero-scrim::after {
+    display: none;
+  }
+
+  /* 选择器带 :hover 是有意的：不带就会被下面那条同优先级的 .hero-avatar { cursor: pointer }
+     盖掉（它写在后面）。带了 :hover 优先级更高，跟顺序无关。 */
+  .hero-avatar:hover {
+    cursor: default;
+    animation: none;
+  }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  padding: 1rem;
+  width: 100%;
+  max-width: 920px;
+  display: grid;
+  justify-items: center;
+}
+
+.hero-copy {
+  width: min(100%, 760px);
+  text-align: center;
+}
+
+/* 「下滑到幕后」的箭头按钮。只留一个箭头，不要文字：文案本来是对着一个叫「幕后」的栏目
+   说话，那栏目没了这里就是个死链接，而箭头谁都会用。所以名字挪进 aria-label，屏幕上只剩图形。
+   落在 .hero-content 里是有意的：跟着首屏一起后退、淡出，滑下去之后不会剩一个按钮挂在屏幕上。
+   颜色走主题的正文色 / 标题色（浅色主题下就是白，深色主题下自动翻成它的对色）。暂不挂
+   .hero-title 那两层黑影：影子对白箭头也成立（托在亮块上不糊），但那属于再调一层，
+   先按「白色、贴着背景但不糊」这一条做。 */
+.hero-scroll-cue {
+  display: inline-flex;
+  margin-top: 2.5rem;
+  padding: 0.5rem;
+  color: var(--text-body);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+/* 箭头的宽度行高：高度写死 26px、宽度交给 viewBox 比例，箭头就不会被拉扁。
+   hover 只把颜色挪到主题的标题色（浅色主题下就是纯白），不加位移/缩放——
+   那档系统偏好下不需要再关一遍。 */
+.hero-scroll-cue svg {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+
+.hero-scroll-cue:hover {
+  color: var(--text-heading);
+}
+
+/* 首屏头像：跟侧栏 ProfileCard 是同一张 public/头像.jpg，只是放大一档（侧栏 90px）。
+   原来那圈红描边删了——看着像贴上去的贴纸。改成「化进背景 + 发光」：外缘用 mask 渐隐，
+   再拿 drop-shadow 往外洇两层次灰的光（不用 box-shadow，因为它在方框外发亮、还会被 mask 剪掉）。
+   用中灰而不是纯白/纯黑：浅色主题下它是一圈柔和投影、深色主题下它是一圈微光，一个值两套主题都成立。
+   宽高属性管 CLS，尺寸交给这里。 */
+.hero-avatar {
+  display: block;
+  cursor: pointer;
+  margin: 0 auto 1.25rem;
+  width: clamp(104px, 12vw, 132px);
+  height: clamp(104px, 12vw, 132px);
+  border-radius: 50%;
+  object-fit: cover;
+  mask-image: radial-gradient(circle at 50% 50%, #000 64%, rgba(0, 0, 0, 0.45) 86%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 64%, rgba(0, 0, 0, 0.45) 86%, transparent 100%);
+  filter: drop-shadow(0 0 12px rgba(160, 160, 160, 0.55)) drop-shadow(0 0 32px rgba(160, 160, 160, 0.3));
+}
+
+/* 鼠标停留时转起来：跟侧栏那张 90px 头像同一个动作（@keyframes avatarSpin 声明在 index.css），
+   只是周期放长到 0.6s——这边直径 104–132px 是那边的 1.2–1.5 倍，同样角速度压在大盘上边缘线速度
+   更高、看着更急，所以转速相应降下来。纯 CSS 悬停，不加 state：进、出各由 :hover 管。
+   遮罩和 drop-shadow 都在元素自己身上，圆形遮罩跟着转没有可见变化。 */
+.hero-avatar:hover {
+  animation: avatarSpin 0.6s linear infinite;
+}
+
+/* 首屏标题：只留「字重 + 字号」。
+   这里前后被改过两轮，方向都是「加格式」——先是粉紫渐变动画，后是 900 字重
+   + 8 向黑描边 + 红色块面偏移——字本身没变好看，只是被装饰堆住了。
+   字重停在 700：index.html 只请求了 400/500/700/900，写 600 会被挑到最近的 700。
+   颜色不再走 --text-heading：两套主题统一用「深白」#f4f1ee（微微偏暖、不是纯白，
+   压在插画上不刺眼）。白字落在浅色插画的亮块上会糊掉，所以带两层黑影把它托出来——
+   一层贴身的（起描边的作用）+ 一层散开的；深色主题下影子看不见，白字本来就跟暗背景分得开。 */
+.hero-title {
+  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  font-weight: 700;
+  color: #f4f1ee;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.72), 0 0 18px rgba(0, 0, 0, 0.42);
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .hero-content {
+    padding: 4rem 1rem 2rem;
+  }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-  :root {
-    font-size: 14px;
-  }
+:root {
+  font-size: 14px;
+}
 }
 
 /* 代码高亮：底色跟主题走，只保留 highlight.js 的 token 颜色。
