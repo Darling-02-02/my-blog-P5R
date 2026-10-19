@@ -3,6 +3,8 @@ import path from 'node:path';
 import { parseCategoryDocument } from '../src/lib/category-content.ts';
 import { findLocalImageProblems } from '../src/lib/article-images.ts';
 import { parseMyselfDocument } from '../src/lib/myself-content.ts';
+import { parsePhotoDocument } from '../src/lib/photo-content.ts';
+import { parseNotesDocument } from '../src/lib/notes-content.ts';
 
 const root = process.cwd();
 const articlesRoot = path.join(root, 'src', 'content', 'articles');
@@ -11,6 +13,8 @@ const publicRoot = path.join(root, 'public');
 const requiredFields = ['id', 'title', 'excerpt', 'category', 'date', 'readTime'];
 const categoriesFile = path.join(root, 'src', 'content', 'categories.json');
 const myselfFile = path.join(root, 'src', 'content', 'myself.json');
+const photosFile = path.join(root, 'src', 'content', 'photos.json');
+const notesFile = path.join(root, 'src', 'content', 'notes.json');
 
 const fail = (message) => {
   console.error(message);
@@ -31,6 +35,32 @@ try {
   parseMyselfDocument(readFileSync(myselfFile, 'utf8'));
 } catch (error) {
   fail(`src/content/myself.json: ${error instanceof Error ? error.message : String(error)}`);
+  process.exit(1);
+}
+
+// 照片清单：解析之外还要确认本地图真的在 public/ 里存在。
+// 少一张照片不会白屏（src/data/photos.ts 会回退空清单），但会变成一张占位卡，
+// 那种"静默少一张"在部署后很难发现，所以在构建期直接拦。
+try {
+  const photos = parsePhotoDocument(readFileSync(photosFile, 'utf8'));
+  for (const photo of photos) {
+    if (!photo.src.startsWith('/')) continue;
+    const filePath = path.join(publicRoot, photo.src);
+    if (!statSync(filePath, { throwIfNoEntry: false })) {
+      fail(`src/content/photos.json: 照片「${photo.title}」指向的 public${photo.src} 不存在`);
+    }
+  }
+} catch (error) {
+  fail(`src/content/photos.json: ${error instanceof Error ? error.message : String(error)}`);
+  process.exit(1);
+}
+
+// 碎碎念：允许空（这块本来就是空的），只校验结构。
+// 空内容不报错，但写成数组/写错字段名这种"看起来没坏、实际不显示"的情况要在构建期拦住。
+try {
+  parseNotesDocument(readFileSync(notesFile, 'utf8'));
+} catch (error) {
+  fail(`src/content/notes.json: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 }
 

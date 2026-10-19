@@ -72,6 +72,9 @@
      之前前台散着 5/10/12/13/15/16/20px 好几档，肉眼几乎分不出来，只在相邻处显得毛糙。
      后台管理页（AdminPage / ArticleEditor / CategoryManager）另有自己的 6/8px 小圆角，没动。 */
   --radius-card: 14px;
+  /* 占位照片卡的灰阶渐变面：不是真实照片，只是一个「这里该有张图」的哑光色块。
+     刻意不用亮色块 —— 与现有黑白调色落差最小，也最容易一眼看出哪张待替换。 */
+  --placeholder-fill: linear-gradient(145deg, #3a3a3a 0%, #2a2a2a 45%, #1e1e1e 100%);
   --radius-sm: 8px;
   --radius-pill: 999px;
 
@@ -158,6 +161,9 @@
 
   --shadow-card: 0 6px 24px rgba(0, 0, 0, 0.12);
   --shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.16);
+
+  /* 浅色主题的占位面：浅灰到中灰，和深色主题的暗色面形成同一族里的深浅两端。 */
+  --placeholder-fill: linear-gradient(145deg, #e8e8e8 0%, #d6d6d6 45%, #c2c2c2 100%);
 
   --scrollbar-track: #f0f0f0;
   --scrollbar-thumb: #9a9a9a;
@@ -547,6 +553,392 @@ textarea {
 @media (max-width: 768px) {
   .hero-content {
     padding: 4rem 1rem 2rem;
+  }
+}
+
+/* 一些其他东西（/gallery）——3D 空间照片墙
+   把照片摊在桌面上、视角随光标游走。视差由 GalleryPage.tsx 下发 CSS 变量
+   --gallery-px / --gallery-py（-1..1），纯 CSS transition 平滑过渡，不用 rAF。
+   所有位移都挂在内层 .gallery-card-inner 上：外层卡片永远停在原位，
+   容器 box-shadow 的几何因此不变，不会触发每帧重绘 blur。 */
+.gallery-shell {
+  min-height: 100vh;
+  padding: 6.5rem 1rem 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* 整页一张卡：与 MyselfPage（src/components/MyselfPage.tsx:14）同一套做法。
+   本站的固定背景 CY.webp 中央是一张高饱和插画，直接往上面压文字，
+   灰阶的 --text-muted 会掉到 AA 以下——所有内容页都靠这层 --bg-card 拿到可读底。
+   相册页尤其需要：占位卡本身是灰色块，没有底就整片糊在一起。 */
+.gallery-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+}
+
+.gallery-head {
+  margin-bottom: 3rem;
+}
+
+/* 区块小标题。字号/字重与 MyselfPage 的 subHeadingStyle 对齐（src/components/MyselfPage.tsx:19-24），
+   用 --text-secondary 而不是 --text-heading：它是分区名，不该和页面主标题抢。 */
+.gallery-subhead {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 1.5rem;
+}
+
+/* 相册下方那块「一些碎碎念」要和小标题拉开距离 */
+.gallery-subhead + .markdown-body {
+  margin-bottom: 2rem;
+}
+
+/* 收起态：整摞就是"展开相册"的按钮。
+   用真 <button> 而不是给容器挂 onClick，是为了键盘可达 + aria-expanded；
+   但它必须把 button 的默认外观全部抹掉，否则会有一圈系统灰底/边框压在照片底下。 */
+.gallery-plane-stack {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+.gallery-plane-stack:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 8px;
+  border-radius: var(--radius-card);
+}
+
+/* 展开态的小号收起按钮：比原先那颗主按钮轻，不再和照片抢视线。 */
+.gallery-collapse {
+  display: block;
+  margin: 1.75rem auto 0;
+  padding: 0.35rem 0.9rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.gallery-collapse:hover {
+  color: var(--text-link);
+  border-color: var(--text-link);
+}
+
+.gallery-collapse:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.gallery-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 1rem;
+}
+
+.gallery-lede {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  margin: 0;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-section);
+}
+
+/* 舞台：拖近视距 + 轻微下俯，让整片照片像摊在桌面上而不是贴在墙上。 */
+.gallery-stage {
+  perspective: 1100px;
+  perspective-origin: calc(50% + var(--gallery-px, 0) * 6%) calc(50% + var(--gallery-py, 0) * 6%);
+  padding: 2rem 0 3rem;
+}
+
+.gallery-plane {
+  transform-style: preserve-3d;
+  transform: rotateX(calc(var(--gallery-py, 0) * -2.4deg)) rotateY(calc(var(--gallery-px, 0) * 2.4deg));
+  transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+  display: grid;
+  /* 最多 4 列：再多每张就薄得像缩略图，而且 6 张会凑出「第 2 行孤零零一张」的意外感。
+     窄屏由下面的 640px 断点收成单列。 */
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  max-width: 1000px;
+  margin: 0 auto;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+/* 交错错落：奇数列下沉、偶数列上提，模仿"摊开的照片堆"。
+   只有 ≥2 张时才有意义，所以 :only-child 归零。 */
+.gallery-card:nth-child(odd) {
+  margin-top: 1.5rem;
+}
+
+.gallery-card:only-child {
+  margin-top: 0;
+}
+
+.gallery-card {
+  --depth: 0;
+  --tilt: 0deg;
+  margin: 0;
+  position: relative;
+}
+
+/* 每张卡的视差深度略有不同，整片才有层次；单张卡不会显得"被拽着晃"。 */
+.gallery-card-inner {
+  transform: translate3d(
+      calc(var(--gallery-px, 0) * var(--depth) * 1px),
+      calc(var(--gallery-py, 0) * var(--depth) * 1px),
+      calc(var(--depth) * -0.35px)
+    )
+    rotate(var(--tilt));
+  transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* 收起态：一摞照片。
+   关键不是"把每张卡挪一点"—— grid 把每张卡放进了各自的格子里，格子间距 280px，
+   在格子内部挪几个像素永远叠不到一起（试过：spreadX 只从 274 变到 277，肉眼仍是网格）。
+   要真的叠起来就得让布局本身塌掉：所有卡放进同一个格子（grid-area 1/1 互相覆盖），
+   再用 transform 扇出角度，读起来才是一叠照片。
+   偏移量按卡片百分比算而不是固定像素，换屏宽时错落感不变。 */
+.gallery-stage-stacked {
+  perspective: none;
+}
+
+.gallery-stage-stacked .gallery-plane {
+  transform: none;
+  /* 单格：所有卡都以同一个格子为定位基准，于是自然叠在一起 */
+  grid-template-columns: 1fr;
+  grid-template-areas: 'stack';
+  max-width: min(100%, 460px);
+}
+
+.gallery-stage-stacked .gallery-card {
+  grid-area: stack;
+  /* 取消交错下沉，否则叠在一起时还在上下错位 */
+  margin-top: 0;
+}
+
+.gallery-stage-stacked .gallery-card-inner {
+  transform: translate3d(
+      calc(var(--stack) * var(--stack-step-x, 4%)),
+      calc(var(--stack) * -1 * var(--stack-step-y, 3%)),
+      0
+    )
+    rotate(calc(var(--stack) * 1.7deg));
+}
+
+.gallery-frame {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-card);
+  background: var(--bg-card-solid);
+  box-shadow: var(--shadow-card);
+}
+
+.gallery-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 占位卡：灰阶渐变面 —— 与现有黑白调色的落差最小，也最容易一眼看出哪张待换成照片。
+   刻意保留 3:2 比例，和真实照片一致，换图时排布不会崩。 */
+.gallery-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-placeholder svg {
+  width: 42px;
+  height: 42px;
+  opacity: 0.4;
+}
+
+/* 图注：压在图上，所以底色必须独立于主题 —— 图片内容不可控，
+   主题色文字压上去可能整片糊掉。 */
+.gallery-meta {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 1.4rem 1rem 0.85rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0));
+  color: #f4f1ee;
+  pointer-events: none;
+}
+
+.gallery-meta strong {
+  display: block;
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.gallery-meta span {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  opacity: 0.82;
+}
+
+/* 键盘可达：卡片本身可聚焦，焦点环走 --accent。 */
+.gallery-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: var(--radius-card);
+}
+
+/* —— 悬停反馈 ——
+   两处 hover，各解决一件事：
+   1) 收起态那一摞是按钮 —— 不给出"可点"的反馈，用户看不出它能点开。最需要提示的正是它。
+   2) 展开态每张卡 —— 轻微抬起，给"这张照片可以单独看/聚焦"的暗示。
+
+   抬起必须挂 .gallery-frame，不能挂 .gallery-card-inner。
+   内层承担视差（--gallery-px/py 与 --tilt 合成的 translate3d+rotate），
+   再给它写一条 transform 会整条覆盖掉视差 —— 实测过：idle 是 -48.18px 的视差位移，
+   一悬停就变成扁平的 translateY(-6px)，卡片的纵深和倾角当场消失。
+   外框不参与视差，把抬起放这里，两个效果就各管各的、能叠加。 */
+
+/* 展开态：卡片抬起 + 边框提亮。 */
+.gallery-frame {
+  transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.gallery-card:hover .gallery-frame,
+.gallery-card:focus-visible .gallery-frame {
+  transform: translateY(-6px);
+  border-color: var(--accent);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.32);
+}
+
+/* 收起态：整摞是按钮，悬停时稍微"松一下"—— 每张卡按 --stack 的次序再多散开一点，
+   读起来像手指已经捻住了牌堆。用 --stack 的既有变量，不引入新的数值来源。
+   收起态没有视差（那一摞不参与），所以这里改 inner 的 transform 是安全的。 */
+.gallery-plane-stack .gallery-card-inner {
+  transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.gallery-plane-stack:hover .gallery-card-inner,
+.gallery-plane-stack:focus-visible .gallery-card-inner {
+  transform: translate3d(
+      calc(var(--stack) * var(--stack-step-x, 4%) * 1.6),
+      calc(var(--stack) * -1 * var(--stack-step-y, 3%) * 1.6),
+      0
+    )
+    rotate(calc(var(--stack) * 1.7deg));
+}
+
+.gallery-plane-stack:hover .gallery-frame,
+.gallery-plane-stack:focus-visible .gallery-frame {
+  border-color: var(--accent);
+}
+
+/* 悬停提示：不改变布局，只让最上面那张的边缘亮起来，明示这一摞可点。 */
+.gallery-plane-stack:hover {
+  cursor: pointer;
+}
+
+/* 说明块（无照片时出现，以及始终显示的上传指引） */
+.gallery-note {
+  margin-top: 2.5rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-card);
+  border-radius: var(--radius-card);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.9;
+}
+
+.gallery-note code {
+  color: var(--text-body);
+  background: transparent;
+  padding: 0;
+}
+
+/* 不支持 preserve-3d 时不要残留半套 3D：整片退回扁平排布。 */
+@supports not (transform-style: preserve-3d) {
+  .gallery-plane,
+  .gallery-card-inner {
+    transform: none;
+  }
+}
+
+/* 窄屏：3D 视差在触屏上没有 hover，退化成静态单列，读图为主。
+   收起态在窄屏不会发生（GalleryPage.tsx 用 matchMedia 在源头关掉），所以这里不用再管它。
+   切记别只在这里把叠放的 transform 抹掉就以为收起了：叠放靠 grid-area 让所有卡占同一格，
+   只改 transform 会让卡无声地摞在互相身上、五张被完全盖住。 */
+@media (max-width: 640px) {
+  .gallery-plane {
+    grid-template-columns: 1fr;
+    transform: none;
+  }
+
+  .gallery-card,
+  .gallery-card:nth-child(odd) {
+    margin-top: 0;
+  }
+
+  .gallery-card-inner {
+    transform: none;
+  }
+}
+
+/* 减少动态效果：关掉视差与过渡，停在最终可读状态（不是隐藏内容）。
+   收起/扇开靠 transition 完成，这里把 transition 去掉后变成瞬切——
+   两种状态都仍然可见可用，只是没有动画。
+
+   这里的 :hover/:focus-visible 规则必须重复一遍。只写无前缀的选择器挡不住
+   上面那些带 :hover 的规则（伪类比前缀类权重更高），
+   抬起会在 reduce-motion 下照样发生 —— 这正是实测抓到的 bug。
+   动作去掉后，用边框与阴影保留"能点/能聚焦"的静态反馈。 */
+@media (prefers-reduced-motion: reduce) {
+  .gallery-stage {
+    perspective: none;
+  }
+
+  .gallery-plane,
+  .gallery-card-inner,
+  .gallery-plane-stack .gallery-card-inner {
+    transform: none;
+    transition: none;
+  }
+
+  .gallery-frame {
+    transition: none;
+  }
+
+  .gallery-card:hover .gallery-frame,
+  .gallery-card:focus-visible .gallery-frame,
+  .gallery-plane-stack:hover .gallery-card-inner,
+  .gallery-plane-stack:focus-visible .gallery-card-inner {
+    transform: none;
+  }
+
+  .gallery-card:hover .gallery-frame,
+  .gallery-card:focus-visible .gallery-frame,
+  .gallery-plane-stack:hover .gallery-frame,
+  .gallery-plane-stack:focus-visible .gallery-frame {
+    border-color: var(--accent);
   }
 }
 

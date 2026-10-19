@@ -61,6 +61,7 @@ const Header = () => {
     { name: '幕后', href: '/#blog', external: false, columnsOnly: true },
     { name: '友链', href: '/#links', external: false },
     { name: '留言板', href: '/#comments', external: false },
+    { name: '一些其他东西', href: '/gallery', external: false },
     { name: 'GitHub', href: 'https://github.com/Darling-02-02', external: true },
   ];
 

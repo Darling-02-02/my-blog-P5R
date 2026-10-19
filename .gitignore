@@ -65,3 +65,5 @@ deepseek-gif/
 .shots/
 security-audit/
 blog-static-upload.zip
+# impeccable 的本地掷骰记录（时间戳 + 目录 key），不是产品内容
+.impeccable/
