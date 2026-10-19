@@ -10,6 +10,9 @@
 # 浏览器跳转时会自己保留 #hash，落地后由 App 的 ScrollToTop 滚到对应区块。
 /explore     /  301
 /myself      /  200
+# 「一些其他东西」相册页。CF Pages 只认这张表里的路径，漏一条就是线上 404 ——
+# 路由加进 App.tsx / Header.tsx 时必须同步加到这里。
+/gallery     /  200
 /article/*   /  200
 # Study Room 页面已删除：老书签直接跳回首页，别落到一个没有路由匹配的白页上。
 /study-room  /  301
