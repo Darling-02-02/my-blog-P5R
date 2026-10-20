@@ -1,1 +1,47 @@
-[]
+[
+  {
+    "name": "基因组组装",
+    "description": "从测序 reads 拼出完整基因组：三代 HiFi（hifiasm）、二代短读（SPAdes）、线粒体环状组装，附 BUSCO / QUAST 评估",
+    "color": "#3f3f3f"
+  },
+  {
+    "name": "变异检测",
+    "description": "比对后找变异：GATK / bcftools / snp-sites 三种 SNP 路线，含过滤、snpEff 注释、vcf2maf 转换与系统发育建树",
+    "color": "#3f3f3f"
+  },
+  {
+    "name": "转录组",
+    "description": "RNA-seq 全流程：hisat2 + featureCounts 上游定量、edgeR 下游差异表达，从 reads 到差异基因表",
+    "color": "#3f3f3f"
+  },
+  {
+    "name": "单细胞",
+    "description": "10x 单细胞标准分析：QC、归一化、降维聚类、UMAP、marker 基因，Seurat(R) 与 Scanpy(Python) 双版本",
+    "color": "#3f3f3f"
+  },
+  {
+    "name": "比较基因组",
+    "description": "多基因组比较：NGenomeSyn 共线性图、OrthoFinder 直系同源基因鉴定",
+    "color": "#3f3f3f"
+  },
+  {
+    "name": "基因注释",
+    "description": "注释收尾与质量评估：GFF/GTF 转换、CDS 修复、BAM 转 FASTA、QUAST / BUSCO 完整性检查",
+    "color": "#3f3f3f"
+  },
+  {
+    "name": "序列与结构",
+    "description": "本地 BLAST 建库比对（outfmt6 字段解读）、AlphaFold3 预测转录因子与启动子互作",
+    "color": "#3f3f3f"
+  },
+  {
+    "name": "可视化",
+    "description": "分析结果出图：Jalview 多序列比对可视化",
+    "color": "#3f3f3f"
+  },
+  {
+    "name": "数据下载",
+    "description": "数据库数据下载与检索技巧：CTD、PubMed、MeSH 等",
+    "color": "#3f3f3f"
+  }
+]
