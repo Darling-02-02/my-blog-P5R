@@ -6,9 +6,7 @@ category: "基因注释"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "GFF"
-  - "AGAT"
-  - "基因注释"
+  - "注释"
 ---
 
 > 某些工具生成的 GFF 只有 `mRNA`/`tRNA` 特征、缺少 `CDS` 行，导致下游（gffread 提蛋白等）失败。这里用 AGAT 统一格式，再用一个 perl 脚本为每个 `mRNA`/`tRNA` 补一条 `CDS`。

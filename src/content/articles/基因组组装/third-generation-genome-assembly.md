@@ -6,9 +6,8 @@ category: "基因组组装"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "hifiasm"
-  - "三代测序"
-  - "BUSCO"
+  - "组装"
+  - "质量评估"
 ---
 
 > 从 PacBio HiFi 测序的 BAM 出发，转 FASTQ → 合并 → hifiasm 组装 → 提取主组装 → QUAST/BUSCO 评估。

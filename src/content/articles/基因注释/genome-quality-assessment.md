@@ -6,8 +6,6 @@ category: "基因注释"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "QUAST"
-  - "BUSCO"
   - "质量评估"
 ---
 

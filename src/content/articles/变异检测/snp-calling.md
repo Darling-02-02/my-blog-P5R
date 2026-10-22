@@ -6,9 +6,7 @@ category: "变异检测"
 date: "2026-10-20"
 readTime: "2 分钟"
 tags:
-  - "GATK"
-  - "SNP"
-  - "bcftools"
+  - "比对"
   - "变异检测"
 ---
 

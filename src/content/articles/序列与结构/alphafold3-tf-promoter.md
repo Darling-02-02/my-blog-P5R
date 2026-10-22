@@ -6,9 +6,7 @@ category: "序列与结构"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "AlphaFold3"
-  - "转录因子"
-  - "启动子"
+  - "结构预测"
 ---
 
 > 用 AlphaFold3 预测候选转录因子蛋白与靶基因启动子 DNA 是否存在相互作用。

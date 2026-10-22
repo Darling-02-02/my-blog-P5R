@@ -6,8 +6,7 @@ category: "比较基因组"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "共线性"
-  - "NGenomeSyn"
+  - "比对"
   - "可视化"
 ---
 

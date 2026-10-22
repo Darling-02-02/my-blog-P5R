@@ -6,7 +6,6 @@ category: "转录组"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "edgeR"
   - "差异表达"
   - "R"
 ---

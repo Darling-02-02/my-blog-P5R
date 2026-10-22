@@ -6,9 +6,8 @@ category: "转录组"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "RNA-seq"
-  - "hisat2"
-  - "featureCounts"
+  - "比对"
+  - "定量"
 ---
 
 > 有参转录组定量流程：质控 → HISAT2 比对 → SAM 转 BAM → featureCounts 定量。

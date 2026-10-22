@@ -6,8 +6,7 @@ category: "单细胞"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "Seurat"
-  - "单细胞"
+  - "差异表达"
   - "R"
 ---
 

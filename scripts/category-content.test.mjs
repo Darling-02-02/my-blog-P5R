@@ -44,6 +44,16 @@ test('the shipped categories.json still describes the same home categories', () 
   const categories = parseCategoryDocument(readFileSync(path.join(process.cwd(), 'src', 'content', 'categories.json'), 'utf8'));
   // 这张快照是有意的哨兵：栏目表被误改（比如后台保存时丢了栏目）就会红。
   // 真的在后台增删/改名栏目之后，把这里和 src/content/categories.json 一起改。
-  // 当前是空的：后台把最后一个栏目「生物信息」删掉了。
-  assert.deepEqual(categories.map((category) => category.name), []);
+  // 当前是生信系列 9 个栏目（顺序即栏目表顺序，改顺序也要一起改）。
+  assert.deepEqual(categories.map((category) => category.name), [
+    '基因组组装',
+    '变异检测',
+    '转录组',
+    '单细胞',
+    '比较基因组',
+    '基因注释',
+    '序列与结构',
+    '可视化',
+    '数据下载',
+  ]);
 });

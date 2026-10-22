@@ -6,9 +6,7 @@ category: "序列与结构"
 date: "2026-10-20"
 readTime: "2 分钟"
 tags:
-  - "BLAST"
-  - "makeblastdb"
-  - "序列比对"
+  - "比对"
 ---
 
 > 在本地建库跑 BLASTN，批量比对、解读 outfmt 6 结果，并把命中区间从基因组里切出来做下游分析（ORF 预测、蛋白结构域注释）。

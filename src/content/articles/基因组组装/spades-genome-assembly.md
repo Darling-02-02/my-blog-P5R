@@ -6,9 +6,8 @@ category: "基因组组装"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "SPAdes"
-  - "基因组拼接"
-  - "BUSCO"
+  - "组装"
+  - "质量评估"
 ---
 
 > 从二代测序 reads 出发，做质控 → SPAdes 拼接 → QUAST/BUSCO 评估 →（可选）基因预测。

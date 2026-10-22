@@ -6,9 +6,7 @@ category: "基因注释"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "BAM"
-  - "FASTA"
-  - "samtools"
+  - "比对"
 ---
 
 > 把目录下所有 `.bam` 用 `samtools fastq` 转成压缩的 `.fastq.gz`，适合 PacBio/ONT 下机的多个 BAM 批量转 fastq。

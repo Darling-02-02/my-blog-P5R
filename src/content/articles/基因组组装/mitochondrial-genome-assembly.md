@@ -6,9 +6,8 @@ category: "基因组组装"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "线粒体"
-  - "GetOrganelle"
-  - "MITObim"
+  - "组装"
+  - "注释"
 ---
 
 > 从二代测序 reads 中组装出完整的线粒体基因组：GetOrganelle / MITObim 组装 → 成环验证 → 注释 → 圈图。

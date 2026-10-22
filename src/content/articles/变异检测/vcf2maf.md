@@ -6,9 +6,8 @@ category: "变异检测"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "vcf2maf"
-  - "MAF"
-  - "maftools"
+  - "注释"
+  - "R"
 ---
 
 > 把 VCF 格式的变异转成 MAF 格式，便于做下游的突变分析（如 maftools、MutSig 等）。

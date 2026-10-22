@@ -6,8 +6,6 @@ category: "可视化"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "Jalview"
-  - "多序列比对"
   - "可视化"
 ---
 

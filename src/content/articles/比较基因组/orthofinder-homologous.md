@@ -6,9 +6,8 @@ category: "比较基因组"
 date: "2026-10-20"
 readTime: "1 分钟"
 tags:
-  - "OrthoFinder"
-  - "AUGUSTUS"
-  - "同源基因"
+  - "比对"
+  - "注释"
 ---
 
 > 从多个物种的二代 reads 出发，拼接 → AUGUSTUS 预测基因 → gffread 提取蛋白 → OrthoFinder 找直系同源基因。
