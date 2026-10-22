@@ -195,11 +195,7 @@ const GalleryPage = () => {
           </div>
 
           <div className="gallery-note">
-            {visiblePhotos.length === 0 && <p style={{ margin: '0 0 0.6rem' }}>还没有照片。</p>}
-            <p style={{ margin: 0 }}>
-              加照片：把图片放进 <code>public/gallery/</code>，再到 <code>src/content/photos.json</code> 里登记一项{' '}
-              <code>{'{ "src": "/gallery/文件名.jpg", "title": "标题", "date": "2026-10-17" }'}</code>。建议 3:2 横向、长边不超过 1600px。
-            </p>
+            {visiblePhotos.length === 0 && <p style={{ margin: 0 }}>还没有照片。</p>}
             {overflow > 0 && <p style={{ margin: '0.6rem 0 0' }}>当前只显示前 {visiblePhotos.length} 张，还有 {overflow} 张未显示。</p>}
           </div>
 
