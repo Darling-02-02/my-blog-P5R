@@ -6,5 +6,7 @@ export type FriendLink = {
   desc: string;
 };
 
-// 现在一条都没有：原来那条 BioJuse 只是做这个页面时的参考站，不是互链的友链，已撤掉。
-export const friendLinks: FriendLink[] = [];
+// 原来那条 BioJuse 只是做这个页面时的参考站，不是互链的友链，已撤掉。
+export const friendLinks: FriendLink[] = [
+  { name: 'Zzzovozz', url: 'https://zzzovozz.j3.ink/', desc: 'Zzzovozz 的个人博客。' },
+];

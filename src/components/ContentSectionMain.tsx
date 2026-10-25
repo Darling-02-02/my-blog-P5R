@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import type { CategoryData } from '../contexts/content-context';
+import type { ArticleSummary } from '../../backend/src/articles/article.types';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
 import { useTheme } from '../contexts/useTheme';
@@ -12,19 +12,6 @@ import { useWorkMood, workMoodImage, type WorkMood } from '../lib/workMood';
 const articleCardBackground = 'var(--bg-article-card)';
 const aboutBoxBackground = 'var(--bg-article-card)';
 const commentBoxBackground = 'var(--bg-article-card)';
-
-// 栏目色是后台自己挑的任意颜色，固定的白字在黑黄/亮绿上只有 1.5:1。
-// 按亮度选黑字或白字：分界点 0.179 是两种取法的对比度交点，任选一边都不低于 4.5:1。
-const readableInk = (color: string) => {
-  const [, r, g, b] = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(color.trim()) ?? [];
-  if (!r) return '#fff';
-  const luminance = [r, g, b].reduce((sum, channel, index) => {
-    const value = parseInt(channel, 16) / 255;
-    const linear = value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
-    return sum + linear * [0.2126, 0.7152, 0.0722][index];
-  }, 0);
-  return luminance > 0.179 ? '#1a1a1a' : '#fff';
-};
 
 const discussionsUrl = 'https://github.com/Darling-02-02/my-blog-P5R/discussions';
 
@@ -125,10 +112,6 @@ const GiscusComments = () => {
   );
 };
 
-// 大类栏目：卡片角标与轮播共用的计数/文案
-const categoryCountLabel = (category: CategoryData) =>
-  category.count === 0 ? '还没有内容' : `${category.count} 篇文章`;
-
 // 幕后副标题：参考 biojuse 的淡入淡出（透明度 + 缩放 + 模糊），文案取自真实数据
 const BlogFadeText = ({
   lead,
@@ -164,18 +147,34 @@ const BlogFadeText = ({
   return <span className={`blog-fade-text${visible ? '' : ' is-hidden'}`}>{lines[index]}</span>;
 };
 
-// 大类栏目卡片
-const CategoryLandingCard = ({ category, index, mood }: { category: CategoryData; index: number; mood: WorkMood }) => {
+// 文章卡：首层直接给真文章标题。以前这里放的是栏目卡（基因组组装 / 变异检测 …），
+// 标题本身没什么信息量，还得再点一层才看得见文章——现在点卡片就直接进文章。
+// 栏目入口收在网格上方那行 chips 里（分类 9 个、顺序和后台栏目表一致）。
+// 卡片只有一个跳转目标：栏目名只当角标显示，不在卡片里嵌第二个可点区域（焦点顺序会打架）。
+const ArticleCard = ({ article, index, mood }: { article: ArticleSummary; index: number; mood: WorkMood }) => {
   const navigate = useNavigate();
+  const { getArticlePath } = useContent();
+  const open = () => navigate(getArticlePath(article));
+
   return (
     <motion.article
       className="blog-card"
+      role="link"
+      tabIndex={0}
+      aria-label={article.title}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
       whileHover={{ y: -8 }}
-      onClick={() => navigate(`/category/${encodeURIComponent(category.name)}`)}
+      onClick={open}
+      onKeyDown={(event) => {
+        // role="link" 的元素必须自己实现 Enter/Space：div 不会因为可聚焦就有默认行为。
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          open();
+        }
+      }}
       style={{
         background: articleCardBackground,
         borderRadius: 'var(--radius-card)',
@@ -194,17 +193,18 @@ const CategoryLandingCard = ({ category, index, mood }: { category: CategoryData
           loading="lazy"
           decoding="async"
         />
-        <span style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', background: category.color, color: readableInk(category.color), padding: '0.22rem 0.65rem', borderRadius: 'var(--radius-pill)', fontSize: '0.78rem', fontWeight: '600' }}>
-          {categoryCountLabel(category)}
+        {/* 角标压在动图上：跟右下角的时段标签同一套黑底白字（55% 黑在亮封面上不够对比） */}
+        <span style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', background: 'rgba(10, 6, 9, 0.85)', color: '#fff', padding: '0.22rem 0.65rem', borderRadius: 'var(--radius-pill)', fontSize: '0.78rem', fontWeight: '600' }}>
+          {article.category}
         </span>
         <span className="blog-card-mood" title={mood.label}>{mood.period}</span>
       </div>
       <div style={{ padding: '1.15rem' }}>
-        <h4 className="blog-card-title" style={{ fontSize: '1.05rem', fontWeight: '600', color: 'var(--text-card-title)', marginBottom: '0.6rem', lineHeight: 1.5 }}>{category.name}</h4>
+        <h4 className="blog-card-title" style={{ fontSize: '1.05rem', fontWeight: '600', color: 'var(--text-card-title)', marginBottom: '0.6rem', lineHeight: 1.5 }}>{article.title}</h4>
         <p className="blog-card-desc" style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.7rem', lineHeight: 1.65 }}>
-          {category.description}
+          {article.excerpt}
         </p>
-        <span className="blog-card-meta">查看全部 →</span>
+        <span className="blog-card-meta">{article.date} · {article.readTime}</span>
       </div>
     </motion.article>
   );
@@ -212,12 +212,16 @@ const CategoryLandingCard = ({ category, index, mood }: { category: CategoryData
 
 // 主内容
 const MainContent = () => {
-  const { articles } = useArticles();
+  const { articles, status } = useArticles();
   const { getCategoryData } = useContent();
+  const navigate = useNavigate();
   const mood = useWorkMood();
   const categoryData = getCategoryData(articles);
   // 栏目表现在是后台的数据：后台刚新建的栏目哪怕一篇内容都还没有，也必须出现在这里，
   // 否则加完栏目、前端看着像"没生效"（文章里冒出来的野栏目必然 count>0，不用额外过滤）。
+  // ponytail: 首页只放最新 9 篇——跟原来 9 张栏目卡同高，文章变多也不会把首页无限拉长；
+  // 真要「全部文章」一页时再加路由，不提前造。
+  const newestArticles = articles.slice(0, 9);
   const sectionCardStyle: React.CSSProperties = {
     marginBottom: '4rem',
     padding: 0,
@@ -240,13 +244,13 @@ const MainContent = () => {
       boxShadow: 'none',
       padding: 0,
     }}>
-      {/* 幕后 - 大类栏目：栏目表整个空了（后台全删）时整块不渲染，别留一个空标题加一大片空白 */}
+      {/* 幕后 - 最新文章：栏目表整个空了（后台全删）时整块不渲染，别留一个空标题加一大片空白 */}
       {categoryData.length > 0 && <section id="blog" className="home-content-block" style={sectionCardStyle}>
         {/* 「首个词换强调色」那套写法在黑白灰里没有对比可言（强调色本身就是标题色），收成一色标题 */}
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
           幕后
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', minHeight: '3.6rem', marginBottom: '3.5rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', minHeight: '3.6rem', marginBottom: '2rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
           <BlogFadeText
             lead="一切都是为了正义"
             columnCount={categoryData.length}
@@ -254,12 +258,46 @@ const MainContent = () => {
           />
         </p>
 
-        {/* 一行三张；≤1100px 退回两列、≤640px 一列，规则在 ContentSection.tsx 的 <style> 里 */}
-        <div className="home-post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1.5rem' }}>
-          {categoryData.map((category, i) => (
-            <CategoryLandingCard key={category.name} category={category} index={i} mood={mood} />
+        {/* 栏目 chips：栏目总览入口（点进 /category/<name> 看该栏目全部文章）。
+            角标只写到篇数，空栏目也留着——后台刚建的栏目要能看见。 */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.75rem' }}>
+          {categoryData.map((category) => (
+            <button
+              key={category.name}
+              type="button"
+              onClick={() => navigate(`/category/${encodeURIComponent(category.name)}`)}
+              style={{
+                border: '1px solid var(--border-tag)',
+                background: 'var(--bg-tag)',
+                color: 'var(--text-link)',
+                borderRadius: 'var(--radius-pill)',
+                padding: '0.3rem 0.75rem',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontFamily: 'inherit',
+                margin: 0,
+              }}
+            >
+              {category.name}
+              <span style={{ color: 'var(--text-muted)', marginLeft: '0.35rem' }}>
+                {category.count === 0 ? '还没有内容' : category.count}
+              </span>
+            </button>
           ))}
         </div>
+
+        {/* 一行三张；≤1100px 退回两列、≤640px 一列，规则在 ContentSection.tsx 的 <style> 里 */}
+        {newestArticles.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>
+            {status === 'ready' ? '栏目已经建好了，还没有文章。' : '文章加载中…'}
+          </p>
+        ) : (
+          <div className="home-post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1.5rem' }}>
+            {newestArticles.map((article, i) => (
+              <ArticleCard key={article.id} article={article} index={i} mood={mood} />
+            ))}
+          </div>
+        )}
       </section>}
 
       {/* 关于 */}

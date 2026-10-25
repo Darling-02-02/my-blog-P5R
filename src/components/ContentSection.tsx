@@ -94,14 +94,13 @@ const ContentSection = ({ standalone = false, children }: ContentSectionProps) =
           letter-spacing: 0.04em;
         }
 
+        /* 现在卡片标题是真文章标题：长标题最多两行，免得三列网格被一张卡撑歪 */
         .blog-card-title {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
           transition: color 0.2s ease-in-out;
-        }
-
-        .blog-card-title::before {
-          content: '🔗';
-          margin-right: 8px;
-          font-size: 0.9em;
         }
 
         .blog-card:hover .blog-card-title {

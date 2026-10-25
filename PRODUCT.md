@@ -35,7 +35,7 @@
 
 | 路由 | 作用 |
 |---|---|
-| `/` | 首屏（个人名片）+ 幕后（栏目）/ 关于 / 友链 / 留言 |
+| `/` | 首屏（个人名片）+ 幕后（最新文章卡 + 栏目 chips）/ 关于 / 友链 / 留言 |
 | `/myself` | 个人简介全文 |
 | `/article/*` | 文章正文 |
 | `/admin` | 站主自己用的内容后台 |
@@ -53,7 +53,7 @@
 - 照片清单目前为空（占位卡代替）；真实照片由站主后续放进 `public/gallery/`
 - 「一些碎碎念」（`src/content/notes.json`）当前为空，站主后续补充；Markdown 长文
 - `/gallery` 暂无后台编辑页签，靠直接编辑 `src/content/photos.json` 与 `src/content/notes.json` 维护
-- 友链表 `src/data/friend-links.ts` 当前为空数组
+- 友链表 `src/data/friend-links.ts` 当前 1 条（Zzzovozz）；加人只改这个数组，不动组件
 
 ---
 
