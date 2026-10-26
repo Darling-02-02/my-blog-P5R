@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
+import { useTheme } from '../contexts/useTheme';
 import { fetchRepoStats, type RepoStats } from '../lib/repo-stats';
 import { recordVisit, type SiteVisits } from '../lib/site-visits';
 import { useLocationWeather } from './useLocationWeather';
@@ -13,7 +14,6 @@ const sidebarBackground = 'var(--bg-card)';
 const announcementSlogans = [
   '凡所有相，皆是虚妄',
   '天地不仁，以万物为刍狗',
-  '人类的悲欢并不相通，我只觉得他们吵闹',
   '存在先于本质',
   '人是一根会思考的芦苇',
   '上帝死了，是我们杀了他',
@@ -173,10 +173,19 @@ const AnnouncementCard = () => {
 };
 
 // 标签
+// 每个标签一个固定色相（按名字算，同一个标签每次进来颜色都一样），深浅主题各给一个明度：
+// 深色主题要亮一点才够对比，浅色主题压到 44% 才不会在白底上糊成一片。
+const tagHue = (name: string) => {
+  let hash = 0;
+  for (const char of name) hash = (hash * 31 + char.codePointAt(0)!) % 360;
+  return hash;
+};
+
 const TagsCard = () => {
   const navigate = useNavigate();
   const { articles } = useArticles();
   const { getTagData } = useContent();
+  const { isDark } = useTheme();
   const tagData = getTagData(articles);
 
   // 一篇文章都没有的时候这张卡只剩一个空盒子（后台新建的空栏目就是这样），直接不出。
@@ -191,6 +200,21 @@ const TagsCard = () => {
   };
   return (
     <SidebarCard title="标签" icon="🏷️">
+      <style>{`
+        .tag-chip:hover {
+          animation: tag-wiggle 0.45s ease-in-out infinite;
+        }
+
+        /* 悬浮时左右来回晃：只动 transform，不触发重排 */
+        @keyframes tag-wiggle {
+          0%, 100% { transform: rotate(-5deg) scale(1.08); }
+          50% { transform: rotate(5deg) scale(1.12); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .tag-chip:hover { animation: none; transform: scale(1.08); }
+        }
+      `}</style>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', justifyContent: 'center' }}>
         {tagData.map(tag => {
           const size = getTagSize(tag.count);
@@ -198,26 +222,25 @@ const TagsCard = () => {
             <button
               type="button"
               key={tag.name}
+              className="tag-chip"
               onClick={() => navigate(`/tag/${encodeURIComponent(tag.name)}`)}
               style={{
                 ...size,
-                color: 'var(--text-link)',
+                color: `hsl(${tagHue(tag.name)} 72% ${isDark ? '70%' : '44%'})`,
                 fontWeight: tag.count >= 3 ? '700' : '500',
                 background: 'var(--bg-tag)',
                 border: '1px solid var(--border-tag)',
                 borderRadius: 'var(--radius-pill)',
                 cursor: 'pointer',
-                transition: 'all 0.3s ease',
+                transition: 'box-shadow 0.3s ease, color 0.2s ease',
                 /* button 不继承页面字体，也不吃外边距重置，补两行免得尺寸跟隔壁的 span 版跑偏 */
                 fontFamily: 'inherit',
                 margin: 0,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.1)';
                 e.currentTarget.style.boxShadow = 'var(--shadow-hover)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
                 e.currentTarget.style.boxShadow = 'none';
               }}
             >
