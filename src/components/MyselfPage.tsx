@@ -47,6 +47,8 @@ const opc = {
   invite: '我在福州站当城市代理人，随时欢迎来玩福州站。',
   site: 'https://www.opc.community/china',
   siteLabel: 'OPC 同行社',
+  city: 'https://www.opc.community/city/fuzhou',
+  cityLabel: '福州站 · 城市页',
 };
 
 // 中转站：同域路径 /opc，由 functions/opc/[[path]].ts 反代到 Omni Router 的源站
@@ -113,6 +115,10 @@ const MyselfContent = () => (
       <p style={{ ...textStyle, marginTop: '0.75rem' }}>
         <a href={opc.site} target="_blank" rel="noopener noreferrer" style={linkStyle}>
           {opc.siteLabel} ↗
+        </a>
+        {'　'}
+        <a href={opc.city} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+          {opc.cityLabel} ↗
         </a>
       </p>
 
