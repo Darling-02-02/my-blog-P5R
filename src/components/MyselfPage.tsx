@@ -39,14 +39,14 @@ const textStyle: CSSProperties = {
   lineHeight: 2.2,
 };
 
-// OPC 同行社：身份（福州城市主理人）+ 一句社区介绍 + 官网。
-// 城市主理人 = 这个城市线下这一摊的组织者，所以文案落在「攒线下交流」上。
+// OPC 同行社：身份 + 两句口语化的介绍 + 官方链接。
+// 城市代理人 = 这个城市这一摊的联系人；文案刻意不用「赋能/生态」那套官方口气。
 const opc = {
-  title: '🏙️ OPC 同行社 · 福州城市主理人',
-  intro:
-    'OPC 同行社是面向一人公司、独立创始人与 AI 创作者的中国社区：城市社区、线下 Coffee Chat、每日 AI 资讯与政策解读都在里面。我在福州做城市主理人，把福州这一摊的线下交流攒起来——独立创造，并肩同行。',
+  title: '🏙️ OPC 同行社 · 城市代理人',
+  intro: '一人公司的社区，一堆想自己做点东西的人凑在一块，聊项目、聊坑、聊怎么活下去。',
+  invite: '我在福州站当城市代理人，随时欢迎来玩福州站。',
   site: 'https://www.opc.community/china',
-  siteLabel: 'OPC 同行社 · 中国站',
+  siteLabel: 'OPC 同行社',
 };
 
 // 中转站：同域路径 /opc，由 functions/opc/[[path]].ts 反代到 Omni Router 的源站
@@ -109,6 +109,7 @@ const MyselfContent = () => (
 
       <h3 style={{ ...subHeadingStyle, marginTop: '2.5rem' }}>{opc.title}</h3>
       <p style={textStyle}>{opc.intro}</p>
+      <p style={textStyle}>{opc.invite}</p>
       <p style={{ ...textStyle, marginTop: '0.75rem' }}>
         <a href={opc.site} target="_blank" rel="noopener noreferrer" style={linkStyle}>
           {opc.siteLabel} ↗
