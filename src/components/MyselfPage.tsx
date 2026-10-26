@@ -49,10 +49,10 @@ const opc = {
 };
 
 // 中转站：同域路径 /opc，由 functions/opc/[[path]].ts 反代到 Omni Router 的源站
-// （源站地址配在 Pages 环境变量 OPC_ORIGIN 里）。合作与需求文档都从这儿进。
+// （源站地址配在 Pages 环境变量 OPC_ORIGIN 里）。接上之前这里就写「待开发ing」。
 const relay = {
   title: '📮 中转站',
-  intro: '合作与需求对接用。需求文档都放在这里，点进去就能看。',
+  intro: '待开发ing',
   href: '/opc/',
   label: 'darling-02.cn/opc',
 };
