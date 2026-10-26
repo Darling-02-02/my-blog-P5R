@@ -7,6 +7,7 @@ import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
 import { useTheme } from '../contexts/useTheme';
 import { friendLinks } from '../data/friend-links';
+import { generatedCoverUrl } from '../lib/article-cover';
 import { useWorkMood, workMoodImage, type WorkMood } from '../lib/workMood';
 
 const articleCardBackground = 'var(--bg-article-card)';
@@ -155,6 +156,11 @@ const ArticleCard = ({ article, index, mood }: { article: ArticleSummary; index:
   const navigate = useNavigate();
   const { getArticlePath } = useContent();
   const open = () => navigate(getArticlePath(article));
+  // 封面 = 文章里第一张截图（见 src/data/articles.ts 的 coverUrl）；没有的话用自动生成的
+  // 文章页截图（public/covers/），再没有就一直是底下那层作息动图。
+  // 图没到 / 出错时动图就是加载态，图到位后再淡入盖上去。
+  const [coverReady, setCoverReady] = useState(false);
+  const cover = article.coverUrl ?? generatedCoverUrl(article.slug);
 
   return (
     <motion.article
@@ -184,7 +190,8 @@ const ArticleCard = ({ article, index, mood }: { article: ArticleSummary; index:
         transition: 'box-shadow 0.3s ease',
       }}
     >
-      {/* 正方形封面：作息动图是 1:1，用 aspectRatio 让整张图完整显示且不裁切 */}
+      {/* 正方形封面：底下那层作息动图既是加载态，也是没有截图的文章的兜底；
+          文章截图（若有）加载完成后淡入盖上去。 */}
       <div className="blog-card-cover" style={{ aspectRatio: '1 / 1', overflow: 'hidden', position: 'relative' }}>
         <img
           className="blog-card-img"
@@ -193,6 +200,17 @@ const ArticleCard = ({ article, index, mood }: { article: ArticleSummary; index:
           loading="lazy"
           decoding="async"
         />
+        {cover && (
+          <img
+            className={`blog-card-photo${coverReady ? ' is-ready' : ''}`}
+            src={cover}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onLoad={() => setCoverReady(true)}
+            onError={() => setCoverReady(false)}
+          />
+        )}
         {/* 角标压在动图上：跟右下角的时段标签同一套黑底白字（55% 黑在亮封面上不够对比） */}
         <span style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', background: 'rgba(10, 6, 9, 0.85)', color: '#fff', padding: '0.22rem 0.65rem', borderRadius: 'var(--radius-pill)', fontSize: '0.78rem', fontWeight: '600' }}>
           {article.category}

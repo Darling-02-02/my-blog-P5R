@@ -54,6 +54,7 @@
 - 「一些碎碎念」（`src/content/notes.json`）当前为空，站主后续补充；Markdown 长文
 - `/gallery` 暂无后台编辑页签，靠直接编辑 `src/content/photos.json` 与 `src/content/notes.json` 维护
 - 友链表 `src/data/friend-links.ts` 当前 1 条（Zzzovozz）；加人只改这个数组，不动组件
+- 首页卡片封面是**自动生成**的：`scripts/capture-article-covers.mjs` 用 headless Chrome 截文章页正文区，产出 `public/covers/<slug>.webp`；文章改过要重跑一次，否则截图是旧的。取图顺序：frontmatter `coverUrl` → 正文第一张图 → 自动截图 → 作息动图（加载态/兜底）
 
 ---
 

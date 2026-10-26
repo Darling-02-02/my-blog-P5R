@@ -69,6 +69,15 @@ export const parseArticleSource = (source: string, label: string): ParsedArticle
   return { meta, body: match[2].trim() };
 };
 
+/** 正文里第一张图的地址——首页文章卡拿它当封面。
+ *  没有图、或者图是内联的 data: URI 时返回 undefined，调用方自己决定兜底。 */
+export const firstImageSource = (body: string): string | undefined => {
+  // 两种写法都认：![alt](path) 和 ![alt](<path with space> "title")
+  const match = body.match(/!\[[^\]]*\]\(\s*(?:<([^>]+)>|([^)\s]+))/);
+  const src = (match?.[1] ?? match?.[2])?.trim();
+  return src && !src.startsWith('data:') ? src : undefined;
+};
+
 export interface ArticleFrontmatterInput {
   id: number;
   title: string;

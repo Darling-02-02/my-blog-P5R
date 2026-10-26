@@ -80,6 +80,19 @@ const ContentSection = ({ standalone = false, children }: ContentSectionProps) =
           transform: scale(1.1);
         }
 
+        /* 文章截图压在作息动图上面：加载完成才淡入，没加载完就一直是动图（加载态）。
+           动图是 1:1、截图五花八门，object-fit: cover 统一裁成正方形。 */
+        .blog-card-photo {
+          position: absolute;
+          inset: 0;
+          opacity: 0;
+          transition: opacity 0.45s ease;
+        }
+
+        .blog-card-photo.is-ready {
+          opacity: 1;
+        }
+
         /* 封面右下角的时间段标签，配合「幕后」卡片的全天作息动图 */
         .blog-card-mood {
           position: absolute;

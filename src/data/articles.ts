@@ -1,5 +1,5 @@
 import type { Article } from '../../backend/src/articles/article.types';
-import { parseArticleSource } from '../lib/frontmatter';
+import { firstImageSource, parseArticleSource } from '../lib/frontmatter';
 
 export type { Article } from '../../backend/src/articles/article.types';
 
@@ -30,7 +30,8 @@ export const articles: Article[] = Object.entries(articleModules)
       readTime: String(meta.readTime),
       tags: meta.tags as string[],
       content: body,
-      coverUrl: meta.coverUrl ? String(meta.coverUrl) : undefined,
+      // 封面：frontmatter 显式给的优先，否则拿正文第一张图（文章卡上那张截图）。
+      coverUrl: meta.coverUrl ? String(meta.coverUrl) : firstImageSource(body),
     };
   })
   .sort((a, b) => b.date.localeCompare(a.date) || a.id - b.id);

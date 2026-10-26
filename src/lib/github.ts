@@ -4,7 +4,7 @@
 import type { Article } from '../../backend/src/articles/article.types';
 import type { ArticleWriteInput } from './article-form';
 import { ArticleApiError } from './api';
-import { parseArticleSource, serializeArticle } from './frontmatter';
+import { firstImageSource, parseArticleSource, serializeArticle } from './frontmatter';
 
 const OWNER = 'Darling-02-02';
 const REPO = 'my-blog-P5R';
@@ -127,7 +127,8 @@ const toArticle = (path: string, content: string): Article => {
     readTime: String(meta.readTime),
     tags: meta.tags as string[],
     content: body,
-    coverUrl: meta.coverUrl ? String(meta.coverUrl) : undefined,
+    // 和 src/data/articles.ts 同一套封面来源：显式 coverUrl 优先，否则正文第一张图。
+    coverUrl: meta.coverUrl ? String(meta.coverUrl) : firstImageSource(body),
   };
 };
 

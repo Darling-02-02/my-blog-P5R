@@ -4,7 +4,7 @@
 // 于是后台"保存成功"（GitHub 提交真的落地了）、文章永远读不回来，线上还会在模块加载时整片崩掉。
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { parseArticleSource, serializeArticle } from '../src/lib/frontmatter.ts';
+import { firstImageSource, parseArticleSource, serializeArticle } from '../src/lib/frontmatter.ts';
 
 const base = {
   id: 1,
@@ -51,4 +51,13 @@ test('标签写成单个字符串仍然报错，正常的标签照常解析', ()
 
   const { meta } = parseArticleSource(serializeArticle({ ...base, tags: ['AI', 'AI', ' '] }), 'y.md');
   assert.deepEqual(meta.tags, ['AI']);
+});
+
+// 首页卡片封面取正文第一张图：有图就取（带标题/尖括号也认），没图或内联 data: 返回 undefined，
+// 让卡片回落到作息动图，而不是渲染一个坏掉的 <img>。
+test('正文第一张图能被取出来当封面', () => {
+  assert.equal(firstImageSource('前言\n\n![截图](/images/数据下载/a.png)\n\n后面还有 ![x](/b.png)'), '/images/数据下载/a.png');
+  assert.equal(firstImageSource('![截图](<https://cdn.example.com/a b.png> "标题")'), 'https://cdn.example.com/a b.png');
+  assert.equal(firstImageSource('纯文字，没有图'), undefined);
+  assert.equal(firstImageSource('![内联](data:image/png;base64,AAA)'), undefined);
 });
