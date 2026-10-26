@@ -583,6 +583,9 @@ textarea {
 
 .gallery-head {
   margin-bottom: 3rem;
+  /* 原来这条分隔线挂在 .gallery-lede（那段说明文字已删）上，挪到标题容器上，留白不变 */
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-section);
 }
 
 /* 区块小标题。字号/字重与 MyselfPage 的 subHeadingStyle 对齐（src/components/MyselfPage.tsx:19-24），
@@ -648,15 +651,7 @@ textarea {
   font-size: 2.5rem;
   font-weight: 700;
   color: var(--text-heading);
-  margin-bottom: 1rem;
-}
-
-.gallery-lede {
-  color: var(--text-muted);
-  font-size: 1.1rem;
-  margin: 0;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid var(--border-section);
+  margin-bottom: 0;
 }
 
 /* 舞台：拖近视距 + 轻微下俯，让整片照片像摊在桌面上而不是贴在墙上。 */

@@ -151,9 +151,6 @@ const GalleryPage = () => {
         <div className="gallery-inner">
           <header className="gallery-head">
             <h1 className="gallery-title">一些其他东西</h1>
-            <p className="gallery-lede">
-              拍摄的照片。散在桌上，移动光标的时候它们会跟着偏一点。
-            </p>
           </header>
 
           <h2 className="gallery-subhead">📷 相册</h2>
