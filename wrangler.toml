@@ -8,3 +8,9 @@ compatibility_date = "2026-10-08"
 [[kv_namespaces]]
 binding = "BLOG_STATS"
 id = "b9586df1f0fb471cb22faa3882ba35a7"
+
+# 「中转站」反代（functions/opc/[[path]].ts）：把 https://darling-02.cn/opc/* 转到 Omni Router 源站。
+# 生产环境推荐在 Pages 项目 Settings → Environment variables 里配（改值不用提交代码）；
+# 想写进仓库时用下面这块（取消注释并填真实地址，值必须带协议）：
+# [vars]
+# OPC_ORIGIN = "https://router.example.com"

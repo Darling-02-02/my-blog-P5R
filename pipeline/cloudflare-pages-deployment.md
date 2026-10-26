@@ -93,6 +93,15 @@ curl.exe -X POST 'http://127.0.0.1:8788/api/stats?firstVisit=0'  # → {"pv":2,"
 
 push 到 `main` 就自动部署，不用管。手动重跑在 Actions 页面点 `Run workflow`。
 
+## /opc 中转站反代
+
+`/myself` 上的「📮 中转站」指向 `https://darling-02.cn/opc/`，由 `functions/opc/[[path]].ts` 反代到 Omni Router 的源站（需求文档放源站那边）。
+
+- **配置**：`Workers & Pages → my-blog-p5r → Settings → Environment variables` 加 `OPC_ORIGIN = https://<Omni Router 源站>`（必须带协议），然后 `Deployments → Retry deployment` 让新变量生效。也可以写进 `wrangler.toml` 的 `[vars]`（文件里有注释示例）。
+- **没配时**：`/opc/*` 回 `503` 加一句「缺 OPC_ORIGIN」，不会静默跳到空站。
+- **为什么不用 DNS**：整域已经指到 Pages，根域不可能同时是另一台机器；同域子路径由 Cloudflare 转发一跳，博客完全不受影响。真想要独立域名/子域名（`docs.darling-02.cn`）也行，那条路不经过这里。
+- **已知限制**：被反代的应用如果写死了 `/assets/...` 这类**绝对路径**，在 `/opc` 子路径下会 404（要么源站支持 base path，要么改用子域名）。上游返回的 `Location` 会改写回 `/opc/...`，纯逻辑在 `scripts/opc-proxy.test.mjs` 里钉着。
+
 ## 需要注意的
 
 - **SPA 深链接能用**：`public/404.html` 会把 `/article/xxx` 之类改写成 `/?/article/xxx`，`index.html` 里的脚本再还原成真实路径交给前端路由。前提是整站部署在域名根目录（`vite.config.ts` 里 `base: '/'`）。
