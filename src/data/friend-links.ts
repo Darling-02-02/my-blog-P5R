@@ -18,4 +18,10 @@ export const friendLinks: FriendLink[] = [
     desc: 'Zzzovozz 的个人博客。',
     cover: '/links/zzzovozz.webp',
   },
+  {
+    name: '洗涤子',
+    url: 'https://chasedre.am/',
+    desc: '洗涤子的博客。',
+    cover: '/links/chasedre.webp',
+  },
 ];
