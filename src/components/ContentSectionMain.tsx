@@ -262,11 +262,12 @@ const MainContent = () => {
       boxShadow: 'none',
       padding: 0,
     }}>
-      {/* 幕后 - 最新文章：栏目表整个空了（后台全删）时整块不渲染，别留一个空标题加一大片空白 */}
+      {/* 最新文章：栏目表整个空了（后台全删）时整块不渲染，别留一个空标题加一大片空白。
+          标题就叫「一些文章」，和 /gallery 的「一些其他东西」对齐；页头导航那项仍叫「幕后」。 */}
       {categoryData.length > 0 && <section id="blog" className="home-content-block" style={sectionCardStyle}>
         {/* 「首个词换强调色」那套写法在黑白灰里没有对比可言（强调色本身就是标题色），收成一色标题 */}
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
-          幕后
+          一些文章
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', minHeight: '3.6rem', marginBottom: '2rem', paddingBottom: '2rem', borderBottom: '2px solid var(--border-section)' }}>
           <BlogFadeText
