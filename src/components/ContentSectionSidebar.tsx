@@ -1,4 +1,4 @@
-// 首页内容区左侧栏：个人资料、公告、标签、网站资讯四张卡片及它们的取数与常量。
+// 首页内容区左侧栏：个人资料、标签、网站资讯三张卡片及它们的取数与常量。
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useArticles } from '../contexts/useArticles';
@@ -6,7 +6,6 @@ import { useContent } from '../contexts/useContent';
 import { useTheme } from '../contexts/useTheme';
 import { fetchRepoStats, type RepoStats } from '../lib/repo-stats';
 import { recordVisit, type SiteVisits } from '../lib/site-visits';
-import { useLocationWeather } from './useLocationWeather';
 
 const base = import.meta.env.BASE_URL;
 const sidebarBackground = 'var(--bg-card)';
@@ -95,59 +94,6 @@ const ProfileCard = () => {
             </a>
           ))}
         </div>
-      </div>
-    </SidebarCard>
-  );
-};
-
-// 公告
-const AnnouncementCard = () => {
-  const { location, weather, isPrecise, isLocating, requestPreciseLocation } = useLocationWeather();
-  const [time, setTime] = useState('');
-
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      setTime(`${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`);
-    };
-    updateTime();
-    const timer = setInterval(updateTime, 1000);
-    // 后台标签页里的定时器会被浏览器压成 1 分钟一跳，切回来立刻对一次表。
-    document.addEventListener('visibilitychange', updateTime);
-    return () => {
-      clearInterval(timer);
-      document.removeEventListener('visibilitychange', updateTime);
-    };
-  }, []);
-
-  return (
-    <SidebarCard title="公告" icon="📢">
-      <div style={{ minHeight: '140px' }}>
-        <p style={{ color: 'var(--text-card-body)', fontSize: '0.9rem', lineHeight: 1.8, margin: 0 }}>
-          🌍 欢迎来自 <strong style={{ color: 'var(--text-link)' }}>{location}</strong> 的小伙伴
-          {!isPrecise && (
-            <button
-              type="button"
-              onClick={requestPreciseLocation}
-              disabled={isLocating}
-              style={{ marginLeft: '0.4rem', border: '1px solid var(--border-card)', borderRadius: 'var(--radius-sm)', padding: '0.3rem 0.6rem', background: 'transparent', color: 'var(--text-muted)', fontSize: '0.78rem', cursor: isLocating ? 'progress' : 'pointer' }}
-            >
-              {isLocating ? '定位中…' : '📍 用当前位置'}
-            </button>
-          )}
-        </p>
-        <p style={{ color: 'var(--text-card-body)', fontSize: '0.9rem', lineHeight: 1.8, margin: '0.6rem 0' }}>
-          ⏰ 现在时间：<strong>{time}</strong>
-        </p>
-        <p style={{ color: 'var(--text-card-body)', fontSize: '0.9rem', lineHeight: 1.8, margin: '0 0 0.8rem 0' }}>
-          🌤️ 今天天气：<strong style={{ color: 'var(--text-link)' }}>{weather}</strong>
-        </p>
       </div>
     </SidebarCard>
   );
@@ -304,7 +250,6 @@ const Sidebar = () => (
     alignSelf: 'flex-start',
   }}>
     <ProfileCard />
-    <AnnouncementCard />
     <TagsCard />
     <StatsCard />
   </aside>
