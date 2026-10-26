@@ -332,32 +332,48 @@ const MainContent = () => {
         </p>
 
         {/* 名单在 src/data/friend-links.ts，加一条就多一张卡片。
-            一条都没有时给一句话，不然标题下面空一片，看着像坏了。 */}
+            一条都没有时给一句话，不然标题下面空一片，看着像坏了。
+            有 cover 就铺一张 16:9 封面（对面首页没有 og:image 时用站点截图），没有就只显示文字。 */}
         {friendLinks.length === 0 && (
           <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>还没有友链，欢迎来留言板交换。</p>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.25rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.25rem' }}>
           {friendLinks.map((link) => (
             <a
               key={link.url}
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
+              className="friend-card"
               style={{
                 display: 'block',
                 background: aboutBoxBackground,
                 border: '1px solid var(--border-card)',
                 borderRadius: 'var(--radius-card)',
-                padding: '1.25rem',
+                overflow: 'hidden',
                 textDecoration: 'none',
+                transition: 'box-shadow 0.3s ease',
               }}
             >
-              <span style={{ display: 'block', color: 'var(--text-link)', fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.5rem' }}>
-                {link.name} ↗
-              </span>
-              <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: 1.7 }}>
-                {link.desc}
-              </span>
+              {link.cover && (
+                <img
+                  // 封面只是站点预览，卡片里已经有名字，所以 alt 留空，别让读屏念两遍
+                  alt=""
+                  src={link.cover}
+                  loading="lazy"
+                  decoding="async"
+                  className="friend-card-cover"
+                  style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }}
+                />
+              )}
+              <div style={{ padding: '1.25rem' }}>
+                <span style={{ display: 'block', color: 'var(--text-link)', fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.5rem' }}>
+                  {link.name} ↗
+                </span>
+                <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: 1.7 }}>
+                  {link.desc}
+                </span>
+              </div>
             </a>
           ))}
         </div>

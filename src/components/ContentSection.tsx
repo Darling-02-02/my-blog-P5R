@@ -136,6 +136,19 @@ const ContentSection = ({ standalone = false, children }: ContentSectionProps) =
           filter: blur(5px);
         }
 
+        /* 友链卡封面：跟幕后卡片同一套悬停反馈，幅度小一档，别抢文章卡的戏 */
+        .friend-card:hover {
+          box-shadow: var(--shadow-hover);
+        }
+
+        .friend-card-cover {
+          transition: transform 0.6s;
+        }
+
+        .friend-card:hover .friend-card-cover {
+          transform: scale(1.04);
+        }
+
         @media (max-width: 1100px) {
           .home-main-card {
             padding: 0 !important;
