@@ -11,17 +11,6 @@ import { useLocationWeather } from './useLocationWeather';
 const base = import.meta.env.BASE_URL;
 const sidebarBackground = 'var(--bg-card)';
 
-const announcementSlogans = [
-  '凡所有相，皆是虚妄',
-  '天地不仁，以万物为刍狗',
-  '存在先于本质',
-  '人是一根会思考的芦苇',
-  '上帝死了，是我们杀了他',
-  '未经审视的人生不值得过',
-  '人是生而自由的，却无往不在枷锁之中',
-  '认识你自己',
-];
-
 // 侧边栏卡片
 const SidebarCard = ({ 
   children, 
@@ -115,9 +104,6 @@ const ProfileCard = () => {
 const AnnouncementCard = () => {
   const { location, weather, isPrecise, isLocating, requestPreciseLocation } = useLocationWeather();
   const [time, setTime] = useState('');
-  const [slogan] = useState(
-    () => announcementSlogans[Math.floor(Math.random() * announcementSlogans.length)],
-  );
 
   useEffect(() => {
     const updateTime = () => {
@@ -162,11 +148,6 @@ const AnnouncementCard = () => {
         <p style={{ color: 'var(--text-card-body)', fontSize: '0.9rem', lineHeight: 1.8, margin: '0 0 0.8rem 0' }}>
           🌤️ 今天天气：<strong style={{ color: 'var(--text-link)' }}>{weather}</strong>
         </p>
-        <div style={{ borderTop: '1px solid var(--border-section)', paddingTop: '0.8rem', marginTop: '0.5rem' }}>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: 1.7, margin: 0 }}>
-            💭 {slogan}
-          </p>
-        </div>
       </div>
     </SidebarCard>
   );
