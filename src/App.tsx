@@ -14,7 +14,6 @@ const ArchivePage = lazy(() => import('./components/ArchivePage'));
 const AdminPage = lazy(() => import('./components/AdminPage'));
 const MyselfPage = lazy(() => import('./components/MyselfPage'));
 const GalleryPage = lazy(() => import('./components/GalleryPage'));
-const HirePage = lazy(() => import('./components/HirePage'));
 
 const ScrollToTop = () => {
   const { pathname, hash } = useLocation();
@@ -93,7 +92,6 @@ function App() {
                       <Route path="/tag/:name" element={<ArchivePage mode="tag" />} />
                       <Route path="/category/:name" element={<ArchivePage mode="category" />} />
                       <Route path="/gallery" element={<GalleryPage />} />
-                      <Route path="/hire" element={<HirePage />} />
                     </Routes>
                   </Suspense>
                 </main>

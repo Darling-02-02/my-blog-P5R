@@ -1,7 +1,7 @@
 // 首页内容区右栏：幕后/关于/友链/留言四个区块，含大类栏目卡片与 Giscus 评论。
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { ArticleSummary } from '../../backend/src/articles/article.types';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
@@ -396,30 +396,6 @@ const MainContent = () => {
             </a>
           ))}
         </div>
-      </section>
-
-      {/* 投喂入口：夹在友链和留言板之间，省得想找人的一路滚到评论区 */}
-      <section id="hire" className="home-content-block" style={sectionCardStyle}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
-          捞点点吃的
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '1.5rem', lineHeight: 1.9 }}>
-          有活想丢给本鱼、或者单纯想投喂点吃的，直接微信或邮箱喊我就行，备注来意。
-        </p>
-        <Link
-          to="/hire"
-          style={{
-            display: 'inline-block',
-            padding: '0.75rem 1.6rem',
-            borderRadius: '8px',
-            background: 'var(--accent-fill)',
-            color: '#fff',
-            fontWeight: 700,
-            textDecoration: 'none',
-          }}
-        >
-          怎么找我 →
-        </Link>
       </section>
 
       {/* 评论区 */}
