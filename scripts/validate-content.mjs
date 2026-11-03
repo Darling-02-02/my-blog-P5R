@@ -5,7 +5,6 @@ import { findLocalImageProblems } from '../src/lib/article-images.ts';
 import { parseMyselfDocument } from '../src/lib/myself-content.ts';
 import { parsePhotoDocument } from '../src/lib/photo-content.ts';
 import { parseNotesDocument } from '../src/lib/notes-content.ts';
-import { parseHireDocument } from '../src/lib/hire-content.ts';
 
 const root = process.cwd();
 const articlesRoot = path.join(root, 'src', 'content', 'articles');
@@ -16,7 +15,6 @@ const categoriesFile = path.join(root, 'src', 'content', 'categories.json');
 const myselfFile = path.join(root, 'src', 'content', 'myself.json');
 const photosFile = path.join(root, 'src', 'content', 'photos.json');
 const notesFile = path.join(root, 'src', 'content', 'notes.json');
-const hireFile = path.join(root, 'src', 'content', 'hire.json');
 
 const fail = (message) => {
   console.error(message);
@@ -63,14 +61,6 @@ try {
   parseNotesDocument(readFileSync(notesFile, 'utf8'));
 } catch (error) {
   fail(`src/content/notes.json: ${error instanceof Error ? error.message : String(error)}`);
-  process.exit(1);
-}
-
-// 接单页文案：同样在构建期拦住——它坏了 /hire 就变成一张空壳页，而那是唯一能收单的入口。
-try {
-  parseHireDocument(readFileSync(hireFile, 'utf8'));
-} catch (error) {
-  fail(`src/content/hire.json: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 }
 

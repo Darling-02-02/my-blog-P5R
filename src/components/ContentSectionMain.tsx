@@ -398,17 +398,16 @@ const MainContent = () => {
         </div>
       </section>
 
-      {/* 接单入口：夹在友链和留言板之间，避免「想合作」的人一路滚到评论区才找到 */}
+      {/* 投喂入口：夹在友链和留言板之间，省得想找人的一路滚到评论区 */}
       <section id="hire" className="home-content-block" style={sectionCardStyle}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
-          接单
+          捞点点吃的
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '1.5rem', lineHeight: 1.9 }}>
-          生物信息学分析（转录组 / 单细胞 / 微生物组）、出版级图表、脚本与工具开发都可以谈。
-          把数据和想要的结果说清楚，我给报价和交付时间。
+          有活想丢给本鱼、或者单纯想投喂点吃的，直接微信或邮箱喊我就行，备注来意。
         </p>
         <Link
-          to="/hire#order"
+          to="/hire"
           style={{
             display: 'inline-block',
             padding: '0.75rem 1.6rem',
@@ -419,7 +418,7 @@ const MainContent = () => {
             textDecoration: 'none',
           }}
         >
-          看看能做什么 / 提交需求 →
+          怎么找我 →
         </Link>
       </section>
 
