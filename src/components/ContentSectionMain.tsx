@@ -1,7 +1,7 @@
 // 首页内容区右栏：幕后/关于/友链/留言四个区块，含大类栏目卡片与 Giscus 评论。
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import type { ArticleSummary } from '../../backend/src/articles/article.types';
 import { useArticles } from '../contexts/useArticles';
 import { useContent } from '../contexts/useContent';
@@ -396,6 +396,31 @@ const MainContent = () => {
             </a>
           ))}
         </div>
+      </section>
+
+      {/* 接单入口：夹在友链和留言板之间，避免「想合作」的人一路滚到评论区才找到 */}
+      <section id="hire" className="home-content-block" style={sectionCardStyle}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-heading)', marginBottom: '1rem' }}>
+          接单
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '1.5rem', lineHeight: 1.9 }}>
+          生物信息学分析（转录组 / 单细胞 / 微生物组）、出版级图表、脚本与工具开发都可以谈。
+          把数据和想要的结果说清楚，我给报价和交付时间。
+        </p>
+        <Link
+          to="/hire#order"
+          style={{
+            display: 'inline-block',
+            padding: '0.75rem 1.6rem',
+            borderRadius: '8px',
+            background: 'var(--accent-fill)',
+            color: '#fff',
+            fontWeight: 700,
+            textDecoration: 'none',
+          }}
+        >
+          看看能做什么 / 提交需求 →
+        </Link>
       </section>
 
       {/* 评论区 */}

@@ -35,12 +35,13 @@
 
 | 路由 | 作用 |
 |---|---|
-| `/` | 首屏（个人名片）+ 幕后（最新文章卡 + 栏目 chips）/ 关于 / 友链 / 留言 |
+| `/` | 首屏（个人名片）+ 幕后（最新文章卡 + 栏目 chips）/ 关于 / 友链 / 接单入口 / 留言 |
 | `/myself` | 个人简介全文（含「🏙️ OPC 同行社 · 城市代理」标题与「📮 中转站」入口） |
 | `/article/*` | 文章正文 |
-| `/admin` | 站主自己用的内容后台 |
+| `/admin` | 站主自己用的内容后台（文章 / 栏目 / 个人简介 / 接单） |
 | `/tag/:name`、`/category/:name` | 归档列表 |
-| `/gallery` | **本轮新增**：「一些其他东西」——相册（3D 空间照片墙，初始合并成一叠、点击相册本身展开）+「一些碎碎念」 |
+| `/gallery` | 「一些其他东西」——相册（3D 空间照片墙，初始合并成一叠、点击相册本身展开）+「一些碎碎念」 |
+| `/hire` | **本轮新增**：接单页。服务清单 / 合作流程 / 计价口径 / FAQ + 需求表单，提交进 Cloudflare KV，后台在 `/admin` 的「📋 接单」页签看 |
 
 ## Accessibility posture
 
@@ -52,6 +53,7 @@
 
 - 照片清单目前为空（占位卡代替）；真实照片由站主后续放进 `public/gallery/`
 - 「一些碎碎念」（`src/content/notes.json`）当前为空，站主后续补充；Markdown 长文
+- `/hire` 的文案在 `src/content/hire.json`，**没有**后台编辑页签（改文案走仓库）；接单数据存 KV 绑定 `BLOG_STATS`（键前缀 `order:` / `rl:`），管理端要靠 Cloudflare Pages 环境变量 `ORDERS_ADMIN_TOKEN` 才能打开，可选 `ORDER_WEBHOOK_URL` 做新单提醒
 - `/gallery` 暂无后台编辑页签，靠直接编辑 `src/content/photos.json` 与 `src/content/notes.json` 维护
 - 友链表 `src/data/friend-links.ts` 当前 2 条（Zzzovozz、洗涤子）；加人只改这个数组，不动组件
 - 首页卡片封面是**自动生成**的：`scripts/capture-article-covers.mjs` 用 headless Chrome 截文章页正文区，产出 `public/covers/<slug>.webp`；文章改过要重跑一次，否则截图是旧的。取图顺序：frontmatter `coverUrl` → 正文第一张图 → 自动截图 → 作息动图（加载态/兜底）

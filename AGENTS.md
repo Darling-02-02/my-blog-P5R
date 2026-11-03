@@ -10,8 +10,9 @@ This is a React 19, TypeScript, and Vite personal blog with a Persona 5 inspired
 - `src/data/articles.ts` indexes article metadata and content imports.
 - `src/content/articles/` stores Markdown articles by category, such as `bioinformatics/` and `machine-learning/`.
 - `src/content/myself.json` holds the 「神秘力量」 blurb shown on `/myself`; `src/lib/myself-content.ts` parses/serializes it and `src/lib/myself-publisher.ts` writes it through the GitHub Contents API. The admin tab `🔮 个人简介` edits it.
+- `functions/api/orders.ts` is the 接单 Pages Function (POST submit / GET list / PATCH status), stored in the existing `BLOG_STATS` KV namespace under the `order:` prefix; `src/lib/order-client.ts` is its browser client and `src/components/OrderInbox.tsx` the `/admin` 「📋 接单」 tab. Content copy lives in `src/content/hire.json` (`src/lib/hire-content.ts` parses it).
 - `public/` stores static assets served as-is, including images, slideshow files, and `404.html`.
-- `scripts/validate-content.mjs` validates Markdown frontmatter and bodies plus the JSON content files (`src/content/categories.json`, `src/content/myself.json`).
+- `scripts/validate-content.mjs` validates Markdown frontmatter and bodies plus the JSON content files (`src/content/categories.json`, `src/content/myself.json`, `src/content/hire.json`).
 - `dist/` is generated build output and should not be edited directly.
 
 ## Build, Test, and Development Commands
@@ -40,7 +41,7 @@ npm run build
 node --test scripts/*.test.mjs
 ```
 
-`node --test scripts/*.test.mjs` runs the `node:test` checks under `scripts/` (frontmatter round-trip, markdown import, reading time, category content, repo stats, work mood, site stats, IP location, category publisher conflicts, myself content, myself publisher conflicts).
+`node --test scripts/*.test.mjs` runs the `node:test` checks under `scripts/` (frontmatter round-trip, markdown import, reading time, category content, repo stats, work mood, site stats, IP location, category publisher conflicts, myself content, myself publisher conflicts, hire content, orders API).
 
 Node **22+** is required: these scripts and `validate:content` import the `.ts` sources under `src/lib/` directly (type stripping is on by default from Node 22), so on Node 20 they fail with `ERR_UNKNOWN_FILE_EXTENSION`. CI runs on Node 22 for the same reason.
 

@@ -58,6 +58,7 @@ const Header = () => {
   const navItems: NavItem[] = [
     { name: '首页', href: '/', external: false },
     { name: '个人简介', href: '/myself', external: false },
+    { name: '接单', href: '/hire', external: false },
     { name: '幕后', href: '/#blog', external: false, columnsOnly: true },
     { name: '友链', href: '/#links', external: false },
     { name: '留言板', href: '/#comments', external: false },

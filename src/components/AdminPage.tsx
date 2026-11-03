@@ -5,6 +5,7 @@ import { activeArticleSource } from '../lib/article-source';
 import type { Article } from '../../backend/src/articles/article.types';
 import type { ArticleWriteInput } from '../lib/article-form';
 import ArticleEditor from './ArticleEditor';
+import OrderInbox from './OrderInbox';
 import CategoryManager from './CategoryManager';
 import type { CategoryInput } from '../lib/category-content';
 import { categoryPublisher } from '../lib/category-publisher';
@@ -56,7 +57,7 @@ const AdminPage = () => {
   const [myselfSha, setMyselfSha] = useState('');
   const [myselfDraft, setMyselfDraft] = useState('');
   const [myselfError, setMyselfError] = useState<string | null>(null);
-  const [adminMode, setAdminMode] = useState<'articles' | 'categories' | 'myself'>('articles');
+  const [adminMode, setAdminMode] = useState<'articles' | 'categories' | 'myself' | 'orders'>('articles');
   const [selected, setSelected] = useState<Article | undefined>();
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -294,10 +295,11 @@ const AdminPage = () => {
         `}</style>
 
         {token && <div role="tablist" aria-label="内容管理" className="admin-tabs">
-          {([['articles', `📄 独立文章（${articles.length}）`], ['categories', `🗂 幕后栏目（${categoryList?.length ?? 0}）`], ['myself', '🔮 个人简介']] as const).map(([id, label]) => (
+          {([['articles', `📄 独立文章（${articles.length}）`], ['categories', `🗂 幕后栏目（${categoryList?.length ?? 0}）`], ['myself', '🔮 个人简介'], ['orders', '📋 接单']] as const).map(([id, label]) => (
             <button key={id} type="button" role="tab" aria-selected={adminMode === id} onClick={() => setAdminMode(id)} className="admin-tab" data-active={adminMode === id ? 'true' : undefined}>{label}</button>
           ))}
         </div>}
+        {token && adminMode === 'orders' && <OrderInbox />}
         {token && adminMode === 'categories' && <div style={panelStyle}>
           {activeArticleSource.kind === 'github' ? (
             categoryList ? (
