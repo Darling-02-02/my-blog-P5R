@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>接口额度自查 · 白饭摊</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <!-- 这个页面是给买家用的：不写任何真实域名，接口地址走同域 /ai，
+         买家从千牛/闲鱼拿到的密钥粘进来就能查。 -->
+    <style>
+      :root {
+        --bg: #151515;
+        --card: rgba(34, 34, 34, 0.92);
+        --card-2: rgba(28, 28, 28, 0.92);
+        --line: rgba(255, 255, 255, 0.12);
+        --line-strong: rgba(255, 255, 255, 0.26);
+        --text: #ffffff;
+        --body: #d4d4d4;
+        --muted: #9a9a9a;
+        --yellow: #ffe60f;
+        --red: #e23e3e;
+        --green: #3ecf8e;
+        --radius: 14px;
+        --mono: 'Cascadia Code', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(1100px 600px at 12% -10%, rgba(255, 230, 15, 0.09), transparent 62%),
+          radial-gradient(900px 520px at 96% 8%, rgba(226, 62, 62, 0.1), transparent 60%),
+          var(--bg);
+        color: var(--body);
+        font-family: 'Noto Sans SC', -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        line-height: 1.7;
+      }
+      .wrap { max-width: 860px; margin: 0 auto; padding: 40px 20px 72px; }
+
+      header { margin-bottom: 26px; }
+      .tag {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+        color: #151515; background: var(--yellow);
+        padding: 5px 12px; border-radius: 999px; font-weight: 700;
+      }
+      h1 { font-size: clamp(24px, 4.4vw, 34px); color: var(--text); margin: 16px 0 8px; line-height: 1.3; }
+      .sub { color: var(--muted); font-size: 14.5px; margin: 0; }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 22px 22px 24px;
+        margin-top: 18px;
+        backdrop-filter: blur(8px);
+      }
+      .card h2 {
+        font-size: 15px; color: var(--text); margin: 0 0 16px;
+        display: flex; align-items: center; gap: 10px; font-weight: 700;
+      }
+      .card h2::before {
+        content: ''; width: 4px; height: 16px; border-radius: 2px;
+        background: var(--yellow); display: inline-block;
+      }
+
+      label { display: block; font-size: 13px; color: var(--muted); margin: 0 0 7px; }
+      input[type='text'], input[type='password'] {
+        width: 100%; padding: 13px 14px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--line-strong);
+        border-radius: 10px;
+        color: var(--text); font-size: 14.5px; font-family: var(--mono);
+        outline: none; transition: border-color 0.18s, background 0.18s;
+      }
+      input:focus { border-color: var(--yellow); background: rgba(255, 255, 255, 0.09); }
+      input::placeholder { color: #6f6f6f; font-family: inherit; }
+      .field + .field { margin-top: 14px; }
+
+      .row { display: flex; gap: 10px; align-items: stretch; margin-top: 18px; flex-wrap: wrap; }
+      button {
+        font-family: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer;
+        border-radius: 10px; border: 1px solid var(--line-strong);
+        background: rgba(255, 255, 255, 0.08); color: var(--text);
+        padding: 12px 18px; transition: transform 0.12s, background 0.18s, border-color 0.18s;
+      }
+      button:hover { background: rgba(255, 255, 255, 0.14); }
+      button:active { transform: translateY(1px); }
+      button.primary {
+        background: var(--yellow); color: #151515; border-color: var(--yellow);
+        flex: 1; min-width: 160px;
+      }
+      button.primary:hover { background: #ffef5c; }
+      button:disabled { opacity: 0.55; cursor: default; }
+
+      .hint { font-size: 12.5px; color: var(--muted); margin: 12px 0 0; }
+      .hint code { font-family: var(--mono); color: var(--body); }
+
+      /* 结果 */
+      .result { margin-top: 20px; border-top: 1px dashed var(--line); padding-top: 20px; display: none; }
+      .result.show { display: block; }
+      .big { font-size: clamp(30px, 6.4vw, 44px); font-weight: 900; color: var(--text); font-family: var(--mono); line-height: 1.1; }
+      .big small { font-size: 15px; font-weight: 500; color: var(--muted); margin-left: 8px; font-family: inherit; }
+      .bar { height: 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.1); overflow: hidden; margin: 16px 0 8px; }
+      .bar > i { display: block; height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--green), var(--yellow)); transition: width 0.6s ease; }
+      .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-top: 16px; }
+      .metric { background: var(--card-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+      .metric b { display: block; color: var(--text); font-size: 16px; font-family: var(--mono); margin-bottom: 3px; }
+      .metric span { font-size: 12px; color: var(--muted); }
+      .status { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; margin-top: 4px; }
+      .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(62, 207, 142, 0.18); }
+      .dot.warn { background: var(--yellow); box-shadow: 0 0 0 3px rgba(255, 230, 15, 0.18); }
+      .dot.bad { background: var(--red); box-shadow: 0 0 0 3px rgba(226, 62, 62, 0.18); }
+
+      .alert {
+        margin-top: 16px; padding: 13px 15px; border-radius: 10px; font-size: 13.5px;
+        border: 1px solid rgba(226, 62, 62, 0.4); background: rgba(226, 62, 62, 0.1); color: #ffd9d9;
+      }
+      .alert.ok { border-color: rgba(62, 207, 142, 0.4); background: rgba(62, 207, 142, 0.1); color: #d6ffe9; }
+
+      /* 步骤 */
+      ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; }
+      ol.steps li { position: relative; padding: 0 0 18px 44px; counter-increment: s; }
+      ol.steps li:last-child { padding-bottom: 0; }
+      ol.steps li::before {
+        content: counter(s); position: absolute; left: 0; top: 0;
+        width: 28px; height: 28px; border-radius: 50%;
+        background: var(--yellow); color: #151515; font-weight: 900; font-size: 14px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      ol.steps b { color: var(--text); display: block; margin-bottom: 4px; font-size: 14.5px; }
+      ol.steps p { margin: 0; font-size: 13.5px; color: var(--body); }
+      .code {
+        position: relative; margin: 10px 0 0; padding: 12px 44px 12px 14px;
+        background: #1c1c1c; border: 1px solid var(--line); border-radius: 10px;
+        font-family: var(--mono); font-size: 12.5px; color: #d4d4d4;
+        overflow-x: auto; white-space: pre;
+      }
+      .copy {
+        position: absolute; right: 6px; top: 6px; padding: 4px 9px; font-size: 11.5px;
+        border-radius: 7px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--line);
+        color: var(--body); cursor: pointer;
+      }
+      .copy:hover { background: rgba(255, 255, 255, 0.2); }
+
+      table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+      th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+      th { color: var(--muted); font-weight: 500; font-size: 12.5px; }
+      td:first-child { font-family: var(--mono); color: var(--yellow); white-space: nowrap; }
+
+      footer { margin-top: 30px; text-align: center; font-size: 12.5px; color: #6f6f6f; }
+      a { color: var(--yellow); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <span class="tag">开发测试 · 额度自查</span>
+        <h1>看看这枚密钥还剩多少</h1>
+        <p class="sub">把密钥粘进来就行，不注册、不登录、不留存。查完直接关页面也可以。</p>
+      </header>
+
+      <section class="card">
+        <h2>查额度</h2>
+        <div class="field">
+          <label for="addr">接口地址</label>
+          <input id="addr" type="text" spellcheck="false" placeholder="/ai" />
+        </div>
+        <div class="field">
+          <label for="key">密钥</label>
+          <input id="key" type="text" spellcheck="false" autocomplete="off" placeholder="sk-..." />
+        </div>
+        <div class="row">
+          <button class="primary" id="go">查 询</button>
+          <button id="clear">清 空</button>
+        </div>
+        <p class="hint">
+          地址栏留 <code>/ai</code> 就行（本页面同域转发）。密钥只会发给这个接口本身，本页不落盘、不上报。
+        </p>
+
+        <div class="result" id="result">
+          <div>
+            <span class="status" id="status"><i class="dot" id="dot"></i><span id="statusText">正常</span></span>
+          </div>
+          <div style="margin-top: 12px">
+            <div class="big"><span id="remainTok">—</span><small>剩余 token</small></div>
+            <div class="bar"><i id="bar"></i></div>
+            <div class="metrics">
+              <div class="metric"><b id="usedTok">—</b><span>已用 token</span></div>
+              <div class="metric"><b id="totalTok">—</b><span>总额度</span></div>
+              <div class="metric"><b id="perMin">20</b><span>次 / 分钟上限</span></div>
+            </div>
+          </div>
+          <div class="alert" id="alert" style="display: none"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>三步接入</h2>
+        <ol class="steps">
+          <li>
+            <b>拿到接口地址和密钥</b>
+            <p>地址是 <code>/ai</code> 开头的那个（完整域名随订单消息一起给你），密钥是 <code>sk-</code> 开头的一长串。</p>
+          </li>
+          <li>
+            <b>填进客户端</b>
+            <p>接口地址填到「自定义请求地址 / Base URL」，密钥粘进 key 那一栏，模型名照抄订单消息里给的那个。</p>
+            <div class="code" id="codeCurl">curl -s <span class="host">https://&lt;本站域名&gt;</span>/ai/v1/chat/completions \
+  -H "Authorization: Bearer sk-你的密钥" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"&lt;模型名&gt;","messages":[{"role":"user","content":"你好"}]}'<button class="copy" data-copy="codeCurl">复制</button></div>
+          </li>
+          <li>
+            <b>发一句话试试</b>
+            <p>能回就通了。报错先对照下面这张表，表里没有的把报错原文截图发给卖家。</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="card">
+        <h2>报错对照表</h2>
+        <table>
+          <thead>
+            <tr><th>看到什么</th><th>啥意思</th><th>怎么办</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>401 Invalid token</td><td>密钥不对，或者额度已经用完（用完会被自动停用）</td><td>先来本页查额度，额度为 0 就再拍一单</td></tr>
+            <tr><td>403 no access to model</td><td>模型名写错了，或者这枚密钥没开这个模型</td><td>照抄订单消息里的模型名，别自己改</td></tr>
+            <tr><td>429 rate limit</td><td>一分钟内调太多次</td><td>降频，单密钥 20 次/分钟</td></tr>
+            <tr><td>502 upstream</td><td>上游一时连不上</td><td>等一分钟重试；一直这样就找卖家</td></tr>
+            <tr><td>404 Not Found</td><td>接口地址写错了</td><td>地址要带上 <code>/ai</code> 前缀，结尾不要多写 <code>/v1/v1</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>几点提醒</h2>
+        <table>
+          <tbody>
+            <tr><td>额度口径</td><td>1 元 = 250 万 token，输入输出合计折算；用完自动停，不自动扣费、不自动续费。</td></tr>
+            <tr><td>限速</td><td>单密钥 20 次/分钟。别挂高并发批量跑，超了会被降速。</td></tr>
+            <tr><td>安全</td><td>密钥就是钱，别贴群里、别发给别人、别提交到公开仓库。</td></tr>
+            <tr><td>用途</td><td>仅限开发测试与自用，内容合规责任在使用方。</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer>
+        白饭摊 · 接口额度　|　<a href="/">回博客首页</a>
+      </footer>
+    </div>
+
+    <script>
+      // 额度换算：网关内部 quota 单位 = 1/500000 美元；当前定价 1 元 = 250 万 token，
+      // 即 ModelRatio = 0.0273972 quota/token。改价时只改下面这个 TOKENS_PER_USD。
+      //   TOKENS_PER_USD = 500000 / 0.0273972 = 18,250,000
+      const TOKENS_PER_USD = 18250000;
+      const PER_MINUTE = 20;
+
+      const $ = (id) => document.getElementById(id);
+      const addrEl = $('addr');
+      const keyEl = $('key');
+      const goBtn = $('go');
+
+      // 默认同域 /ai
+      addrEl.value = new URL('/ai', location.origin).pathname + (location.pathname.startsWith('/ai') ? '' : '');
+
+      const num = (n) => n.toLocaleString('zh-CN', { maximumFractionDigits: 0 });
+      const wan = (tok) => {
+        if (!isFinite(tok) || tok <= 0) return '0';
+        if (tok >= 1e8) return (tok / 1e8).toFixed(2).replace(/\.?0+$/, '') + ' 亿';
+        if (tok >= 1e4) return (tok / 1e4).toFixed(0) + ' 万';
+        return num(tok);
+      };
+
+      const baseOf = (raw) => {
+        let v = (raw || '').trim();
+        if (!v) v = '/ai';
+        v = v.replace(/\/+$/, '');
+        v = v.replace(/\/v1$/, '');
+        return v;
+      };
+
+      const setAlert = (msg, ok) => {
+        const el = $('alert');
+        if (!msg) { el.style.display = 'none'; return; }
+        el.textContent = msg;
+        el.className = 'alert' + (ok ? ' ok' : '');
+        el.style.display = 'block';
+      };
+
+      const setStatus = (kind, label) => {
+        const dot = $('dot');
+        dot.className = 'dot' + (kind === 'ok' ? '' : kind === 'warn' ? ' warn' : ' bad');
+        $('statusText').textContent = label;
+      };
+
+      const getJson = async (url, key) => {
+        const res = await fetch(url, {
+          headers: { Authorization: 'Bearer ' + key, Accept: 'application/json' },
+          cache: 'no-store',
+        });
+        let payload = null;
+        try { payload = await res.json(); } catch (_) {}
+        return { res, payload };
+      };
+
+      const query = async () => {
+        const base = baseOf(addrEl.value);
+        const key = keyEl.value.trim();
+        setAlert('');
+        if (!key) { setAlert('先把密钥填上。'); keyEl.focus(); return; }
+        if (!key.startsWith('sk-')) { setAlert('密钥一般以 sk- 开头，检查一下是不是复制少了。'); }
+
+        goBtn.disabled = true;
+        goBtn.textContent = '查询中…';
+        try {
+          const sub = await getJson(base + '/v1/dashboard/billing/subscription', key);
+          if (!sub.res.ok) {
+            const msg = (sub.payload && sub.payload.error && sub.payload.error.message) || ('HTTP ' + sub.res.status);
+            throw new Error(sub.res.status === 401 ? '密钥无效，或者额度已经用光被停用了。' : msg);
+          }
+          const hardUsd = Number(sub.payload && sub.payload.hard_limit_usd);
+          if (!isFinite(hardUsd)) throw new Error('接口返回里没有额度字段，地址可能填错了。');
+
+          let usedUsd = 0;
+          const usg = await getJson(base + '/v1/dashboard/billing/usage', key);
+          if (usg.res.ok && usg.payload && isFinite(Number(usg.payload.total_usage))) {
+            usedUsd = Number(usg.payload.total_usage) / 100; // 单位：美分
+          }
+
+          const remainTok = Math.max(0, hardUsd * TOKENS_PER_USD);
+          const usedTok = Math.max(0, usedUsd * TOKENS_PER_USD);
+          const totalTok = remainTok + usedTok;
+          const pct = totalTok > 0 ? (usedTok / totalTok) * 100 : 100;
+
+          $('remainTok').textContent = wan(remainTok);
+          $('usedTok').textContent = wan(usedTok);
+          $('totalTok').textContent = wan(totalTok);
+          $('perMin').textContent = String(PER_MINUTE);
+          $('bar').style.width = Math.min(100, Math.max(0, pct)).toFixed(2) + '%';
+          $('result').classList.add('show');
+
+          if (remainTok <= 0) {
+            setStatus('bad', '额度已用尽');
+            setAlert('额度用完了，接口会自动停用。想继续用就再拍一单。');
+          } else if (pct >= 85) {
+            setStatus('warn', '快用完了');
+            setAlert('剩余不多了，记得提前续。', true);
+          } else {
+            setStatus('ok', '正常');
+          }
+        } catch (err) {
+          $('result').classList.add('show');
+          setStatus('bad', '查询失败');
+          setAlert(String(err.message || err));
+        } finally {
+          goBtn.disabled = false;
+          goBtn.textContent = '查 询';
+        }
+      };
+
+      goBtn.addEventListener('click', query);
+      keyEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') query(); });
+      $('clear').addEventListener('click', () => {
+        keyEl.value = '';
+        $('result').classList.remove('show');
+        setAlert('');
+        keyEl.focus();
+      });
+
+      // 代码块复制
+      document.querySelectorAll('.copy').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const box = document.getElementById(btn.dataset.copy);
+          const clone = box.cloneNode(true);
+          const b = clone.querySelector('.copy');
+          if (b) b.remove();
+          const text = clone.textContent.replace(/\s+$/, '');
+          try {
+            await navigator.clipboard.writeText(text);
+            btn.textContent = '已复制';
+          } catch (_) {
+            btn.textContent = '手动选吧';
+          }
+          setTimeout(() => { btn.textContent = '复制'; }, 1600);
+        });
+      });
+
+      // 把代码块里的占位域名换成本站真实域名（页面公开，不写死）
+      const hostEl = document.querySelector('#codeCurl .host');
+      if (hostEl) hostEl.textContent = location.origin;
+
+      // 支持 /ai/?k=sk-xxx 直接带密钥进来（订单消息里的链接用得上）
+      const sp = new URLSearchParams(location.search);
+      const k = sp.get('k') || (location.hash.startsWith('#k=') ? location.hash.slice(3) : '');
+      if (k) {
+        keyEl.value = k;
+        if (location.search || location.hash) history.replaceState(null, '', location.pathname);
+        query();
+      }
+    </script>
+  </body>
+</html>
